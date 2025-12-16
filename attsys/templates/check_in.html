@@ -1,0 +1,9 @@
+<h2>{{ event.title }} Attendance</h2>
+
+<form method="post">
+  {% csrf_token %}
+  <input name="name" placeholder="Full Name" required><br>
+  <input type="email" name="email" placeholder="Email" required><br>
+  <input name="phone" placeholder="Phone Number" required><br>
+  <button type="submit">Submit</button>
+</form>

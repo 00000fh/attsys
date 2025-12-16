@@ -1,0 +1,23 @@
+<h2>{{ event.title }}</h2>
+<p>Venue: {{ event.venue }}</p>
+
+<form method="post" action="{% url 'toggle_event' event.id %}">
+  {% csrf_token %}
+  <button type="submit">
+    {% if event.is_active %}Stop Event{% else %}Start Event{% endif %}
+  </button>
+</form>
+
+{% if event.is_active %}
+<p>QR URL:</p>
+<p>
+{{ request.build_absolute_uri }}/check-in/{{ event.id }}/{{ event.qr_token }}/
+</p>
+{% endif %}
+
+<hr>
+
+<h3>Attendees ({{ attendees.count }})</h3>
+{% for a in attendees %}
+  <p>{{ a.name }} - {{ a.email }} - {{ a.attended_at }}</p>
+{% endfor %}
