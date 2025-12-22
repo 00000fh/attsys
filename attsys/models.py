@@ -28,7 +28,7 @@ class Event(models.Model):
         related_name='events'
     )
 
-    qr_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    check_in_token = models.UUIDField(null=True, blank=True, unique=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

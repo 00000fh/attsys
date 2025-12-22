@@ -9,4 +9,7 @@ urlpatterns = [
 
     # QR public page
     path('check-in/<int:event_id>/<uuid:token>/', views.check_in, name='check_in'),
+
+    # CSV export
+    path('event/<int:event_id>/export/', views.export_attendees_csv, name='export_attendees_csv'),
 ]

@@ -9,3 +9,83 @@
   <input type="time" name="end_time" required><br>
   <button type="submit">Create</button>
 </form>
+{% extends "base.html" %}
+
+{% block title %}Create Event | ATTSYS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="mb-4 text-center">Create New Event</h4>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Event Title</label>
+                        <input
+                            type="text"
+                            name="title"
+                            class="form-control"
+                            placeholder="Event Title"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Venue</label>
+                        <input
+                            type="text"
+                            name="venue"
+                            class="form-control"
+                            placeholder="Venue"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input
+                            type="date"
+                            name="date"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start Time</label>
+                            <input
+                                type="time"
+                                name="start_time"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">End Time</label>
+                            <input
+                                type="time"
+                                name="end_time"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            Create Event
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

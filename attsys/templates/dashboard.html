@@ -1,12 +1,44 @@
-<h2>Dashboard</h2>
-<a href="{% url 'create_event' %}">Create Event</a> |
-<a href="{% url 'logout' %}">Logout</a>
+{% extends 'base.html' %}
 
-<hr>
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
 
-{% for event in events %}
-  <p>
-    <b>{{ event.title }}</b> |
-    <a href="{% url 'event_detail' event.id %}">View</a>
-  </p>
-{% endfor %}
+    {% if user.role == 'ADMIN' %}
+    <h5>All Events (Admin View)</h5>
+    {% else %}
+        <h5>My Events</h5>
+    {% endif %}
+
+    <h2>Events</h2>
+    {% if user.role == 'STAFF' %}
+    <a href="{% url 'create_event' %}" class="btn btn-primary">
+        + Create Event
+    </a>
+    {% endif %}
+    
+</div>
+
+<div class="row">
+    {% for event in events %}
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ event.title }}</h5>
+                <p class="card-text">{{ event.venue }}</p>
+
+                {% if event.is_active %}
+                    <span class="badge bg-success">ACTIVE</span>
+                {% else %}
+                    <span class="badge bg-secondary">INACTIVE</span>
+                {% endif %}
+
+                <a href="{% url 'event_detail' event.id %}" class="btn btn-sm btn-outline-dark mt-2">
+                    View
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+

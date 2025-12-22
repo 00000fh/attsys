@@ -1,23 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
 <h2>{{ event.title }}</h2>
-<p>Venue: {{ event.venue }}</p>
+<p class="text-muted">{{ event.venue }}</p>
 
-<form method="post" action="{% url 'toggle_event' event.id %}">
-  {% csrf_token %}
-  <button type="submit">
-    {% if event.is_active %}Stop Event{% else %}Start Event{% endif %}
-  </button>
-</form>
+<a href="{% url 'export_attendees_csv' event.id %}"
+   class="btn btn-outline-primary mb-3">
+   Export CSV
+</a>
 
-{% if event.is_active %}
-<p>QR URL:</p>
 <p>
-{{ request.build_absolute_uri }}/check-in/{{ event.id }}/{{ event.qr_token }}/
+    Status:
+    {% if event.is_active %}
+        <span class="badge bg-success">ACTIVE</span>
+    {% else %}
+        <span class="badge bg-secondary">INACTIVE</span>
+    {% endif %}
 </p>
+
+{% if request.user.role == 'STAFF' %}
+<form method="post" action="{% url 'toggle_event' event.id %}">
+    {% csrf_token %}
+    {% if event.is_active %}
+        <button class="btn btn-danger">Stop Event</button>
+    {% else %}
+        <button class="btn btn-success">Start Event</button>
+    {% endif %}
+</form>
 {% endif %}
+
+{% if event.is_active and qr_image %}
+<div class="alert alert-info text-center">
+    <p><strong>Scan to Check In</strong></p>
+    <img src="data:image/png;base64,{{ qr_image }}" alt="QR Code">
+    <p class="mt-2 small text-muted">
+        {{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token %}
+    </p>
+</div>
+{% endif %}
+
+<p>Last Check-in:
+{% if attendees.first %}
+    {{ attendees.first.attended_at }}
+{% else %}
+    No one yet
+{% endif %}
+</p>
 
 <hr>
 
-<h3>Attendees ({{ attendees.count }})</h3>
-{% for a in attendees %}
-  <p>{{ a.name }} - {{ a.email }} - {{ a.attended_at }}</p>
-{% endfor %}
+<h4>Attendees ({{ attendees.count }})</h4>
+<ul class="list-group">
+    {% for a in attendees %}
+        <li class="list-group-item">
+            {{ a.name }} — {{ a.email }}
+        </li>
+    {% empty %}
+        <li class="list-group-item text-muted">No attendees yet</li>
+    {% endfor %}
+</ul>
+{% endblock %}
