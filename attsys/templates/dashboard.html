@@ -7,6 +7,9 @@
     <h5>All Events (Admin View)</h5>
     {% else %}
         <h5>My Events</h5>
+        <div class="alert alert-info">
+            You are viewing all system-wide statistics.
+        </div>
     {% endif %}
 
     <h2>Events</h2>
@@ -16,6 +19,35 @@
     </a>
     {% endif %}
     
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6>Total Events</h6>
+                <h3>{{ total_events }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6>Total Attendees</h6>
+                <h3>{{ total_attendees }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6>Active Events</h6>
+                <h3>{{ active_events }}</h3>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row">

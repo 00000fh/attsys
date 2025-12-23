@@ -18,6 +18,12 @@
     {% endif %}
 </p>
 
+{% if user.role == 'ADMIN' %}
+<a href="{% url 'assign_staff' event.id %}" class="btn btn-warning mb-3">
+    Assign Staff
+</a>
+{% endif %}
+
 {% if request.user.role == 'STAFF' %}
 <form method="post" action="{% url 'toggle_event' event.id %}">
     {% csrf_token %}
@@ -60,3 +66,51 @@
     {% endfor %}
 </ul>
 {% endblock %}
+
+<hr>
+<h4>Feedback</h4>
+
+<p>
+  Average Rating:
+  <strong>{{ avg_rating|default:"No ratings yet" }}</strong>
+</p>
+
+{% for f in feedbacks %}
+<div class="card mb-2">
+  <div class="card-body">
+    <strong>{{ f.name }}</strong> — {{ f.rating }}★<br>
+    <small>{{ f.submitted_at }}</small>
+    <p class="mt-2">{{ f.comment }}</p>
+  </div>
+</div>
+{% empty %}
+<p>No feedback yet.</p>
+{% endfor %}
+
+
+<canvas id="attendanceChart" height="100"></canvas>
+
+<script>
+const ctx = document.getElementById('attendanceChart');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [
+            {% for row in attendance_by_hour %}
+                "{{ row.hour|date:'H:i' }}",
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Check-ins',
+            data: [
+                {% for row in attendance_by_hour %}
+                    {{ row.count }},
+                {% endfor %}
+            ],
+            borderWidth: 2,
+            fill: false
+        }]
+    }
+});
+</script>

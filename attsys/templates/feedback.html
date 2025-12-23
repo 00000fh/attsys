@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="card mx-auto" style="max-width: 500px;">
+  <div class="card-body">
+    <h4 class="mb-3">Event Feedback</h4>
+    <p><strong>{{ event.title }}</strong></p>
+
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <input class="form-control mb-2" name="name" placeholder="Your Name" required>
+      <input class="form-control mb-2" name="email" placeholder="Email" required>
+
+      <label class="form-label">Rating</label>
+      <select class="form-select mb-2" name="rating" required>
+        <option value="">Choose</option>
+        <option value="5">★★★★★ Excellent</option>
+        <option value="4">★★★★☆ Good</option>
+        <option value="3">★★★☆☆ Average</option>
+        <option value="2">★★☆☆☆ Poor</option>
+        <option value="1">★☆☆☆☆ Bad</option>
+      </select>
+
+      <textarea class="form-control mb-3" name="comment" placeholder="Comments (optional)"></textarea>
+
+      <button class="btn btn-primary w-100">Submit Feedback</button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
