@@ -125,9 +125,6 @@ def event_detail(request, event_id):
 
 @login_required
 def toggle_event(request, event_id):
-    if not request.user.is_active:
-        return redirect('login')
-
     if request.user.role != 'STAFF':
         return HttpResponseForbidden()
 
@@ -138,7 +135,7 @@ def toggle_event(request, event_id):
         event.check_in_token = uuid.uuid4()
     else:
         event.is_active = False
-        event.check_in_token = None
+        event.check_in_token = uuid.uuid4()  # keep token valid
 
     event.save()
     return redirect('event_detail', event_id=event.id)
