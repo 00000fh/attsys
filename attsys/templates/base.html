@@ -2,70 +2,465 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Attendance System{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Bootstrap -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Attendance Management System{% endblock %}</title>
+    
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Base Styles -->
+    <style>
+        :root {
+            --primary: #21252;
+            --primary-light: rgba(13, 110, 253, 0.1);
+            --secondary: #6c757d;
+            --success: #198754;
+            --success-light: rgba(25, 135, 84, 0.1);
+            --warning: #fd7e14;
+            --warning-light: rgba(253, 126, 20, 0.1);
+            --info: #0dcaf0;
+            --info-light: rgba(13, 202, 240, 0.1);
+            --purple: #6f42c1;
+            --purple-light: rgba(111, 66, 193, 0.1);
+            --dark: #212529;
+            --light: #f8f9fa;
+            --gray-50: #f8f9fa;
+            --gray-100: #f1f3f5;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--gray-800);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            position: sticky;  /* This is the key property */
+            top: 0;
+            z-index: 1030;  /* Ensure it stays above other content */
+            transition: all 0.3s ease;
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--dark) !important;
+        }
+
+        .navbar-brand i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--gray-700) !important;
+            padding: 0.5rem 1rem !important;
+            margin: 0 0.25rem;
+            border-radius: var(--border-radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: var(--gray-100);
+            color: var(--dark) !important;
+        }
+
+        .nav-link.active {
+            background: var(--primary-light);
+            color: var(--primary) !important;
+            font-weight: 600;
+        }
+
+        .nav-link i {
+            margin-right: 8px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--gray-200);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        .btn-logout {
+            background: var(--gray-100);
+            border: 1px solid var(--gray-300);
+            color: var(--gray-700);
+            padding: 0.375rem 1rem;
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout:hover {
+            background: var(--gray-200);
+            color: var(--dark);
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+        }
+
+        .alert {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid transparent;
+        }
+
+        .alert-success {
+            background: var(--success-light);
+            color: #0f5132;
+            border-left-color: var(--success);
+        }
+
+        .alert-error, .alert-danger {
+            background: rgba(220, 53, 69, 0.1);
+            color: #842029;
+            border-left-color: #dc3545;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: #664d03;
+            border-left-color: #ffc107;
+        }
+
+        .alert-info {
+            background: rgba(13, 202, 240, 0.1);
+            color: #055160;
+            border-left-color: #0dcaf0;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        .footer {
+            background: var(--gray-900);
+            color: var(--gray-400);
+            padding: 2rem 0;
+            margin-top: auto;
+        }
+
+        .footer a {
+            color: var(--gray-400);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        .copyright {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .footer-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .navbar-nav {
+                padding: 1rem 0;
+            }
+            
+            .nav-link {
+                padding: 0.75rem 1rem !important;
+                margin: 0.125rem 0;
+            }
+            
+            .user-info {
+                border-top: 1px solid var(--gray-200);
+                padding-top: 1rem;
+                margin-top: 1rem;
+            }
+        }
+
+        /* Animation for alerts */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Base card styling */
+        .card {
+            border-radius: var(--border-radius);
+            border: 1px solid var(--gray-200);
+            background: white;
+            box-shadow: var(--box-shadow);
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            font-weight: 600;
+        }
+
+        /* Base button styles */
+        .btn {
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            padding: 0.5rem 1.5rem;
+        }
+
+        /* Base form controls */
+        .form-control, .form-select {
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--gray-300);
+            padding: 0.5rem 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Base table styling */
+        .table th {
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom-width: 2px;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-light">
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="{% url 'dashboard' %}">ATTSYS</a>
-
-        <div class="navbar-nav ms-auto align-items-center">
-
-            {% if user.role == 'ADMIN' %}
-                <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
-            {% else %}
-                <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-            {% endif %}
-
-            {% if user.is_authenticated %}
-                {% if user.role == 'ADMIN' %}
-                    <a class="nav-link" href="{% url 'manage_staff' %}">
-                        Manage Staff
-                    </a>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
+                <i class="bi bi-clipboard-check-fill"></i>
+                ATTSYS
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
+                        {% if user.role == 'ADMIN' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" 
+                                   href="{% url 'dashboard' %}">
+                                    <i class="bi bi-speedometer2"></i>Dashboard
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                                   href="{% url 'dashboard' %}">
+                                    <i class="bi bi-speedometer2"></i>Dashboard
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% if user.role == 'ADMIN' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'manage_staff' %}active{% endif %}" 
+                                   href="{% url 'manage_staff' %}">
+                                    <i class="bi bi-people"></i>Manage Staff
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                    {% endif %}
+                </ul>
+                
+                {% if user.is_authenticated %}
+                <div class="navbar-nav align-items-center ms-auto">
+                    <div class="nav-item">
+                        <div class="user-info">
+                            <div class="text-end me-3">
+                                <div class="user-name">{{ user.username }}</div>
+                                <div class="user-role">
+                                    {% if user.role == 'ADMIN' %}
+                                    <span class="badge bg-primary">ADMIN</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">STAFF</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="user-avatar">
+                                {{ user.username|first|upper }}
+                            </div>
+                            <form method="post" action="{% url 'logout' %}" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-logout">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
-                {% if user.role == 'ADMIN' %}
-                    <span class="badge bg-warning text-dark me-3">
-                        ADMIN
-                    </span>
-                {% else %}
-                    <span class="badge bg-info text-dark me-3">
-                        STAFF
-                    </span>
-                {% endif %}
-
-                <form method="post" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                        Logout
-                    </button>
-                </form>
-            {% endif %}
-        </div>
-    </div>
-</nav>
-
-<div class="container mt-4">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        {% endfor %}
-    {% endif %}
+        </div>
+    </nav>
 
-    {% block content %}{% endblock %}
-</div>
+    <!-- Main Content -->
+    <main>
+        <div class="container-fluid px-4">
+            <!-- Messages/Alerts -->
+            {% if messages %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                        <div class="d-flex align-items-center">
+                            {% if message.tags == 'success' %}
+                                <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                <i class="bi bi-exclamation-circle-fill me-3 fs-4"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                            {% else %}
+                                <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <h6 class="fw-semibold mb-1">
+                                    {% if message.tags == 'success' %}Success!
+                                    {% elif message.tags == 'error' or message.tags == 'danger' %}Error!
+                                    {% elif message.tags == 'warning' %}Warning!
+                                    {% else %}Info
+                                    {% endif %}
+                                </h6>
+                                <p class="mb-0">{{ message }}</p>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
-<!-- Bootstrap JS (for alerts, dropdowns later) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+        </div>
+    </main>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h6 class="footer-title">Attendance Management System</h6>
+                    <p class="mb-0 fs-7 opacity-75">
+                        Professional event management and attendance tracking solution.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <div class="copyright">
+                        © {% now "Y" %} ATTSYS. All rights reserved.
+                    </div>
+                    <div class="mt-2 fs-8 opacity-75">
+                        v1.0.0 | Built with Django & Bootstrap
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Base Scripts -->
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+
+        // Add active class to current page
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const currentPath = window.location.pathname;
+            
+            navLinks.forEach(link => {
+                const linkPath = new URL(link.href).pathname;
+                if (currentPath === linkPath || 
+                    (currentPath.startsWith(linkPath) && linkPath !== '/')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

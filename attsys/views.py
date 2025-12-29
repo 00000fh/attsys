@@ -7,14 +7,14 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Event, Attendee, Feedback
+from .models import Event, Attendee, Feedback, Application
 from django.http import HttpResponseForbidden
 from django.db import IntegrityError
 from django.contrib import messages
 from .models import User
-from django.utils.timezone import now
+from django.utils.timezone import now, timedelta
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Q
 from django.db.models.functions import TruncHour
 
 
@@ -30,12 +30,31 @@ def dashboard(request):
         total_events = Event.objects.count()
         total_attendees = Attendee.objects.count()
         total_staff = User.objects.filter(role='STAFF').count()
-        events = Event.objects.order_by('-created_at')[:5]
+        total_feedback = Feedback.objects.count()
+        total_applications = Application.objects.count()
+        
+        # Today's check-ins
+        today_checkins = Attendee.objects.filter(
+            attended_at__date=timezone.now().date()
+        ).count()
+        
+        # Active events
+        active_events = Event.objects.filter(is_active=True).count()
+        
+        # Average rating
+        avg_rating = Feedback.objects.aggregate(Avg('rating'))['rating__avg']
+        
+        events = Event.objects.order_by('-created_at')[:10]
 
         return render(request, 'admin_dashboard.html', {
             'total_events': total_events,
             'total_attendees': total_attendees,
             'total_staff': total_staff,
+            'total_feedback': total_feedback,
+            'total_applications': total_applications,
+            'today_checkins': today_checkins,
+            'active_events': active_events,
+            'avg_rating': avg_rating,
             'events': events
         })
 

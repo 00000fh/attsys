@@ -1,116 +1,1290 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<h2>{{ event.title }}</h2>
-<p class="text-muted">{{ event.venue }}</p>
+{% block title %}{{ event.title }} | ATTSYS{% endblock %}
 
-<a href="{% url 'export_attendees_csv' event.id %}"
-   class="btn btn-outline-primary mb-3">
-   Export CSV
-</a>
+{% block extra_css %}
+<style>
+    /* Event Detail Page Styles */
+    .event-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .page-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .event-title {
+        color: var(--dark);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .event-meta {
+        color: var(--gray-600);
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .event-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .badge-active {
+        background: rgba(25, 135, 84, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(25, 135, 84, 0.2);
+    }
+    
+    .badge-inactive {
+        background: var(--gray-100);
+        color: var(--gray-600);
+        border: 1px solid var(--gray-200);
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+    
+    .btn-outline {
+        background: white;
+        border-color: var(--gray-300);
+        color: var(--gray-700);
+    }
+    
+    .btn-outline:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-400);
+        transform: translateY(-2px);
+    }
+    
+    .btn-primary {
+        background: var(--dark);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: var(--gray-800);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-success {
+        background: var(--success);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #157347;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
+    }
+    
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #bb2d3b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+    }
+    
+    .btn-warning {
+        background: var(--warning);
+        color: var(--dark);
+    }
+    
+    .btn-warning:hover {
+        background: #fd9843;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(253, 126, 20, 0.2);
+    }
+    
+    /* QR Code Section - Compact */
+    .qr-section {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .qr-title {
+        color: var(--dark);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .qr-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .qr-image-container {
+        position: relative;
+        flex-shrink: 0;
+    }
+    
+    .qr-image {
+        width: 180px;
+        height: 180px;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid var(--gray-200);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        object-fit: contain;
+    }
+    
+    .qr-image:hover {
+        transform: scale(1.03);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .qr-info {
+        flex: 1;
+        text-align: left;
+    }
+    
+    .qr-info-title {
+        font-weight: 500;
+        color: var(--dark);
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+    }
+    
+    /* Compact URL Display */
+    .compact-url {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        word-break: break-all;
+        line-height: 1.4;
+        margin-bottom: 1rem;
+    }
+    
+    .compact-url span {
+        color: var(--primary);
+        font-weight: 500;
+    }
+    
+    .qr-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    
+    .qr-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .qr-btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .qr-btn-primary:hover {
+        background: #0b5ed7;
+        transform: translateY(-2px);
+    }
+    
+    .qr-btn-secondary {
+        background: white;
+        color: var(--gray-700);
+        border-color: var(--gray-300);
+    }
+    
+    .qr-btn-secondary:hover {
+        background: var(--gray-50);
+        transform: translateY(-2px);
+    }
+    
+    .qr-btn-dark {
+        background: var(--dark);
+        color: white;
+    }
+    
+    .qr-btn-dark:hover {
+        background: var(--gray-800);
+        transform: translateY(-2px);
+    }
+    
+    /* QR Code Modal - LARGE FOR PROJECTOR */
+    .qr-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1100;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    
+    .qr-modal.active {
+        display: flex;
+        opacity: 1;
+    }
+    
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        max-width: 90vw;
+        max-height: 90vh;
+        position: relative;
+        animation: modalFadeIn 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--gray-200);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s ease;
+        z-index: 1101;
+    }
+    
+    .modal-close:hover {
+        background: var(--gray-300);
+        transform: scale(1.1);
+    }
+    
+    /* LARGE QR Code for Projector */
+    .modal-qr-image {
+        max-width: 80vmin; /* 80% of viewport smaller dimension */
+        max-height: 60vmin; /* 60% of viewport smaller dimension */
+        min-width: 400px; /* Minimum size */
+        min-height: 400px; /* Minimum size */
+        width: auto;
+        height: auto;
+        margin: 1rem auto;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        border: 3px solid var(--gray-300);
+        object-fit: contain;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Fullscreen Mode */
+    .fullscreen-btn {
+        position: absolute;
+        top: 1rem;
+        right: 4rem;
+        background: var(--gray-200);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s ease;
+        z-index: 1101;
+    }
+    
+    .fullscreen-btn:hover {
+        background: var(--gray-300);
+        transform: scale(1.1);
+    }
+    
+    .qr-modal.fullscreen .modal-content {
+        max-width: 100vw;
+        max-height: 100vh;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        padding: 0;
+        justify-content: center;
+    }
+    
+    .qr-modal.fullscreen .modal-qr-image {
+        max-width: 90vmin;
+        max-height: 90vmin;
+        min-width: 500px;
+        min-height: 500px;
+        border-width: 4px;
+        padding: 2rem;
+    }
+    
+    .qr-modal.fullscreen .modal-close,
+    .qr-modal.fullscreen .fullscreen-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+    
+    .qr-modal.fullscreen .modal-close:hover,
+    .qr-modal.fullscreen .fullscreen-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* URL Display in Modal */
+    .modal-url-section {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--gray-200);
+        width: 100%;
+        max-width: 600px;
+    }
+    
+    .modal-url {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        font-size: 0.9rem;
+        color: var(--gray-800);
+        word-break: break-all;
+        line-height: 1.4;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .modal-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 140px;
+    }
+    
+    .modal-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .qr-modal.fullscreen .modal-btn {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .qr-modal.fullscreen .modal-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+    
+    /* Toast Notification */
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--success);
+        color: white;
+        padding: 0.75rem 1.25rem;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 1200;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .toast i {
+        font-size: 1.1rem;
+    }
+    
+    /* Stats Section */
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-title {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark);
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-subtitle {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+    }
+    
+    /* Content Sections */
+    .content-section {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section-header {
+        background: var(--gray-50);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .section-title {
+        color: var(--dark);
+        font-weight: 600;
+        margin: 0;
+        font-size: 1rem;
+    }
+    
+    .section-body {
+        padding: 1.5rem;
+    }
+    
+    /* Attendees List */
+    .attendees-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .attendee-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.875rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    
+    .attendee-item:last-child {
+        border-bottom: none;
+    }
+    
+    .attendee-info {
+        flex: 1;
+    }
+    
+    .attendee-name {
+        font-weight: 500;
+        color: var(--dark);
+        margin-bottom: 0.25rem;
+    }
+    
+    .attendee-contact {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+    
+    .attendee-time {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        text-align: right;
+    }
+    
+    /* Feedback Section */
+    .feedback-item {
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    
+    .feedback-item:last-child {
+        border-bottom: none;
+    }
+    
+    .feedback-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    
+    .feedback-author {
+        font-weight: 500;
+        color: var(--dark);
+    }
+    
+    .feedback-time {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+    }
+    
+    .feedback-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-top: 0.5rem;
+    }
+    
+    .rating-star {
+        color: #ffc107;
+    }
+    
+    .rating-value {
+        font-weight: 600;
+        margin-left: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .feedback-comment {
+        color: var(--gray-700);
+        line-height: 1.5;
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Chart Section */
+    .chart-container {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .chart-title {
+        color: var(--dark);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+    
+    .empty-state {
+        padding: 2rem 1rem;
+        text-align: center;
+        color: var(--gray-600);
+    }
+    
+    .empty-state i {
+        font-size: 1.5rem;
+        color: var(--gray-300);
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .stats-section {
+            grid-template-columns: 1fr;
+        }
+        
+        .event-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .qr-content {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .qr-info {
+            text-align: center;
+        }
+        
+        .qr-image {
+            width: 160px;
+            height: 160px;
+        }
+        
+        .modal-qr-image {
+            min-width: 300px;
+            min-height: 300px;
+        }
+        
+        .modal-actions {
+            flex-direction: column;
+        }
+        
+        .modal-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .qr-actions {
+            justify-content: center;
+        }
+        
+        .qr-btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .qr-section {
+            padding: 1rem;
+        }
+        
+        .modal-content {
+            padding: 1rem;
+        }
+        
+        .qr-actions {
+            flex-direction: column;
+        }
+        
+        .qr-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .modal-qr-image {
+            min-width: 250px;
+            min-height: 250px;
+            padding: 1rem;
+        }
+    }
+    
+    /* For very large screens / projector */
+    @media (min-width: 1920px) {
+        .modal-qr-image {
+            max-width: 1000px;
+            max-height: 1000px;
+        }
+    }
+</style>
 
-<p>
-    Status:
-    {% if event.is_active %}
-        <span class="badge bg-success">ACTIVE</span>
-    {% else %}
-        <span class="badge bg-secondary">INACTIVE</span>
-    {% endif %}
-</p>
-
-{% if user.role == 'ADMIN' %}
-<a href="{% url 'assign_staff' event.id %}" class="btn btn-warning mb-3">
-    Assign Staff
-</a>
-{% endif %}
-
-{% if request.user.role == 'STAFF' %}
-<form method="post" action="{% url 'toggle_event' event.id %}">
-    {% csrf_token %}
-    {% if event.is_active %}
-        <button class="btn btn-danger">Stop Event</button>
-    {% else %}
-        <button class="btn btn-success">Start Event</button>
-    {% endif %}
-</form>
-{% endif %}
-
-{% if event.is_active and qr_image %}
-<div class="alert alert-info text-center">
-    <p><strong>Scan to Check In</strong></p>
-    <img src="data:image/png;base64,{{ qr_image }}" alt="QR Code">
-    <p class="mt-2 small text-muted">
-        {{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token %}
-    </p>
-</div>
-{% endif %}
-
-<p>Last Check-in:
-{% if attendees.first %}
-    {{ attendees.first.attended_at }}
-{% else %}
-    No one yet
-{% endif %}
-</p>
-
-<hr>
-
-<h4>Attendees ({{ attendees.count }})</h4>
-<ul class="list-group">
-    {% for a in attendees %}
-        <li class="list-group-item">
-            {{ a.name }} — {{ a.email }}
-        </li>
-    {% empty %}
-        <li class="list-group-item text-muted">No attendees yet</li>
-    {% endfor %}
-</ul>
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
-<hr>
-<h4>Feedback</h4>
+{% block content %}
+<div class="event-detail-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="event-title">{{ event.title }}</h1>
+                <div class="event-meta">
+                    <span class="badge {{ event.is_active|yesno:'badge-active,badge-inactive' }} event-badge">
+                        {{ event.is_active|yesno:'ACTIVE,INACTIVE' }}
+                    </span>
+                    <span>
+                        <i class="bi bi-geo-alt me-1"></i>{{ event.venue }}
+                    </span>
+                    <span>
+                        <i class="bi bi-calendar me-1"></i>{{ event.date|date:"F d, Y" }}
+                    </span>
+                    <span>
+                        <i class="bi bi-clock me-1"></i>{{ event.start_time|time:"g:i A" }} - {{ event.end_time|time:"g:i A" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<p>
-  Average Rating:
-  <strong>{{ avg_rating|default:"No ratings yet" }}</strong>
-</p>
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <a href="{% url 'export_attendees_csv' event.id %}" 
+           class="btn-action btn-outline">
+            <i class="bi bi-download"></i>
+            Export CSV
+        </a>
+        
+        {% if user.role == 'ADMIN' %}
+        <a href="{% url 'assign_staff' event.id %}" 
+           class="btn-action btn-warning">
+            <i class="bi bi-people"></i>
+            Assign Staff
+        </a>
+        {% endif %}
+        
+        {% if request.user.role == 'STAFF' %}
+        <form method="post" action="{% url 'toggle_event' event.id %}" class="m-0">
+            {% csrf_token %}
+            {% if event.is_active %}
+                <button type="submit" class="btn-action btn-danger">
+                    <i class="bi bi-stop-circle"></i>
+                    Stop Event
+                </button>
+            {% else %}
+                <button type="submit" class="btn-action btn-success">
+                    <i class="bi bi-play-circle"></i>
+                    Start Event
+                </button>
+            {% endif %}
+        </form>
+        {% endif %}
+        
+        <a href="{% url 'dashboard' %}" class="btn-action btn-outline">
+            <i class="bi bi-arrow-left"></i>
+            Back to Dashboard
+        </a>
+    </div>
 
-{% for f in feedbacks %}
-<div class="card mb-2">
-  <div class="card-body">
-    <strong>{{ f.name }}</strong> — {{ f.rating }}★<br>
-    <small>{{ f.submitted_at }}</small>
-    <p class="mt-2">{{ f.comment }}</p>
-  </div>
+    <!-- QR Code Section - Compact -->
+    {% if event.is_active and qr_image %}
+    <div class="qr-section">
+        <h3 class="qr-title">Event Check-in</h3>
+        
+        <div class="qr-content">
+            <div class="qr-image-container">
+                <img src="data:image/png;base64,{{ qr_image }}" 
+                     alt="Check-in QR Code" 
+                     class="qr-image"
+                     id="qrImage">
+            </div>
+            
+            <div class="qr-info">
+                <div class="qr-info-title">Scan to check in</div>
+                
+                <!-- Compact URL Display -->
+                <div class="compact-url">
+                    {{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token %}
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="qr-actions">
+                    <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token }}" 
+                       target="_blank" 
+                       class="qr-btn qr-btn-primary">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        Open Link
+                    </a>
+                    <button class="qr-btn qr-btn-secondary" onclick="copyToClipboard()">
+                        <i class="bi bi-clipboard"></i>
+                        Copy URL
+                    </button>
+                    <button class="qr-btn qr-btn-dark" onclick="openQRModal()">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                        Show for Projector
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <p class="text-muted fs-8 mt-2">
+            <i class="bi bi-info-circle me-1"></i>
+            Click "Show for Projector" to display a large QR code suitable for projection. 
+            <strong>Use the fullscreen button in the modal for projector mode.</strong>
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- QR Code Modal - LARGE FOR PROJECTOR -->
+    <div class="qr-modal" id="qrModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeQRModal()">
+                <i class="bi bi-x"></i>
+            </button>
+            
+            <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen (F)">
+                <i class="bi bi-fullscreen" id="fullscreenIcon"></i>
+            </button>
+            
+            <h4 class="mb-3">Projector QR Code</h4>
+            <p class="text-muted fs-7 mb-4">Display this for attendees to scan from their seats</p>
+            
+            <img src="data:image/png;base64,{{ qr_image }}" 
+                 alt="Check-in QR Code" 
+                 class="modal-qr-image"
+                 id="modalQrImage">
+            
+            <div class="modal-url-section">
+                <div class="modal-url">
+                    {{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token %}
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="modal-btn qr-btn-primary" onclick="downloadQR()">
+                        <i class="bi bi-download"></i>
+                        Download QR
+                    </button>
+                    <button class="modal-btn qr-btn-secondary" onclick="copyToClipboard()">
+                        <i class="bi bi-clipboard"></i>
+                        Copy URL
+                    </button>
+                    <button class="modal-btn qr-btn-dark" onclick="closeQRModal()">
+                        <i class="bi bi-x-circle"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="bi bi-check-circle"></i>
+        <span id="toastMessage">Copied to clipboard!</span>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-section">
+        <div class="stat-card">
+            <div class="stat-title">Total Attendees</div>
+            <div class="stat-value">{{ attendees.count }}</div>
+            <div class="stat-subtitle">Checked in to this event</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-title">Average Rating</div>
+            <div class="stat-value">
+                {% if avg_rating %}{{ avg_rating|floatformat:1 }}{% else %}0.0{% endif %}
+            </div>
+            <div class="stat-subtitle">Out of 5.0 stars</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-title">Feedback Received</div>
+            <div class="stat-value">{{ feedbacks.count }}</div>
+            <div class="stat-subtitle">Total feedback submissions</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-title">Last Check-in</div>
+            <div class="stat-value">
+                {% if attendees.first %}
+                {{ attendees.first.attended_at|date:"g:i A" }}
+                {% else %}
+                —
+                {% endif %}
+            </div>
+            <div class="stat-subtitle">
+                {% if attendees.first %}
+                {{ attendees.first.attended_at|date:"M d" }}
+                {% else %}
+                No check-ins yet
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Chart -->
+    {% if attendance_by_hour %}
+    <div class="chart-container">
+        <h3 class="chart-title">Check-in Activity</h3>
+        <canvas id="attendanceChart" height="100"></canvas>
+    </div>
+    {% endif %}
+
+    <!-- Main Content Sections -->
+    <div class="row">
+        <!-- Attendees List -->
+        <div class="col-lg-6 mb-4">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-people me-2"></i>
+                        Attendees ({{ attendees.count }})
+                    </h3>
+                </div>
+                <div class="section-body">
+                    {% if attendees %}
+                    <ul class="attendees-list">
+                        {% for a in attendees %}
+                        <li class="attendee-item">
+                            <div class="attendee-info">
+                                <div class="attendee-name">{{ a.name }}</div>
+                                <div class="attendee-contact">{{ a.email }}</div>
+                            </div>
+                            <div class="attendee-time">
+                                {{ a.attended_at|date:"g:i A" }}<br>
+                                <small>{{ a.attended_at|date:"M d" }}</small>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-person-x"></i>
+                        <p class="mt-2 mb-0">No attendees have checked in yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="col-lg-6 mb-4">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-chat-left-text me-2"></i>
+                        Feedback
+                    </h3>
+                </div>
+                <div class="section-body">
+                    {% if feedbacks %}
+                        {% for f in feedbacks %}
+                        <div class="feedback-item">
+                            <div class="feedback-header">
+                                <div>
+                                    <div class="feedback-author">{{ f.name }}</div>
+                                    <div class="feedback-time">
+                                        {{ f.submitted_at|date:"F d, Y g:i A" }}
+                                    </div>
+                                </div>
+                                <div class="feedback-rating">
+                                    {% for i in "12345"|make_list %}
+                                    <i class="bi bi-star-fill rating-star {% if forloop.counter <= f.rating %}text-warning{% else %}text-gray-300{% endif %}"></i>
+                                    {% endfor %}
+                                    <span class="rating-value">{{ f.rating }}/5</span>
+                                </div>
+                            </div>
+                            {% if f.comment %}
+                            <div class="feedback-comment">{{ f.comment }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-chat"></i>
+                        <p class="mt-2 mb-0">No feedback submitted yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-{% empty %}
-<p>No feedback yet.</p>
-{% endfor %}
+{% endblock %}
 
-
-<canvas id="attendanceChart" height="100"></canvas>
-
+{% block extra_js %}
 <script>
-const ctx = document.getElementById('attendanceChart');
-
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [
-            {% for row in attendance_by_hour %}
-                "{{ row.hour|date:'H:i' }}",
-            {% endfor %}
-        ],
-        datasets: [{
-            label: 'Check-ins',
-            data: [
+    document.addEventListener('DOMContentLoaded', function() {
+        // QR Code Modal Functions
+        const qrModal = document.getElementById('qrModal');
+        const qrImage = document.getElementById('qrImage');
+        const fullscreenIcon = document.getElementById('fullscreenIcon');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        // Open QR modal (window mode first)
+        window.openQRModal = function() {
+            qrModal.classList.add('active');
+            qrModal.classList.remove('fullscreen'); // Ensure not in fullscreen
+            document.body.style.overflow = 'hidden';
+            fullscreenIcon.className = 'bi bi-fullscreen'; // Reset icon
+        };
+        
+        // Close QR modal
+        window.closeQRModal = function() {
+            qrModal.classList.remove('active');
+            qrModal.classList.remove('fullscreen');
+            document.body.style.overflow = '';
+            fullscreenIcon.className = 'bi bi-fullscreen';
+        };
+        
+        // Toggle fullscreen mode
+        window.toggleFullscreen = function() {
+            qrModal.classList.toggle('fullscreen');
+            if (qrModal.classList.contains('fullscreen')) {
+                fullscreenIcon.className = 'bi bi-fullscreen-exit';
+                showToast('Projector mode enabled. Press F or ESC to exit.');
+            } else {
+                fullscreenIcon.className = 'bi bi-fullscreen';
+                showToast('Exited projector mode');
+            }
+        };
+        
+        // Open modal when clicking QR code (window mode)
+        if (qrImage) {
+            qrImage.addEventListener('click', function() {
+                qrModal.classList.add('active');
+                qrModal.classList.remove('fullscreen');
+                document.body.style.overflow = 'hidden';
+                fullscreenIcon.className = 'bi bi-fullscreen';
+            });
+        }
+        
+        // Close modal when clicking outside (only in window mode)
+        qrModal.addEventListener('click', function(e) {
+            if (e.target === qrModal && !qrModal.classList.contains('fullscreen')) {
+                closeQRModal();
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Escape to close modal or exit fullscreen
+            if (e.key === 'Escape' && qrModal.classList.contains('active')) {
+                if (qrModal.classList.contains('fullscreen')) {
+                    toggleFullscreen(); // Exit fullscreen first
+                } else {
+                    closeQRModal(); // Close modal if not in fullscreen
+                }
+            }
+            
+            // F key to toggle fullscreen (only when modal is open)
+            if ((e.key === 'f' || e.key === 'F') && qrModal.classList.contains('active')) {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+            
+            // D key to download QR
+            if ((e.key === 'd' || e.key === 'D') && qrModal.classList.contains('active')) {
+                e.preventDefault();
+                downloadQR();
+            }
+            
+            // C key to copy URL
+            if ((e.key === 'c' || e.key === 'C') && qrModal.classList.contains('active')) {
+                e.preventDefault();
+                copyToClipboard();
+            }
+        });
+        
+        // Copy to clipboard function
+        window.copyToClipboard = function() {
+            const url = '{{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token %}';
+            
+            // Try modern clipboard API first
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(function() {
+                    showToast('URL copied to clipboard');
+                }).catch(function(err) {
+                    fallbackCopyToClipboard(url);
+                });
+            } else {
+                fallbackCopyToClipboard(url);
+            }
+        };
+        
+        // Fallback copy method
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('URL copied to clipboard');
+            } catch (err) {
+                console.error('Copy failed:', err);
+                showToast('Failed to copy', true);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // Show toast notification
+        function showToast(message, isError = false) {
+            toastMessage.textContent = message;
+            toast.style.background = isError ? '#dc3545' : 'var(--success)';
+            toast.classList.add('show');
+            
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Download QR Code
+        window.downloadQR = function() {
+            const qrDataUrl = 'data:image/png;base64,{{ qr_image }}';
+            const link = document.createElement('a');
+            link.href = qrDataUrl;
+            link.download = 'checkin-qr.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('QR code downloaded');
+        };
+        
+        // Initialize Attendance Chart
+        const chartEl = document.getElementById('attendanceChart');
+        if (chartEl) {
+            const ctx = chartEl.getContext('2d');
+            
+            // Prepare data
+            const labels = [
+                {% for row in attendance_by_hour %}
+                    "{{ row.hour|date:'H:i' }}",
+                {% endfor %}
+            ];
+            
+            const data = [
                 {% for row in attendance_by_hour %}
                     {{ row.count }},
                 {% endfor %}
-            ],
-            borderWidth: 2,
-            fill: false
-        }]
-    }
-});
+            ];
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Check-ins per Hour',
+                        data: data,
+                        borderColor: '#212529',
+                        backgroundColor: 'rgba(33, 37, 41, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Add hover effects
+        const buttons = document.querySelectorAll('.btn-action, .qr-btn, .modal-btn');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Display keyboard shortcuts help
+        console.log('QR Code Modal Keyboard Shortcuts:');
+        console.log('- F: Toggle fullscreen mode');
+        console.log('- ESC: Exit fullscreen or close modal');
+        console.log('- D: Download QR code');
+        console.log('- C: Copy URL to clipboard');
+    });
 </script>
+{% endblock %}

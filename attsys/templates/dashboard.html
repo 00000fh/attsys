@@ -1,76 +1,529 @@
 {% extends 'base.html' %}
 
+{% block title %}Dashboard | Attendance System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard-specific styles */
+    :root {
+        --dashboard-bg: #f8fafc;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        background: var(--gray-100);
+    }
+
+    .stat-icon i {
+        font-size: 1.25rem;
+        color: var(--dark);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark);
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin-bottom: 1rem;
+    }
+
+    .stat-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        background: var(--gray-100);
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+
+    .dashboard-table {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+    }
+
+    .dashboard-table thead {
+        background: var(--gray-50);
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    .dashboard-table th {
+        font-weight: 600;
+        color: var(--gray-700);
+        padding: 1rem 1.5rem;
+        border: none;
+    }
+
+    .dashboard-table td {
+        padding: 1rem 1.5rem;
+        border-color: var(--gray-100);
+    }
+
+    .dashboard-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .event-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background: rgba(25, 135, 84, 0.1);
+        color: var(--success);
+    }
+
+    .status-inactive {
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+
+    .event-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+
+    .indicator-active {
+        background: var(--success);
+    }
+
+    .indicator-inactive {
+        background: var(--gray-500);
+    }
+
+    .quick-stats-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .quick-stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .quick-stat-item:last-child {
+        border-bottom: none;
+    }
+
+    .active-events-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .active-event-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .active-event-item:last-child {
+        border-bottom: none;
+    }
+
+    .event-title {
+        font-weight: 500;
+        color: var(--dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .event-meta {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-section {
+        margin-bottom: 2rem;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: var(--gray-600);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+
+    .progress-thin {
+        height: 4px;
+        background: var(--gray-200);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .progress-thin .progress-bar {
+        border-radius: 2px;
+    }
+
+    .btn-action {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        border-radius: 8px;
+    }
+
+    .attendance-count {
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .star-rating {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+    }
+
+    @media (max-width: 768px) {
+        .stat-value {
+            font-size: 1.75rem;
+        }
+        
+        .dashboard-table {
+            font-size: 0.875rem;
+        }
+        
+        .dashboard-table th,
+        .dashboard-table td {
+            padding: 0.75rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between mb-3">
-
-    {% if user.role == 'ADMIN' %}
-    <h5>All Events (Admin View)</h5>
-    {% else %}
-        <h5>My Events</h5>
-        <div class="alert alert-info">
-            You are viewing all system-wide statistics.
+<div class="dashboard-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2 fw-bold mb-2 text-dark">Dashboard</h1>
+                <p class="text-muted mb-0">
+                    {% if user.role == 'ADMIN' %}
+                    System overview and analytics
+                    {% else %}
+                    Manage your events and attendance
+                    {% endif %}
+                </p>
+            </div>
+            {% if user.role == 'STAFF' %}
+            <a href="{% url 'create_event' %}" class="btn btn-dark d-flex align-items-center">
+                <i class="bi bi-plus-lg me-2"></i>
+                Create Event
+            </a>
+            {% endif %}
         </div>
-    {% endif %}
+    </div>
 
-    <h2>Events</h2>
-    {% if user.role == 'STAFF' %}
-    <a href="{% url 'create_event' %}" class="btn btn-primary">
-        + Create Event
-    </a>
-    {% endif %}
-    
-</div>
+    <!-- Stats Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Total Events -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    <span class="stat-badge">
+                        {{ active_events }} Active
+                    </span>
+                </div>
+                <div class="stat-value">{{ total_events }}</div>
+                <div class="stat-label">Total Events</div>
+                <div class="progress-thin mt-2">
+                    <div class="progress-bar bg-dark" role="progressbar" 
+                         style="width: {% widthratio active_events total_events 100 %}%"></div>
+                </div>
+            </div>
+        </div>
 
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h6>Total Events</h6>
-                <h3>{{ total_events }}</h3>
+        <!-- Total Attendees -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <span class="stat-badge">
+                        +{{ today_checkins|default:0 }} Today
+                    </span>
+                </div>
+                <div class="stat-value">{{ total_attendees }}</div>
+                <div class="stat-label">Total Attendees</div>
+                <div class="progress-thin mt-2">
+                    <div class="progress-bar bg-dark" role="progressbar" 
+                         style="width: {% widthratio today_checkins total_attendees 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Members -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    {% if user.role == 'ADMIN' %}
+                    <a href="{% url 'manage_staff' %}" class="text-decoration-none text-dark fs-8">
+                        Manage →
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="stat-value">{{ total_staff }}</div>
+                <div class="stat-label">Staff Members</div>
+                <div class="progress-thin mt-2">
+                    <div class="progress-bar bg-dark" role="progressbar" style="width: 75%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Rating -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <span class="stat-badge">
+                        {{ total_feedback|default:0 }} Feedback
+                    </span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <div class="stat-value me-3">
+                        {% if avg_rating %}{{ avg_rating|floatformat:1 }}{% else %}0.0{% endif %}
+                    </div>
+                    <div class="star-rating">
+                        {% with rating=avg_rating|default:0 %}
+                        {% for i in "12345"|make_list %}
+                        <i class="bi bi-star-fill {% if forloop.counter <= rating %}text-warning{% else %}text-gray-300{% endif %}"></i>
+                        {% endfor %}
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="stat-label">Average Rating</div>
+                <div class="progress-thin mt-2">
+                    <div class="progress-bar bg-dark" role="progressbar" 
+                         style="width: {% widthratio avg_rating|default:0 5 100 %}%"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h6>Total Attendees</h6>
-                <h3>{{ total_attendees }}</h3>
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Recent Events -->
+        <div class="col-lg-8 mb-4">
+            <div class="dashboard-section">
+                <div class="dashboard-table">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Event</th>
+                                    <th>Date</th>
+                                    <th>Attendance</th>
+                                    <th>Status</th>
+                                    <th class="pe-4 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in events|slice:":10" %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="event-indicator {% if event.is_active %}indicator-active{% else %}indicator-inactive{% endif %} me-3"></div>
+                                            <div>
+                                                <div class="event-title">{{ event.title|truncatechars:30 }}</div>
+                                                <div class="event-meta">{{ event.venue|truncatechars:25 }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>{{ event.date|date:"M d" }}</div>
+                                        <div class="event-meta">{{ event.start_time|time:"g:i A" }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="attendance-count">{{ event.attendees.count }}</div>
+                                        <div class="event-meta">attendees</div>
+                                    </td>
+                                    <td>
+                                        <span class="event-status {% if event.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                            <span class="event-indicator {% if event.is_active %}indicator-active{% else %}indicator-inactive{% endif %} me-1"></span>
+                                            {% if event.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-dark btn-action">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="empty-state">
+                                            <i class="bi bi-calendar-x"></i>
+                                            <h6 class="mt-2 mb-3">No events created yet</h6>
+                                            {% if user.role == 'STAFF' %}
+                                            <a href="{% url 'create_event' %}" class="btn btn-dark">
+                                                Create your first event
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h6>Active Events</h6>
-                <h3>{{ active_events }}</h3>
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Today's Overview -->
+            <div class="quick-stats-card mb-4">
+                <h6 class="fw-semibold mb-3">Today's Overview</h6>
+                <div class="quick-stat-item">
+                    <span class="text-muted">Today's Check-ins</span>
+                    <span class="fw-semibold">{{ today_checkins|default:0 }}</span>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="text-muted">Applications</span>
+                    <span class="fw-semibold">{{ total_applications|default:0 }}</span>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="text-muted">Feedback Submitted</span>
+                    <span class="fw-semibold">{{ total_feedback|default:0 }}</span>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<div class="row">
-    {% for event in events %}
-    <div class="col-md-4">
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ event.title }}</h5>
-                <p class="card-text">{{ event.venue }}</p>
-
-                {% if event.is_active %}
-                    <span class="badge bg-success">ACTIVE</span>
+            <!-- Active Events -->
+            <div class="quick-stats-card">
+                <h6 class="fw-semibold mb-3">Active Events</h6>
+                {% if active_events > 0 %}
+                <ul class="active-events-list">
+                    {% for event in events %}
+                        {% if event.is_active and forloop.counter <= 3 %}
+                        <li class="active-event-item">
+                            <div>
+                                <div class="event-title">{{ event.title|truncatechars:20 }}</div>
+                                <div class="event-meta">{{ event.attendees.count }} checked in</div>
+                            </div>
+                            <a href="{% url 'event_detail' event.id %}" class="text-decoration-none text-dark">
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
                 {% else %}
-                    <span class="badge bg-secondary">INACTIVE</span>
+                <div class="empty-state py-3">
+                    <i class="bi bi-pause-circle"></i>
+                    <p class="mt-2 mb-0 fs-8">No active events</p>
+                </div>
                 {% endif %}
-
-                <a href="{% url 'event_detail' event.id %}" class="btn btn-sm btn-outline-dark mt-2">
-                    View
-                </a>
             </div>
         </div>
     </div>
-    {% endfor %}
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+    // Dashboard-specific JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stat cards on load
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            }, index * 100);
+        });
+
+        // Add click effect to table rows
+        const tableRows = document.querySelectorAll('.dashboard-table tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (!e.target.closest('a') && !e.target.closest('button')) {
+                    const link = this.querySelector('a.btn-action');
+                    if (link) {
+                        link.click();
+                    }
+                }
+            });
+            
+            row.style.cursor = 'pointer';
+        });
+
+        // Update progress bars with animation
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            
+            setTimeout(() => {
+                bar.style.transition = 'width 1s ease-in-out';
+                bar.style.width = width;
+            }, 500);
+        });
+    });
+</script>
+{% endblock %}

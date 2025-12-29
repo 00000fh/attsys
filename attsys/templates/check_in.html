@@ -1,216 +1,1250 @@
 {% extends 'base.html' %}
 {% block title %}Programme Application{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Application Form Styles - SCREEN ONLY */
+    .application-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    
+    .form-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .form-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid var(--primary);
+        position: relative;
+    }
+    
+    .form-title {
+        color: var(--dark);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+    }
+    
+    .form-subtitle {
+        color: var(--gray-600);
+        font-size: 1rem;
+    }
+    
+    .form-badge {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 1rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    /* Submit Button */
+    .btn-submit {
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+        margin: 2rem auto 0 auto;
+        min-width: 300px;
+        justify-content: center;
+    }
+    
+    .btn-submit:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3);
+    }
+    
+    /* Form Sections */
+    .form-section {
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--primary);
+    }
+    
+    .section-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .section-title {
+        color: var(--dark);
+        font-weight: 600;
+        font-size: 1.25rem;
+        margin: 0;
+    }
+    
+    .section-subtitle {
+        color: var(--gray-600);
+        font-size: 0.95rem;
+        margin-top: 0.25rem;
+    }
+    
+    /* Form Fields */
+    .form-label {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+        display: block;
+    }
+    
+    .form-label.required::after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .form-control, .form-select {
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        outline: none;
+    }
+    
+    .form-control:hover, .form-select:hover {
+        border-color: var(--gray-400);
+    }
+    
+    /* Guardian Information */
+    .guardian-section {
+        background: var(--gray-50);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border: 1px solid var(--gray-200);
+    }
+    
+    /* PRINT BUTTON ONLY */
+    .btn-print {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--primary);
+        color: white;
+        border: 1px solid var(--primary);
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+    }
+    
+    .btn-print:hover {
+        background: #0b5ed7;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+    }
+    
+    /* PRINTABLE FORM STYLES - ULTRA COMPACT, ONE PAGE */
+    @media print {
+        /* Reset everything for print */
+        * {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            font-family: "Arial", sans-serif !important;
+        }
+        
+        body {
+            background: white !important;
+            color: black !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 10pt !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* TIGHT MARGINS - MATCHING PDF FORMAT */
+        @page {
+            margin: 8mm 10mm 8mm 10mm !important;
+            size: A4 portrait;
+            
+            /* Remove page numbers */
+            @top-center {
+                content: "";
+            }
+            @bottom-center {
+                content: "";
+            }
+            @bottom-right {
+                content: "";
+            }
+        }
+        
+        /* Remove page numbers */
+        body::after {
+            display: none !important;
+        }
+        
+        a[href]::after {
+            content: none !important;
+        }
+        
+        /* Hide all screen elements */
+        .no-print, .navbar, footer, .form-header, .form-card, 
+        .form-instructions, .btn-print, .alert-danger, .btn-submit,
+        .card, .application-container > *:not(#printable-form) {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }
+        
+        /* Only show printable form */
+        #printable-form {
+            display: block !important;
+            visibility: visible !important;
+            position: relative !important;
+            width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            color: black !important;
+            overflow: visible !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            font-size: 10pt !important;
+        }
+        
+        /* PREVENT PAGE BREAKS INSIDE SECTIONS */
+        .print-section,
+        .print-guardian-section,
+        .print-declaration,
+        .print-signature-area {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        
+        /* Force single page */
+        .print-form {
+            page-break-before: avoid !important;
+            page-break-after: avoid !important;
+        }
+    }
+    
+    /* PRINT FORM CONTAINER - HIDDEN ON SCREEN */
+    .print-form {
+        display: none;
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        padding: 0;
+        background: white;
+        color: black;
+        font-family: "Arial", sans-serif;
+        font-size: 10pt;
+        line-height: 1.2;
+    }
+    
+    /* PRINT FORM HEADER - TIGHTLY SPACED */
+    .print-header {
+        text-align: center;
+        margin-bottom: 8px !important;
+        padding-bottom: 4px !important;
+        border-bottom: 1.5px solid #000;
+        width: 100%;
+    }
+    
+    .print-title {
+        font-size: 16pt !important;
+        font-weight: bold;
+        margin-bottom: 2px !important;
+        color: #000;
+        text-transform: uppercase;
+        line-height: 1.1;
+    }
+    
+    .print-subtitle {
+        font-size: 12pt !important;
+        font-weight: bold;
+        margin-bottom: 0 !important;
+        color: #000;
+        line-height: 1.1;
+    }
+    
+    /* FORM NUMBER - TOP RIGHT CORNER */
+    .form-number {
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-size: 8pt !important;
+        color: #666;
+        margin-bottom: 2px !important;
+        text-align: right;
+    }
+    
+    /* ULTRA-COMPACT SECTIONS - MATCHING PDF SPACING */
+    .print-section {
+        margin-bottom: 10px !important;
+        margin-top: 6px !important;
+        width: 100%;
+        page-break-inside: avoid;
+    }
+    
+    .print-section-title {
+        font-size: 11pt !important;
+        font-weight: bold;
+        margin-bottom: 6px !important;
+        padding: 3px 0 !important;
+        border-bottom: 1px solid #000;
+        line-height: 1.1;
+        width: 100%;
+        background: #f0f0f0;
+        padding-left: 4px !important;
+    }
+    
+    /* COMPACT FIELD ROWS - MINIMAL VERTICAL SPACE */
+    .print-field-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px !important;
+        min-height: 16px !important;
+        line-height: 1.1;
+        width: 100%;
+    }
+    
+    .print-label {
+        font-weight: bold;
+        font-size: 10pt !important;
+        width: 160px !important;
+        min-width: 160px !important;
+        max-width: 160px !important;
+        padding-right: 8px !important;
+        flex-shrink: 0;
+        color: #000;
+    }
+    
+    .print-label-small {
+        font-weight: bold;
+        font-size: 10pt !important;
+        width: 100px !important;
+        min-width: 100px !important;
+        max-width: 100px !important;
+        padding-right: 6px !important;
+        flex-shrink: 0;
+        color: #000;
+    }
+    
+    .print-value {
+        font-size: 10pt !important;
+        flex: 1;
+        min-height: 16px !important;
+        line-height: 1.1;
+        word-break: break-word;
+        border-bottom: 1px solid #999;
+        padding-bottom: 2px !important;
+        color: #000;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    /* COMPACT GRID LAYOUTS FOR SIDE-BY-SIDE FIELDS */
+    .print-grid-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px !important;
+        margin-bottom: 6px !important;
+        width: 100%;
+    }
+    
+    .print-grid-3col {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px !important;
+        margin-bottom: 6px !important;
+        width: 100%;
+    }
+    
+    /* GUARDIAN SECTIONS - LIGHT BACKGROUND WITHOUT BORDER */
+    .print-guardian-section {
+        background: #f8f8f8;
+        padding: 6px 8px !important;
+        margin: 4px 0 8px 0 !important;
+        width: 100%;
+    }
+    
+    /* INTEREST SECTION - FIXED HEIGHT BOX */
+    .interest-section {
+        margin-top: 6px !important;
+        width: 100%;
+    }
+    
+    .interest-box {
+        width: 100%;
+        min-height: 60px !important;
+        max-height: 60px !important;
+        padding: 4px 6px !important;
+        font-size: 10pt !important;
+        line-height: 1.2;
+        margin-top: 4px !important;
+        word-break: break-word;
+        background: #f9f9f9;
+        border: 0.5px solid #ddd;
+        overflow: hidden;
+    }
+    
+    /* DECLARATION SECTION - COMPACT */
+    .print-declaration {
+        margin-top: 12px !important;
+        padding-top: 8px !important;
+        border-top: 1px solid #000;
+        width: 100%;
+    }
+    
+    .print-declaration-title {
+        font-size: 11pt !important;
+        font-weight: bold;
+        margin-bottom: 6px !important;
+        text-align: center;
+        line-height: 1.1;
+    }
+    
+    .declaration-dual {
+        margin-bottom: 8px !important;
+    }
+    
+    .declaration-malay {
+        margin-bottom: 4px !important;
+        text-align: justify;
+        font-size: 9pt !important;
+        line-height: 1.3;
+    }
+    
+    .declaration-english {
+        margin-bottom: 8px !important;
+        text-align: justify;
+        font-style: italic;
+        font-size: 9pt !important;
+        line-height: 1.3;
+    }
+    
+    /* SIGNATURE AREA - COMPACT TWO-COLUMN */
+    .print-signature-area {
+        margin-top: 10px !important;
+        width: 100%;
+    }
+    
+    .signature-box {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px !important;
+        width: 100%;
+    }
+    
+    .signature-item {
+        width: 48%;
+        text-align: center;
+    }
+    
+    .signature-line {
+        width: 180px !important;
+        height: 20px !important;
+        margin: 6px auto 2px auto !important;
+        font-weight: bold;
+        font-size: 10pt !important;
+        line-height: 1;
+        border-bottom: 1px solid #000;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .signature-name {
+        font-size: 9pt !important;
+        margin-top: 1px !important;
+        color: #000;
+        line-height: 1.1;
+        min-height: 12px !important;
+    }
+    
+    .signature-date {
+        font-size: 9pt !important;
+        text-align: center;
+        margin-top: 1px !important;
+        color: #000;
+        line-height: 1.1;
+        min-height: 12px !important;
+    }
+    
+    /* FORM FOOTER - OFFICE USE ONLY */
+    .form-footer {
+        margin-top: 10px !important;
+        padding-top: 6px !important;
+        border-top: 0.5px solid #666;
+        font-size: 9pt !important;
+        color: #444;
+        line-height: 1.1;
+        width: 100%;
+    }
+    
+    .office-use-section {
+        margin-top: 8px !important;
+        padding: 4px 6px !important;
+        border: 0.5px solid #666;
+        min-height: 80px !important;
+        font-size: 9pt !important;
+        background: #f0f0f0;
+    }
+    
+    /* Responsive Design for screen */
+    @media (max-width: 768px) {
+        .application-container {
+            padding: 0.5rem;
+        }
+        
+        .form-card {
+            padding: 1.5rem;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .section-icon {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guardian-section {
+            padding: 1rem;
+        }
+        
+        .btn-print, .btn-submit {
+            position: relative;
+            top: auto;
+            right: auto;
+            margin-bottom: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .form-header {
+            padding-top: 3rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-9 col-md-11">
+<div class="application-container">
+    <!-- Print Button -->
+    <button class="btn-print no-print" onclick="generatePrintableForm()">
+        <i class="bi bi-printer"></i>
+        Generate Printable Form
+    </button>
 
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
+    <!-- Form Header -->
+    <div class="form-header">
+        <span class="form-badge no-print">DIGITAL FORM</span>
+        <h1 class="form-title">Programme Application Form</h1>
+        <div class="form-subtitle">
+            <h4 class="mb-2">{{ event.title }}</h4>
+            <p class="mb-0">
+                <i class="bi bi-geo-alt me-1"></i>{{ event.venue }} • 
+                <i class="bi bi-calendar me-1"></i>{{ event.date|date:"F d, Y" }}
+            </p>
+        </div>
+    </div>
 
-                <h4 class="text-center mb-3">Programme Application Form</h4>
-                <p class="text-center text-muted mb-4">
-                    {{ event.title }} <br>
-                    <small>{{ event.venue }}</small>
-                </p>
+    {% if error %}
+    <div class="alert alert-danger no-print">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {{ error }}
+    </div>
+    {% endif %}
 
-                {% if error %}
-                <div class="alert alert-danger">{{ error }}</div>
-                {% endif %}
+    <!-- DATA ENTRY FORM (Screen Only) -->
+    <form class="form-card no-print" id="dataEntryForm" method="POST" action="{% url 'check_in' event.id event.check_in_token %}">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="bi bi-person"></i>
+                </div>
+                <div>
+                    <h3 class="section-title">1. Applicant Information</h3>
+                    <p class="section-subtitle">Personal details of the applicant</p>
+                </div>
+            </div>
 
-                <form method="post">
-                    {% csrf_token %}
+            <div class="form-grid">
+                <div class="field-group">
+                    <label class="form-label required">Invited Speaker</label>
+                    <input type="text" class="form-control" 
+                           placeholder="Name of invited speaker" id="invitedSpeaker" name="invited_speaker" required>
+                </div>
 
-                    <!-- ================= BASIC INFO ================= -->
-                    <h6 class="border-bottom pb-2 mb-3 fw-bold">Applicant Information</h6>
+                <div class="field-group">
+                    <label class="form-label required">Applied Programme</label>
+                    <select class="form-select" id="programme" name="applied_programme" required>
+                        <option value="">-- Select Programme --</option>
+                        <option value="Diploma">Diploma</option>
+                        <option value="Pra-Diploma">Pra-Diploma</option>
+                        <option value="TVET">TVET</option>
+                        <option value="Smart Tahfiz">Smart Tahfiz</option>
+                    </select>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Invited Speaker *</label>
-                        <input type="text" name="invited_speaker" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Applied Programme *</label>
-                        <select name="programme" class="form-select" required>
-                            <option value="">-- Select Programme --</option>
-                            <option value="Diploma">Diploma</option>
-                            <option value="Pra-Diploma">Pra-Diploma</option>
-                            <option value="TVET">TVET</option>
-                            <option value="Smart Tahfiz">Smart Tahfiz</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Full Name *</label>
-                        <input type="text" name="full_name" class="form-control" required>
-                    </div>
-
-                    <!-- ================= ADDRESS ================= -->
-                    <h6 class="border-bottom pb-2 mb-3 fw-bold mt-4">Address Details</h6>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Address *</label>
-                        <input type="text" name="address1" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Address 2</label>
-                        <input type="text" name="address2" class="form-control">
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">City *</label>
-                            <input type="text" name="city" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Postcode *</label>
-                            <input type="text" name="postcode" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">State *</label>
-                            <input type="text" name="state" class="form-control" required>
-                        </div>
-                    </div>
-
-                    <!-- ================= PERSONAL ================= -->
-                    <h6 class="border-bottom pb-2 mb-3 fw-bold mt-4">Personal Details</h6>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Identification Card No. *</label>
-                        <input type="text" name="ic_no" class="form-control" required>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Email *</label>
-                            <input type="email" name="email" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Phone No. *</label>
-                            <input type="text" name="phone" class="form-control" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Marriage Status *</label>
-                        <select name="marriage_status" class="form-select" required>
-                            <option value="">-- Select --</option>
-                            <option value="Single">Single</option>
-                            <option value="Married">Married</option>
-                            <option value="Divorced">Divorced</option>
-                        </select>
-                    </div>
-
-                    <!-- ================= GUARDIAN ================= -->
-                    <h6 class="border-bottom pb-2 mb-3 fw-bold mt-4">
-                        Father / Mother / Guardian Information
-                    </h6>
-
-                    <!-- Father -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Father's Name *</label>
-                            <input type="text" name="father_name" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Father's IC *</label>
-                            <input type="text" name="father_ic" class="form-control" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Phone No. *</label>
-                            <input type="text" name="father_phone" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Occupation</label>
-                            <input type="text" name="father_job" class="form-control">
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Estimated Income</label>
-                            <input type="text" name="father_income" class="form-control">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">
-                            Number of Family Dependants (Jumlah Tanggungan)
-                        </label>
-                        <input type="number" name="father_dependants" class="form-control">
-                    </div>
-
-                    <!-- Mother -->
-                    <div class="row mt-3">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Mother's Name *</label>
-                            <input type="text" name="mother_name" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Mother's IC *</label>
-                            <input type="text" name="mother_ic" class="form-control" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Phone No. *</label>
-                            <input type="text" name="mother_phone" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Occupation</label>
-                            <input type="text" name="mother_job" class="form-control">
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Estimated Income</label>
-                            <input type="text" name="mother_income" class="form-control">
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">
-                            Number of Family Dependants (Jumlah Tanggungan)
-                        </label>
-                        <input type="number" name="mother_dependants" class="form-control">
-                    </div>
-
-                    <!-- ================= INTEREST ================= -->
-                    <h6 class="border-bottom pb-2 mb-3 fw-bold mt-4">Interested Programme</h6>
-
-                    <div class="mb-3">
-                        <textarea
-                            name="interested_programme"
-                            class="form-control"
-                            rows="3"
-                            placeholder="Please list your interested programmes"
-                        ></textarea>
-                    </div>
-
-                    <!-- SUBMIT -->
-                    <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            Submit Application
-                        </button>
-                    </div>
-
-                </form>
+                <div class="field-group form-full-width">
+                    <label class="form-label required">Full Name (as per IC)</label>
+                    <input type="text" class="form-control" 
+                           placeholder="Enter full name as per IC" id="fullName" name="full_name" required>
+                </div>
             </div>
         </div>
 
-        <p class="text-center text-muted mt-3 small">
-            All information provided will be kept confidential.
-        </p>
+        <!-- Address Details -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="bi bi-house"></i>
+                </div>
+                <div>
+                    <h3 class="section-title">2. Address Details</h3>
+                    <p class="section-subtitle">Current residential address</p>
+                </div>
+            </div>
 
+            <div class="form-grid">
+                <div class="field-group form-full-width">
+                    <label class="form-label required">Address Line 1</label>
+                    <input type="text" class="form-control" 
+                           placeholder="Street address, house number" id="address1" name="address1" required>
+                </div>
+
+                <div class="field-group form-full-width">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" class="form-control" 
+                           placeholder="Apartment, suite, unit, building, floor, etc." id="address2" name="address2">
+                </div>
+
+                <div class="field-group">
+                    <label class="form-label required">City</label>
+                    <input type="text" class="form-control" placeholder="e.g. Kuala Lumpur" id="city" name="city" required>
+                </div>
+
+                <div class="field-group">
+                    <label class="form-label required">Postcode</label>
+                    <input type="text" class="form-control" placeholder="e.g. 50000" id="postcode" name="postcode" required>
+                </div>
+
+                <div class="field-group">
+                    <label class="form-label required">State</label>
+                    <input type="text" class="form-control" placeholder="e.g. Wilayah Persekutuan" id="state" name="state" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Details -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div>
+                    <h3 class="section-title">3. Personal Details</h3>
+                    <p class="section-subtitle">Identification and contact information</p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="field-group">
+                    <label class="form-label required">IC / Passport No.</label>
+                    <input type="text" class="form-control ic-format" 
+                           placeholder="e.g. 900101-01-1234" id="icNo" name="ic_no" required>
+                </div>
+
+                <div class="field-group">
+                    <label class="form-label required">Marriage Status</label>
+                    <select class="form-select" id="marriageStatus" name="marriage_status" required>
+                        <option value="">-- Select Status --</option>
+                        <option value="Single">Single</option>
+                        <option value="Married">Married</option>
+                        <option value="Divorced">Divorced</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label class="form-label required">Email Address</label>
+                    <input type="email" class="form-control" 
+                           placeholder="email@example.com" id="email" name="email" required>
+                </div>
+
+                <div class="field-group">
+                    <label class="form-label required">Phone Number</label>
+                    <input type="text" class="form-control phone-format" 
+                           placeholder="e.g. 012-345 6789" id="phone" name="phone_no" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Father's Information -->
+        <div class="form-section">
+            <div class="guardian-section">
+                <div class="section-header">
+                    <div class="section-icon" style="background: var(--dark);">
+                        <i class="bi bi-person-standing"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title">4. Father's Information</h3>
+                        <p class="section-subtitle">Father / Guardian details</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label class="form-label required">Full Name</label>
+                        <input type="text" class="form-control" id="fatherName" name="father_name" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label required">IC Number</label>
+                        <input type="text" class="form-control ic-format" id="fatherIc" name="father_ic" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label required">Phone Number</label>
+                        <input type="text" class="form-control phone-format" id="fatherPhone" name="father_phone" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label">Occupation</label>
+                        <input type="text" class="form-control" 
+                               placeholder="Current occupation" id="fatherJob" name="father_occupation">
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label">Estimated Monthly Income (RM)</label>
+                        <input type="text" class="form-control" 
+                               placeholder="e.g. 5000.00" id="fatherIncome" name="father_income">
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label">Number of Dependants</label>
+                        <input type="number" class="form-control" 
+                               placeholder="0" min="0" id="fatherDependants" name="father_dependants">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mother's Information -->
+        <div class="form-section">
+            <div class="guardian-section">
+                <div class="section-header">
+                    <div class="section-icon" style="background: var(--dark);">
+                        <i class="bi bi-person-standing-dress"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title">5. Mother's Information</h3>
+                        <p class="section-subtitle">Mother / Guardian details</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label class="form-label required">Full Name</label>
+                        <input type="text" class="form-control" id="motherName" name="mother_name" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label required">IC Number</label>
+                        <input type="text" class="form-control ic-format" id="motherIc" name="mother_ic" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label required">Phone Number</label>
+                        <input type="text" class="form-control phone-format" id="motherPhone" name="mother_phone" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label">Occupation</label>
+                        <input type="text" class="form-control" 
+                               placeholder="Current occupation" id="motherJob" name="mother_occupation">
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label">Estimated Monthly Income (RM)</label>
+                        <input type="text" class="form-control" 
+                               placeholder="e.g. 4000.00" id="motherIncome" name="mother_income">
+                    </div>
+
+                    <div class="field-group">
+                        <label class="form-label">Number of Dependants</label>
+                        <input type="number" class="form-control" 
+                               placeholder="0" min="0" id="motherDependants" name="mother_dependants">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Programme Interest -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="bi bi-book"></i>
+                </div>
+                <div>
+                    <h3 class="section-title">6. Programme Interest</h3>
+                    <p class="section-subtitle">Your academic preferences</p>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="form-label">Interested Programme(s)</label>
+                <textarea class="form-control" rows="4"
+                          placeholder="Please list the programme(s) you are interested in..." id="interestedProgramme" name="interested_programme"></textarea>
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="btn-submit">
+            <i class="bi bi-check-circle"></i>
+            Submit Application & Mark Attendance
+        </button>
+    </form>
+
+    <!-- PRINTABLE FORM (Hidden until generated) - ULTRA COMPACT, ONE PAGE -->
+    <div id="printable-form" class="print-form">
+        <!-- FORM NUMBER -->
+        <div class="form-number">Form No.: APP-{{ event.id|stringformat:"03d" }}-{{ "now"|date:"ymd" }}</div>
+        
+        <!-- FORM HEADER -->
+        <div class="print-header">
+            <div class="print-title">BORANG PERMOHONAN & TEMUDUGA</div>
+            <div class="print-subtitle">APPLICATION & INTERVIEW FORM</div>
+        </div>
+
+        <!-- Section 1: Applicant Information -->
+        <div class="print-section">
+            <div class="print-section-title">1. MAKLUMAT PEMOHON / APPLICANT INFORMATION</div>
+            
+            <div class="print-field-row">
+                <div class="print-label">Penjemput Pembicara / Invited Speaker:</div>
+                <div class="print-value" id="print-invitedSpeaker"></div>
+            </div>
+            
+            <div class="print-field-row">
+                <div class="print-label">Program Dipohon / Applied Programme:</div>
+                <div class="print-value" id="print-programme"></div>
+            </div>
+            
+            <div class="print-field-row">
+                <div class="print-label">Nama Penuh (IC) / Full Name (as per IC):</div>
+                <div class="print-value" id="print-fullName"></div>
+            </div>
+        </div>
+
+        <!-- Section 2: Address Details -->
+        <div class="print-section">
+            <div class="print-section-title">2. MAKLUMAT ALAMAT / ADDRESS DETAILS</div>
+            
+            <div class="print-field-row">
+                <div class="print-label">Alamat Baris 1 / Address Line 1:</div>
+                <div class="print-value" id="print-address1"></div>
+            </div>
+            
+            <div class="print-field-row">
+                <div class="print-label">Alamat Baris 2 / Address Line 2:</div>
+                <div class="print-value" id="print-address2"></div>
+            </div>
+            
+            <div class="print-grid-3col">
+                <div class="print-field-row">
+                    <div class="print-label-small">Bandar / City:</div>
+                    <div class="print-value" id="print-city"></div>
+                </div>
+                
+                <div class="print-field-row">
+                    <div class="print-label-small">Poskod / Postcode:</div>
+                    <div class="print-value" id="print-postcode"></div>
+                </div>
+                
+                <div class="print-field-row">
+                    <div class="print-label-small">Negeri / State:</div>
+                    <div class="print-value" id="print-state"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Personal Details -->
+        <div class="print-section">
+            <div class="print-section-title">3. MAKLUMAT PERIBADI / PERSONAL DETAILS</div>
+            
+            <div class="print-grid-2col">
+                <div class="print-field-row">
+                    <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                    <div class="print-value" id="print-icNo"></div>
+                </div>
+                
+                <div class="print-field-row">
+                    <div class="print-label">Status Perkahwinan / Marital Status:</div>
+                    <div class="print-value" id="print-marriageStatus"></div>
+                </div>
+            </div>
+            
+            <div class="print-grid-2col">
+                <div class="print-field-row">
+                    <div class="print-label">Alamat Emel / Email Address:</div>
+                    <div class="print-value" id="print-email"></div>
+                </div>
+                
+                <div class="print-field-row">
+                    <div class="print-label">No. Telefon / Phone Number:</div>
+                    <div class="print-value" id="print-phone"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Father's Information -->
+        <div class="print-section">
+            <div class="print-section-title">4. MAKLUMAT BAPA / FATHER'S INFORMATION</div>
+            <div class="print-guardian-section">
+                <div class="print-field-row">
+                    <div class="print-label">Nama Penuh / Full Name:</div>
+                    <div class="print-value" id="print-fatherName"></div>
+                </div>
+                
+                <div class="print-grid-2col">
+                    <div class="print-field-row">
+                        <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                        <div class="print-value" id="print-fatherIc"></div>
+                    </div>
+                    
+                    <div class="print-field-row">
+                        <div class="print-label">No. Telefon / Phone Number:</div>
+                        <div class="print-value" id="print-fatherPhone"></div>
+                    </div>
+                </div>
+                
+                <div class="print-field-row">
+                    <div class="print-label">Pekerjaan / Occupation:</div>
+                    <div class="print-value" id="print-fatherJob"></div>
+                </div>
+                
+                <div class="print-grid-2col">
+                    <div class="print-field-row">
+                        <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
+                        <div class="print-value" id="print-fatherIncome"></div>
+                    </div>
+                    
+                    <div class="print-field-row">
+                        <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
+                        <div class="print-value" id="print-fatherDependants"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Mother's Information -->
+        <div class="print-section">
+            <div class="print-section-title">5. MAKLUMAT IBU / MOTHER'S INFORMATION</div>
+            <div class="print-guardian-section">
+                <div class="print-field-row">
+                    <div class="print-label">Nama Penuh / Full Name:</div>
+                    <div class="print-value" id="print-motherName"></div>
+                </div>
+                
+                <div class="print-grid-2col">
+                    <div class="print-field-row">
+                        <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                        <div class="print-value" id="print-motherIc"></div>
+                    </div>
+                    
+                    <div class="print-field-row">
+                        <div class="print-label">No. Telefon / Phone Number:</div>
+                        <div class="print-value" id="print-motherPhone"></div>
+                    </div>
+                </div>
+                
+                <div class="print-field-row">
+                    <div class="print-label">Pekerjaan / Occupation:</div>
+                    <div class="print-value" id="print-motherJob"></div>
+                </div>
+                
+                <div class="print-grid-2col">
+                    <div class="print-field-row">
+                        <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
+                        <div class="print-value" id="print-motherIncome"></div>
+                    </div>
+                    
+                    <div class="print-field-row">
+                        <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
+                        <div class="print-value" id="print-motherDependants"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 6: Programme Interest -->
+        <div class="print-section">
+            <div class="print-section-title">6. MINAT PROGRAM / PROGRAMME INTEREST</div>
+            <div class="interest-section">
+                <div class="interest-box" id="print-interestedProgramme"></div>
+            </div>
+        </div>
+
+        <!-- Section 7: Declaration -->
+        <div class="print-declaration">
+            <div class="print-declaration-title">PENGAKUAN DAN TANDATANGAN / DECLARATION & SIGNATURE</div>
+            
+            <div class="declaration-dual">
+                <div class="declaration-malay">
+                    Saya dengan ini mengaku bahawa semua maklumat yang diberikan dalam borang permohonan ini adalah benar, lengkap, dan tepat mengikut pengetahuan saya.
+                </div>
+                
+                <div class="declaration-english">
+                    I hereby declare that all information given in this application form is true, complete, and accurate to the best of my knowledge.
+                </div>
+            </div>
+
+            <div class="print-signature-area">
+                <div class="signature-box">
+                    <div class="signature-item">
+                        <div class="signature-line" id="print-signatureLine"></div>
+                        <div class="signature-name">Tandatangan Pemohon / Applicant's Signature</div>
+                        <div class="signature-name" style="margin-top: 4px;">
+                            Nama / Name: <span id="print-signatureName" style="font-weight: bold;"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="signature-item">
+                        <div class="signature-line"></div>
+                        <div class="signature-date">Tarikh / Date</div>
+                        <div class="signature-date" style="margin-top: 4px;">
+                            Tarikh / Date: <span id="print-date" style="font-weight: bold;">{{ "now"|date:"d/m/Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Footer - OFFICE USE ONLY -->
+        <div class="form-footer">
+            <div class="office-use-section">
+                <strong>UNTUK KEGUNAAN PEJABAT SAHAJA / FOR OFFICE USE ONLY</strong><br>
+                <div style="margin-top: 2px;">
+                    <br>
+                </div>
+                <div style="margin-top: 1px;">
+                    Catatan / Remarks: _____________________________________________________________________________________________
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-format IC numbers
+        document.querySelectorAll('.ic-format').forEach(input => {
+            input.addEventListener('blur', function() {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length === 12) {
+                    this.value = value.replace(/(\d{6})(\d{2})(\d{4})/, '$1-$2-$3');
+                }
+            });
+        });
+        
+        // Auto-format phone numbers
+        document.querySelectorAll('.phone-format').forEach(input => {
+            input.addEventListener('blur', function() {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length === 10 || value.length === 11) {
+                    this.value = value.replace(/(\d{3})(\d{3,4})(\d{4})/, '$1-$2 $3');
+                }
+            });
+        });
+        
+        // Form validation before submission
+        document.getElementById('dataEntryForm')?.addEventListener('submit', function(e) {
+            // Check required fields
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#dc3545';
+                } else {
+                    field.style.borderColor = '';
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields marked with *');
+            }
+        });
+    });
+    
+    // Generate printable form function
+    function generatePrintableForm() {
+        // Get all form values
+        const formValues = {
+            invitedSpeaker: document.getElementById('invitedSpeaker').value.trim(),
+            programme: document.getElementById('programme').value.trim(),
+            fullName: document.getElementById('fullName').value.trim(),
+            address1: document.getElementById('address1').value.trim(),
+            address2: document.getElementById('address2').value.trim(),
+            city: document.getElementById('city').value.trim(),
+            postcode: document.getElementById('postcode').value.trim(),
+            state: document.getElementById('state').value.trim(),
+            icNo: document.getElementById('icNo').value.trim(),
+            marriageStatus: document.getElementById('marriageStatus').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            fatherName: document.getElementById('fatherName').value.trim(),
+            fatherIc: document.getElementById('fatherIc').value.trim(),
+            fatherPhone: document.getElementById('fatherPhone').value.trim(),
+            fatherJob: document.getElementById('fatherJob').value.trim(),
+            fatherIncome: document.getElementById('fatherIncome').value.trim(),
+            fatherDependants: document.getElementById('fatherDependants').value.trim(),
+            motherName: document.getElementById('motherName').value.trim(),
+            motherIc: document.getElementById('motherIc').value.trim(),
+            motherPhone: document.getElementById('motherPhone').value.trim(),
+            motherJob: document.getElementById('motherJob').value.trim(),
+            motherIncome: document.getElementById('motherIncome').value.trim(),
+            motherDependants: document.getElementById('motherDependants').value.trim(),
+            interestedProgramme: document.getElementById('interestedProgramme').value.trim()
+        };
+        
+        // Fill printable form with data
+        Object.keys(formValues).forEach(key => {
+            const printElement = document.getElementById('print-' + key);
+            if (printElement) {
+                if (formValues[key]) {
+                    // For the signature line, we only want the full name
+                    if (key === 'fullName') {
+                        // This is handled separately below
+                        return;
+                    }
+                    
+                    // For other fields, set the value
+                    printElement.textContent = formValues[key];
+                    printElement.style.fontWeight = 'normal';
+                    
+                    // Style adjustment for empty optional fields
+                    if (!formValues[key] && ['address2', 'fatherJob', 'motherJob', 'fatherIncome', 'motherIncome', 'fatherDependants', 'motherDependants'].includes(key)) {
+                        printElement.style.color = '#666';
+                        printElement.style.fontStyle = 'italic';
+                    } else {
+                        printElement.style.color = '#000';
+                        printElement.style.fontStyle = 'normal';
+                    }
+                } else {
+                    // Leave blank for optional fields
+                    printElement.textContent = '';
+                    printElement.style.color = '#666';
+                    printElement.style.fontStyle = 'italic';
+                }
+            }
+        });
+        
+        // Special handling for programme interest box
+        const interestBox = document.getElementById('print-interestedProgramme');
+        if (formValues.interestedProgramme) {
+            interestBox.textContent = formValues.interestedProgramme;
+            interestBox.style.fontWeight = 'normal';
+            interestBox.style.color = '#000';
+        } else {
+            interestBox.innerHTML = '';
+            interestBox.style.color = '#666';
+        }
+        
+        // Set signature name
+        const signatureName = document.getElementById('print-signatureName');
+        const signatureLine = document.getElementById('print-signatureLine');
+        if (formValues.fullName) {
+            signatureName.textContent = formValues.fullName;
+            signatureLine.textContent = formValues.fullName;
+        } else {
+            signatureName.textContent = '_________________________';
+            signatureLine.textContent = '';
+        }
+        
+        // Show printable form and hide screen elements
+        const printableForm = document.getElementById('printable-form');
+        printableForm.style.display = 'block';
+        
+        // Hide screen elements
+        document.querySelectorAll('.no-print').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Add a small delay to ensure DOM is updated before printing
+        setTimeout(() => {
+            window.print();
+            
+            // Restore screen view after printing
+            setTimeout(() => {
+                printableForm.style.display = 'none';
+                document.querySelectorAll('.no-print').forEach(el => {
+                    el.style.display = '';
+                });
+            }, 100);
+        }, 300);
+    }
+</script>
 {% endblock %}
