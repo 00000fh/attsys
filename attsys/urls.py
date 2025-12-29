@@ -7,6 +7,10 @@ urlpatterns = [
     path('event/<int:event_id>/', views.event_detail, name='event_detail'),
     path('event/<int:event_id>/toggle/', views.toggle_event, name='toggle_event'),
 
+    # Real-time API endpoints
+    path('api/event/<int:event_id>/realtime-attendees/', views.get_realtime_attendees, name='realtime_attendees'),
+    path('api/event/<int:event_id>/realtime-stats/', views.get_realtime_stats, name='realtime_stats'),
+
     # QR public page
     path('check-in/<int:event_id>/<uuid:token>/', views.check_in, name='check_in'),
 
