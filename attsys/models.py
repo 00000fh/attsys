@@ -89,7 +89,7 @@ class Application(models.Model):
         related_name='applications'
     )
 
-    invited_speaker = models.CharField(max_length=150)
+    registration_officer = models.CharField(max_length=150)
     applied_programme = models.CharField(
         max_length=20,
         choices=PROGRAMME_CHOICES
@@ -128,7 +128,18 @@ class Application(models.Model):
     mother_income = models.CharField(max_length=50, blank=True)
     mother_dependants = models.PositiveSmallIntegerField(default=0)
 
-    interested_programme = models.TextField(blank=True)
+    # Programme Interest - 3 separate fields (keeping interested_programme for backward compatibility)
+    interested_programme = models.TextField(blank=True)  # Keep for existing data
+    interest_choice1 = models.TextField(blank=True, verbose_name="First Choice Programme")
+    interest_choice2 = models.TextField(blank=True, verbose_name="Second Choice Programme")
+    interest_choice3 = models.TextField(blank=True, verbose_name="Other Programme Interests")
+
+    # SPM Total Credit only (no individual subject fields)
+    spm_total_credit = models.PositiveSmallIntegerField(
+        default=0, 
+        verbose_name="Total SPM Credit",
+        help_text="Total credit from SPM results"
+    )
 
     submitted_at = models.DateTimeField(auto_now_add=True)
 

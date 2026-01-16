@@ -254,7 +254,7 @@
         transform: translateY(-2px);
     }
     
-    /* QR Code Modal - LARGE FOR PROJECTOR */
+    /* QR Code Modal - UPDATED DESIGN (Like the image) */
     .qr-modal {
         display: none;
         position: fixed;
@@ -262,12 +262,13 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.95);
+        background: rgba(0, 0, 0, 0.85);
         z-index: 1100;
         align-items: center;
         justify-content: center;
         opacity: 0;
-        transition: opacity 0.2s ease;
+        transition: opacity 0.3s ease;
+        backdrop-filter: blur(5px);
     }
     
     .qr-modal.active {
@@ -276,152 +277,139 @@
     }
     
     .modal-content {
-        background: white;
-        border-radius: 12px;
-        padding: 2rem;
-        text-align: center;
-        max-width: 90vw;
+        background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 20px 20px 0 0;
+        width: 100%;
+        max-width: 800px;
         max-height: 90vh;
         position: relative;
-        animation: modalFadeIn 0.3s ease;
+        animation: modalSlideUp 0.4s ease-out;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        margin-top: auto;
+    }
+    
+    @keyframes modalSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .modal-header {
+        background: white;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+    
+    .modal-header h4 {
+        color: var(--dark);
+        font-weight: 600;
+        margin: 0;
+        font-size: 1.25rem;
+    }
+    
+    .modal-subtitle {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+    
+    .modal-close {
+        background: var(--gray-100);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s ease;
+        color: var(--gray-700);
+    }
+    
+    .modal-close:hover {
+        background: var(--gray-200);
+        transform: rotate(90deg);
+    }
+    
+    .modal-body {
+        padding: 2rem;
+        text-align: center;
+        flex: 1;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
         align-items: center;
     }
     
-    @keyframes modalFadeIn {
-        from {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-    
-    .modal-close {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: var(--gray-200);
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-size: 1.2rem;
-        transition: all 0.2s ease;
-        z-index: 1101;
-    }
-    
-    .modal-close:hover {
-        background: var(--gray-300);
-        transform: scale(1.1);
-    }
-    
-    /* LARGE QR Code for Projector */
+    /* LARGE QR Code for Projector - Clean Design */
     .modal-qr-image {
-        max-width: 80vmin; /* 80% of viewport smaller dimension */
-        max-height: 60vmin; /* 60% of viewport smaller dimension */
-        min-width: 400px; /* Minimum size */
-        min-height: 400px; /* Minimum size */
-        width: auto;
-        height: auto;
+        width: 400px;
+        height: 400px;
+        max-width: 80vmin;
+        max-height: 80vmin;
         margin: 1rem auto;
-        padding: 1.5rem;
+        padding: 1rem;
         background: white;
-        border-radius: 12px;
-        border: 3px solid var(--gray-300);
+        border-radius: 16px;
+        border: 2px solid var(--gray-300);
         object-fit: contain;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
     }
     
-    /* Fullscreen Mode */
-    .fullscreen-btn {
-        position: absolute;
-        top: 1rem;
-        right: 4rem;
-        background: var(--gray-200);
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-size: 1.2rem;
-        transition: all 0.2s ease;
-        z-index: 1101;
+    .modal-qr-image:hover {
+        transform: scale(1.02);
     }
     
-    .fullscreen-btn:hover {
-        background: var(--gray-300);
-        transform: scale(1.1);
-    }
-    
-    .qr-modal.fullscreen .modal-content {
-        max-width: 100vw;
-        max-height: 100vh;
-        width: 100vw;
-        height: 100vh;
-        border-radius: 0;
-        padding: 0;
-        justify-content: center;
-    }
-    
-    .qr-modal.fullscreen .modal-qr-image {
-        max-width: 90vmin;
-        max-height: 90vmin;
-        min-width: 500px;
-        min-height: 500px;
-        border-width: 4px;
-        padding: 2rem;
-    }
-    
-    .qr-modal.fullscreen .modal-close,
-    .qr-modal.fullscreen .fullscreen-btn {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        backdrop-filter: blur(10px);
-    }
-    
-    .qr-modal.fullscreen .modal-close:hover,
-    .qr-modal.fullscreen .fullscreen-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-    
-    /* URL Display in Modal */
+    /* URL Display in Modal - Clean Design */
     .modal-url-section {
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--gray-200);
+        margin-top: 2rem;
         width: 100%;
         max-width: 600px;
     }
     
+    .modal-url-label {
+        font-weight: 500;
+        color: var(--dark);
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        text-align: center;
+    }
+    
     .modal-url {
-        background: var(--gray-50);
+        background: white;
         border: 1px solid var(--gray-300);
-        border-radius: 8px;
-        padding: 0.75rem;
+        border-radius: 10px;
+        padding: 1rem;
         margin: 0.5rem 0;
         font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
         font-size: 0.9rem;
         color: var(--gray-800);
         word-break: break-all;
         line-height: 1.4;
+        text-align: left;
+        position: relative;
     }
     
     .modal-actions {
         display: flex;
         gap: 0.75rem;
         justify-content: center;
-        margin-top: 1rem;
+        margin-top: 2rem;
         flex-wrap: wrap;
     }
     
@@ -429,30 +417,74 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.75rem 1.25rem;
+        padding: 0.75rem 1.5rem;
         border-radius: 8px;
-        font-size: 0.85rem;
+        font-size: 0.875rem;
         font-weight: 500;
-        border: none;
+        border: 1px solid transparent;
         cursor: pointer;
         transition: all 0.2s ease;
         min-width: 140px;
+        justify-content: center;
     }
     
     .modal-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     }
     
-    .qr-modal.fullscreen .modal-btn {
-        background: rgba(255, 255, 255, 0.15);
+    .modal-btn-primary {
+        background: var(--primary);
         color: white;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-color: var(--primary);
     }
     
-    .qr-modal.fullscreen .modal-btn:hover {
-        background: rgba(255, 255, 255, 0.25);
+    .modal-btn-primary:hover {
+        background: #0b5ed7;
+    }
+    
+    .modal-btn-secondary {
+        background: white;
+        color: var(--gray-700);
+        border-color: var(--gray-300);
+    }
+    
+    .modal-btn-secondary:hover {
+        background: var(--gray-50);
+    }
+    
+    .modal-btn-dark {
+        background: var(--dark);
+        color: white;
+        border-color: var(--dark);
+    }
+    
+    .modal-btn-dark:hover {
+        background: var(--gray-800);
+    }
+    
+    /* Fullscreen Mode */
+    .fullscreen-btn {
+        position: absolute;
+        top: 1.5rem;
+        right: 5rem;
+        background: var(--gray-100);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s ease;
+        color: var(--gray-700);
+    }
+    
+    .fullscreen-btn:hover {
+        background: var(--gray-200);
+        transform: scale(1.1);
     }
     
     /* Toast Notification */
@@ -463,7 +495,7 @@
         background: var(--success);
         color: white;
         padding: 0.75rem 1.25rem;
-        border-radius: 6px;
+        border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transform: translateY(100px);
         opacity: 0;
@@ -546,7 +578,7 @@
         padding: 1.5rem;
     }
     
-    /* Attendees List */
+    /* CLICKABLE Attendees List */
     .attendees-list {
         list-style: none;
         padding: 0;
@@ -559,6 +591,17 @@
         align-items: center;
         padding: 0.875rem 0;
         border-bottom: 1px solid var(--gray-100);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        margin: 0 -0.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    .attendee-item:hover {
+        background-color: rgba(var(--primary-rgb, 13, 110, 253), 0.05);
+        transform: translateX(4px);
     }
     
     .attendee-item:last-child {
@@ -584,6 +627,58 @@
         font-size: 0.75rem;
         color: var(--gray-500);
         text-align: right;
+    }
+    
+    /* Attendee Details Modal */
+    .attendee-details-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .attendee-details-section h6 {
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+        color: var(--dark);
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .detail-row {
+        display: flex;
+        margin-bottom: 0.75rem;
+        align-items: flex-start;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        min-width: 180px;
+        color: var(--dark);
+        font-size: 0.9rem;
+    }
+    
+    .detail-value {
+        flex: 1;
+        color: var(--gray-700);
+        padding: 0.5rem;
+        background: var(--gray-50);
+        border-radius: 6px;
+        border: 1px solid var(--gray-200);
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+    
+    .no-application {
+        text-align: center;
+        padding: 2rem;
+        color: var(--gray-600);
+    }
+    
+    .no-application i {
+        font-size: 2rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
     }
     
     /* Feedback Section */
@@ -702,8 +797,12 @@
         }
         
         .modal-qr-image {
-            min-width: 300px;
-            min-height: 300px;
+            width: 300px;
+            height: 300px;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
         }
         
         .modal-actions {
@@ -712,7 +811,7 @@
         
         .modal-btn {
             width: 100%;
-            justify-content: center;
+            min-width: auto;
         }
         
         .qr-actions {
@@ -723,6 +822,19 @@
             padding: 0.5rem 0.75rem;
             font-size: 0.75rem;
         }
+        
+        .detail-row {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .detail-label {
+            min-width: auto;
+        }
+        
+        .fullscreen-btn {
+            right: 4rem;
+        }
     }
     
     @media (max-width: 576px) {
@@ -731,6 +843,14 @@
         }
         
         .modal-content {
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .modal-header {
+            padding: 1rem 1.5rem;
+        }
+        
+        .modal-body {
             padding: 1rem;
         }
         
@@ -744,23 +864,40 @@
         }
         
         .modal-qr-image {
-            min-width: 250px;
-            min-height: 250px;
-            padding: 1rem;
+            width: 250px;
+            height: 250px;
+            padding: 0.5rem;
+        }
+        
+        .attendee-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .attendee-time {
+            text-align: left;
+        }
+        
+        .fullscreen-btn {
+            right: 3.5rem;
         }
     }
     
     /* For very large screens / projector */
     @media (min-width: 1920px) {
         .modal-qr-image {
+            width: 500px;
+            height: 500px;
+        }
+        
+        .modal-content {
             max-width: 1000px;
-            max-height: 1000px;
         }
     }
 </style>
 
 <!-- Chart.js Library -->
- <script src="https://cdn.jsdelivr.net/npm/reconnecting-websocket@1.0.1/reconnecting-websocket.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
@@ -877,25 +1014,82 @@
     </div>
     {% endif %}
 
-    <!-- QR Code Modal - LARGE FOR PROJECTOR -->
+    <!-- QR Code Modal - UPDATED DESIGN (Like the image) -->
     <div class="qr-modal" id="qrModal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeQRModal()">
-                <i class="bi bi-x"></i>
-            </button>
+            <div class="modal-header">
+                <div>
+                    <h4>Projector QR Code</h4>
+                    <div class="modal-subtitle">Display this for attendees to scan from their seats</div>
+                </div>
+                <div>
+                    <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen (F)">
+                        <i class="bi bi-fullscreen" id="fullscreenIcon"></i>
+                    </button>
+                    <button class="modal-close" onclick="closeQRModal()" title="Close (ESC)">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
             
-            <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen (F)">
-                <i class="bi bi-fullscreen" id="fullscreenIcon"></i>
-            </button>
-            
-            <h4 class="mb-3">Projector QR Code</h4>
-            <p class="text-muted fs-7 mb-4">Display this for attendees to scan from their seats</p>
-            
-            <img src="data:image/png;base64,{{ qr_image }}" 
-                 alt="Check-in QR Code" 
-                 class="modal-qr-image"
-                 id="modalQrImage">
-            
+            <div class="modal-body">
+                <img src="data:image/png;base64,{{ qr_image }}" 
+                     alt="Check-in QR Code" 
+                     class="modal-qr-image"
+                     id="modalQrImage">
+                
+                <!-- URL Display -->
+                <div class="modal-url-section">
+                    <div class="modal-url-label">Check-in URL</div>
+                    <div class="modal-url">
+                        {{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token %}
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-primary" onclick="copyToClipboard()">
+                        <i class="bi bi-clipboard"></i>
+                        Copy URL
+                    </button>
+                    <button class="modal-btn modal-btn-secondary" onclick="downloadQR()">
+                        <i class="bi bi-download"></i>
+                        Download QR
+                    </button>
+                    <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token }}" 
+                       target="_blank" 
+                       class="modal-btn modal-btn-dark">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        Open Link
+                    </a>
+                </div>
+                
+                <div class="text-muted fs-7 mt-4">
+                    <i class="bi bi-keyboard me-1"></i>
+                    Keyboard shortcuts: <strong>F</strong> - Fullscreen | <strong>ESC</strong> - Close | <strong>C</strong> - Copy | <strong>D</strong> - Download
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendee Details Modal -->
+    <div class="modal fade" id="attendeeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Attendee Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="attendeeModalBody">
+                    <!-- Content will be loaded via AJAX -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="printAttendeeForm()" id="printAttendeeBtn">
+                        <i class="bi bi-printer me-2"></i>Print Form
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -909,7 +1103,7 @@
     <div class="stats-section">
         <div class="stat-card">
             <div class="stat-title">Total Attendees</div>
-            <div class="stat-value">{{ attendees.count }}</div>
+            <div class="stat-value" id="totalAttendees">{{ attendees.count }}</div>
             <div class="stat-subtitle">Checked in to this event</div>
         </div>
         
@@ -929,14 +1123,14 @@
         
         <div class="stat-card">
             <div class="stat-title">Last Check-in</div>
-            <div class="stat-value">
+            <div class="stat-value" id="lastCheckinTime">
                 {% if attendees.first %}
                 {{ attendees.first.attended_at|date:"g:i A" }}
                 {% else %}
                 —
                 {% endif %}
             </div>
-            <div class="stat-subtitle">
+            <div class="stat-subtitle" id="lastCheckinInfo">
                 {% if attendees.first %}
                 {{ attendees.first.attended_at|date:"M d" }}
                 {% else %}
@@ -962,27 +1156,32 @@
                 <div class="section-header">
                     <h3 class="section-title">
                         <i class="bi bi-people me-2"></i>
-                        Attendees ({{ attendees.count }})
+                        Attendees (<span id="attendeesCount">{{ attendees.count }}</span>)
                     </h3>
                 </div>
                 <div class="section-body">
                     {% if attendees %}
-                    <ul class="attendees-list">
-                        {% for a in attendees %}
-                        <li class="attendee-item">
+                    <ul class="attendees-list" id="attendeesList">
+                        {% for attendee in attendees %}
+                        <li class="attendee-item clickable-attendee" 
+                            data-attendee-id="{{ attendee.id }}"
+                            onclick="showAttendeeDetails({{ attendee.id }})">
                             <div class="attendee-info">
-                                <div class="attendee-name">{{ a.name }}</div>
-                                <div class="attendee-contact">{{ a.email }}</div>
+                                <div class="attendee-name">{{ attendee.name }}</div>
+                                <div class="attendee-contact">{{ attendee.email }}</div>
+                                {% if attendee.phone_no %}
+                                <div class="attendee-contact small">{{ attendee.phone_no }}</div>
+                                {% endif %}
                             </div>
                             <div class="attendee-time">
-                                {{ a.attended_at|date:"g:i A" }}<br>
-                                <small>{{ a.attended_at|date:"M d" }}</small>
+                                {{ attendee.attended_at|date:"g:i A" }}<br>
+                                <small>{{ attendee.attended_at|date:"M d" }}</small>
                             </div>
                         </li>
                         {% endfor %}
                     </ul>
                     {% else %}
-                    <div class="empty-state">
+                    <div class="empty-state" id="emptyAttendeesState">
                         <i class="bi bi-person-x"></i>
                         <p class="mt-2 mb-0">No attendees have checked in yet</p>
                     </div>
@@ -1038,6 +1237,9 @@
 
 {% block extra_js %}
 <script>
+    const LOGO_URL = "/static/images/SES_LOGO_RENEW.png";
+    const LOGO_URL1 = "/static/images/seslogoo.png";
+
     // QR Code Modal Functions
     const qrModal = document.getElementById('qrModal');
     const qrImage = document.getElementById('qrImage');
@@ -1045,40 +1247,33 @@
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
     
-    // Real-time update variables
-    let lastUpdateTimestamp = null;
-    let refreshInterval = 5000; // 5 seconds
-    let isActive = true;
-    let eventEnded = false;
+    // Store current attendee data for printing
+    let currentAttendeeData = null;
     
-    // Open QR modal (window mode first)
+    // Open QR modal
     window.openQRModal = function() {
         if (!qrModal) return;
         qrModal.classList.add('active');
-        qrModal.classList.remove('fullscreen'); // Ensure not in fullscreen
         document.body.style.overflow = 'hidden';
-        fullscreenIcon.className = 'bi bi-fullscreen'; // Reset icon
     };
     
     // Close QR modal
     window.closeQRModal = function() {
         if (!qrModal) return;
         qrModal.classList.remove('active');
-        qrModal.classList.remove('fullscreen');
         document.body.style.overflow = '';
-        fullscreenIcon.className = 'bi bi-fullscreen';
     };
     
     // Toggle fullscreen mode
     window.toggleFullscreen = function() {
         if (!qrModal) return;
-        qrModal.classList.toggle('fullscreen');
-        if (qrModal.classList.contains('fullscreen')) {
-            fullscreenIcon.className = 'bi bi-fullscreen-exit';
-            showToast('Projector mode enabled. Press F or ESC to exit.');
-        } else {
+        const modalContent = document.querySelector('.modal-content');
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
             fullscreenIcon.className = 'bi bi-fullscreen';
-            showToast('Exited projector mode');
+        } else {
+            modalContent.requestFullscreen();
+            fullscreenIcon.className = 'bi bi-fullscreen-exit';
         }
     };
     
@@ -1143,248 +1338,868 @@
         showToast('QR code downloaded');
     };
     
-    // Real-time update functionality
-    
-    // Function to fetch latest attendees
-    async function fetchLatestAttendees() {
-        if (!isActive || eventEnded) return;
-        
-        try {
-            const url = `/attsys/api/event/{{ event.id }}/realtime-attendees/` + 
-                       (lastUpdateTimestamp ? `?last_update=${encodeURIComponent(lastUpdateTimestamp)}` : '');
-            
-            const response = await fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            
-            if (!response.ok) throw new Error('Failed to fetch attendees');
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // Update last timestamp
-                if (data.latest_timestamp) {
-                    lastUpdateTimestamp = data.latest_timestamp;
-                }
-                
-                // Update event status
-                eventEnded = data.event_ended;
-                
-                // If we have new attendees, update the list
-                if (data.attendees && data.attendees.length > 0) {
-                    updateAttendeesList(data.attendees, data.total_attendees);
-                    updateStatsDisplay(data.total_attendees);
-                    
-                    // Show notification for new attendees
-                    if (data.attendees.length === 1) {
-                        showNewAttendeeNotification(data.attendees[0]);
-                    }
-                }
-                
-                // Update Malaysia time display
-                if (data.malaysia_time_now) {
-                    updateMalaysiaTime(data.malaysia_time_now);
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching attendees:', error);
-        }
-    }
-    
-    // Function to fetch statistics
-    async function fetchStatistics() {
-        if (!isActive) return;
-        
-        try {
-            const response = await fetch(`/attsys/api/event/{{ event.id }}/realtime-stats/`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            
-            if (!response.ok) throw new Error('Failed to fetch statistics');
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                updateStatistics(data);
-            }
-        } catch (error) {
-            console.error('Error fetching statistics:', error);
-        }
-    }
-    
-    // Update attendees list
-    function updateAttendeesList(newAttendees, totalCount) {
-        const attendeesList = document.querySelector('.attendees-list');
-        const emptyState = document.querySelector('.empty-state');
-        const statValue = document.querySelector('.stat-card .stat-value');
-        
-        if (!attendeesList) return;
-        
-        // Update total count
-        if (statValue) {
-            statValue.textContent = totalCount;
-        }
-        
-        // Remove empty state if it exists
-        if (emptyState && newAttendees.length > 0) {
-            emptyState.style.display = 'none';
-        }
-        
-        // Add new attendees to the top of the list
-        newAttendees.forEach(attendee => {
-            const existingItem = document.querySelector(`[data-attendee-id="${attendee.id}"]`);
-            if (!existingItem) {
-                const newItem = createAttendeeItem(attendee);
-                attendeesList.prepend(newItem);
-            }
-        });
-        
-        // Limit list to 50 items for performance
-        const allItems = attendeesList.querySelectorAll('.attendee-item');
-        if (allItems.length > 50) {
-            for (let i = 50; i < allItems.length; i++) {
-                allItems[i].remove();
-            }
-        }
-    }
-    
-    // Create attendee list item
-    function createAttendeeItem(attendee) {
-        const li = document.createElement('li');
-        li.className = 'attendee-item';
-        li.setAttribute('data-attendee-id', attendee.id);
-        
-        li.innerHTML = `
-            <div class="attendee-info">
-                <div class="attendee-name">${escapeHtml(attendee.name)}</div>
-                <div class="attendee-contact">${escapeHtml(attendee.email)}</div>
-            </div>
-            <div class="attendee-time">
-                ${attendee.attended_at_display}<br>
-                <small>${attendee.attended_date_display}</small>
-            </div>
-        `;
-        
-        // Add highlight animation for new items
-        li.style.animation = 'highlightFade 2s ease-out';
-        
-        return li;
-    }
-    
-    // Update statistics display
-    function updateStatistics(data) {
-        // Update latest check-in time
-        if (data.latest_attendee) {
-            const latestTimeElement = document.querySelector('.stat-card:nth-child(4) .stat-value');
-            if (latestTimeElement) {
-                latestTimeElement.textContent = data.latest_attendee.time;
-            }
-            
-            const latestDateElement = document.querySelector('.stat-card:nth-child(4) .stat-subtitle');
-            if (latestDateElement) {
-                latestDateElement.textContent = `by ${data.latest_attendee.name}`;
-            }
-        }
-        
-        // Update Malaysia time display
-        if (data.malaysia_time) {
-            updateMalaysiaTime(data.malaysia_time);
-        }
-        
-        // Update chart if exists
-        if (window.attendanceChart && data.hourly_attendance) {
-            updateChart(data.hourly_attendance);
-        }
-    }
-    
-    // Update Malaysia time display
-    function updateMalaysiaTime(timeStr) {
-        let timeDisplay = document.getElementById('malaysiaTimeDisplay');
-        if (!timeDisplay) {
-            // Create time display if it doesn't exist
-            const metaContainer = document.querySelector('.event-meta');
-            if (metaContainer) {
-                timeDisplay = document.createElement('span');
-                timeDisplay.id = 'malaysiaTimeDisplay';
-                timeDisplay.innerHTML = '<i class="bi bi-clock me-1"></i>MYT: <span class="live-time">' + timeStr + '</span>';
-                metaContainer.appendChild(timeDisplay);
-            }
-        } else {
-            const timeSpan = timeDisplay.querySelector('.live-time');
-            if (timeSpan) {
-                timeSpan.textContent = timeStr;
-            }
-        }
-    }
-    
-    // Update stats display
-    function updateStatsDisplay(total) {
-        const stats = document.querySelectorAll('.stat-card .stat-value');
-        if (stats.length > 0) {
-            stats[0].textContent = total;
-        }
-    }
-    
-    // Show notification for new attendee
-    function showNewAttendeeNotification(attendee) {
-        // Create notification toast
-        const notification = document.createElement('div');
-        notification.className = 'toast notification-toast';
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--success);
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            z-index: 1050;
-            animation: slideIn 0.3s ease-out;
-            max-width: 350px;
-        `;
-        
-        notification.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="bi bi-person-check-fill fs-4 me-3"></i>
-                <div>
-                    <strong>New Check-in!</strong>
-                    <div class="small mt-1">${escapeHtml(attendee.name)} checked in at ${attendee.attended_at_display}</div>
+    // Show attendee details
+    window.showAttendeeDetails = function(attendeeId) {
+        // Show loading state
+        const modalBody = document.getElementById('attendeeModalBody');
+        modalBody.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
+                <p class="mt-3">Loading attendee details...</p>
             </div>
         `;
         
-        document.body.appendChild(notification);
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('attendeeModal'));
+        modal.show();
         
-        // Remove after 5 seconds
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease-out';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 5000);
-    }
+        // Fetch attendee details
+        fetch(`/attsys/api/attendee/${attendeeId}/details/`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch attendee details');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ${data.error}
+                    </div>
+                `;
+                return;
+            }
+            
+            // Store data for printing
+            currentAttendeeData = data;
+            
+            // Generate HTML for modal
+            let html = '';
+            
+            if (data.application) {
+                const app = data.application;
+                html = `
+                    <!-- Personal Information -->
+                    <div class="attendee-details-section">
+                        <h6><i class="bi bi-person me-2"></i>Personal Information</h6>
+                        <div class="detail-row">
+                            <div class="detail-label">Full Name:</div>
+                            <div class="detail-value">${escapeHtml(app.full_name)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">IC Number:</div>
+                            <div class="detail-value">${escapeHtml(app.ic_no)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Email:</div>
+                            <div class="detail-value">${escapeHtml(app.email)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Phone:</div>
+                            <div class="detail-value">${escapeHtml(app.phone_no)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Marriage Status:</div>
+                            <div class="detail-value">${escapeHtml(app.marriage_status)}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Address Information -->
+                    <div class="attendee-details-section">
+                        <h6><i class="bi bi-house me-2"></i>Address Information</h6>
+                        <div class="detail-row">
+                            <div class="detail-label">Address Line 1:</div>
+                            <div class="detail-value">${escapeHtml(app.address1)}</div>
+                        </div>
+                        ${app.address2 ? `
+                        <div class="detail-row">
+                            <div class="detail-label">Address Line 2:</div>
+                            <div class="detail-value">${escapeHtml(app.address2)}</div>
+                        </div>
+                        ` : ''}
+                        <div class="detail-row">
+                            <div class="detail-label">City:</div>
+                            <div class="detail-value">${escapeHtml(app.city)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Postcode:</div>
+                            <div class="detail-value">${escapeHtml(app.postcode)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">State:</div>
+                            <div class="detail-value">${escapeHtml(app.state)}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Father's Information -->
+                    <div class="attendee-details-section">
+                        <h6><i class="bi bi-person-standing me-2"></i>Father's Information</h6>
+                        <div class="detail-row">
+                            <div class="detail-label">Full Name:</div>
+                            <div class="detail-value">${escapeHtml(app.father_name)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">IC Number:</div>
+                            <div class="detail-value">${escapeHtml(app.father_ic)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Phone Number:</div>
+                            <div class="detail-value">${escapeHtml(app.father_phone)}</div>
+                        </div>
+                        ${app.father_occupation ? `
+                        <div class="detail-row">
+                            <div class="detail-label">Occupation:</div>
+                            <div class="detail-value">${escapeHtml(app.father_occupation)}</div>
+                        </div>
+                        ` : ''}
+                        ${app.father_income ? `
+                        <div class="detail-row">
+                            <div class="detail-label">Estimated Monthly Income:</div>
+                            <div class="detail-value">RM ${escapeHtml(app.father_income)}</div>
+                        </div>
+                        ` : ''}
+                        ${app.father_dependants ? `
+                        <div class="detail-row">
+                            <div class="detail-label">Number of Dependants:</div>
+                            <div class="detail-value">${escapeHtml(app.father_dependants)}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Mother's Information -->
+                    <div class="attendee-details-section">
+                        <h6><i class="bi bi-person-standing-dress me-2"></i>Mother's Information</h6>
+                        <div class="detail-row">
+                            <div class="detail-label">Full Name:</div>
+                            <div class="detail-value">${escapeHtml(app.mother_name)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">IC Number:</div>
+                            <div class="detail-value">${escapeHtml(app.mother_ic)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Phone Number:</div>
+                            <div class="detail-value">${escapeHtml(app.mother_phone)}</div>
+                        </div>
+                        ${app.mother_occupation ? `
+                        <div class="detail-row">
+                            <div class="detail-label">Occupation:</div>
+                            <div class="detail-value">${escapeHtml(app.mother_occupation)}</div>
+                        </div>
+                        ` : ''}
+                        ${app.mother_income ? `
+                        <div class="detail-row">
+                            <div class="detail-label">Estimated Monthly Income:</div>
+                            <div class="detail-value">RM ${escapeHtml(app.mother_income)}</div>
+                        </div>
+                        ` : ''}
+                        ${app.mother_dependants ? `
+                        <div class="detail-row">
+                            <div class="detail-label">Number of Dependants:</div>
+                            <div class="detail-value">${escapeHtml(app.mother_dependants)}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Application Details -->
+                    <div class="attendee-details-section">
+                        <h6><i class="bi bi-book me-2"></i>Application Details</h6>
+                        <div class="detail-row">
+                            <div class="detail-label">Registration Officer:</div>
+                            <div class="detail-value">${escapeHtml(app.registration_officer)}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Applied Programme:</div>
+                            <div class="detail-value">${escapeHtml(app.applied_programme)}</div>
+                        </div>
+                        ${app.interested_programme ? `
+                        <div class="detail-row">
+                            <div class="detail-label">Interested Programme(s):</div>
+                            <div class="detail-value" style="white-space: pre-wrap;">${escapeHtml(app.interested_programme)}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                // No application found
+                html = `
+                    <div class="no-application">
+                        <i class="bi bi-file-text"></i>
+                        <h4 class="mt-3">No Application Form Found</h4>
+                        <p class="text-muted">This attendee did not submit an application form during check-in.</p>
+                        <div class="mt-4">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Only basic attendance information is available.
+                            </div>
+                        </div>
+                        <div class="attendee-details-section mt-4">
+                            <h6><i class="bi bi-clock-history me-2"></i>Attendance Information</h6>
+                            <div class="detail-row">
+                                <div class="detail-label">Name:</div>
+                                <div class="detail-value">${escapeHtml(data.attendee.name)}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Email:</div>
+                                <div class="detail-value">${escapeHtml(data.attendee.email)}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Phone:</div>
+                                <div class="detail-value">${escapeHtml(data.attendee.phone_number)}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Checked In At:</div>
+                                <div class="detail-value">${data.attendee.attended_at_display} (${data.attendee.attended_date_display})</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            modalBody.innerHTML = html;
+            
+            // Show/hide print button based on whether we have application data
+            const printBtn = document.getElementById('printAttendeeBtn');
+            if (printBtn) {
+                printBtn.style.display = data.application ? 'inline-flex' : 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading attendee details:', error);
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Failed to load attendee details. Please try again.
+                </div>
+            `;
+        });
+    };
     
-    // Update chart data
-    function updateChart(hourlyData) {
-        if (!window.attendanceChart) return;
+    // Print attendee form
+    window.printAttendeeForm = function() {
+        if (!currentAttendeeData || !currentAttendeeData.application) {
+            showToast('No application data available to print', true);
+            return;
+        }
         
-        const labels = Object.keys(hourlyData).reverse();
-        const data = Object.values(hourlyData).reverse();
+        const app = currentAttendeeData.application;
+
+        function toUpperCase(value) {
+            if (!value) return '';
+            return value.toString().toUpperCase();
+        }
         
-        window.attendanceChart.data.labels = labels;
-        window.attendanceChart.data.datasets[0].data = data;
-        window.attendanceChart.update('none');
-    }
+        // Create printable form HTML (same structure as check_in.html)
+        const printHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Application Form - ${escapeHtml(app.full_name)}</title>
+                <style>
+                    * {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        box-sizing: border-box !important;
+                        font-family: "Arial", sans-serif !important;
+                    }
+                    
+                    body {
+                        background: white !important;
+                        color: black !important;
+                        width: 210mm !important;
+                        height: 297mm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        font-size: 10pt !important;
+                        line-height: 1.2 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    @page {
+                        margin: 8mm 10mm 8mm 10mm !important;
+                        size: A4 portrait;
+                        
+                        @top-center { content: ""; }
+                        @bottom-center { content: ""; }
+                        @bottom-right { content: ""; }
+                    }
+                    
+                    .print-form {
+                        display: block !important;
+                        visibility: visible !important;
+                        position: relative !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: white !important;
+                        color: black !important;
+                        overflow: visible !important;
+                        border: none !important;
+                        outline: none !important;
+                        box-shadow: none !important;
+                        font-size: 10pt !important;
+                        z-index: 0;
+                    }
+                    
+                    /* WATERMARK */
+                    .print-form::after {
+                        content: "";
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        width: 580px;              /* size of watermark */
+                        height: 580px;
+                        transform: translate(-50%, -50%);
+                        background-image: url("${LOGO_URL1}");
+                        background-repeat: no-repeat;
+                        background-position: center;
+                        background-size: contain;
+                        opacity: 0.08;             /* transparency (KEY) */
+                        z-index: 0;
+                        pointer-events: none;      /* ensure not clickable */
+                    }
+
+                    .print-form > * {
+                        position: relative;
+                        z-index: 1;
+                    }
+                    
+                    .print-section,
+                    .print-guardian-section,
+                    .print-declaration,
+                    .print-signature-area {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                    }
+                    
+                    .print-title {
+                        font-size: 16pt !important;
+                        font-weight: bold;
+                        margin-bottom: 2px !important;
+                        color: #000;
+                        text-transform: uppercase;
+                        line-height: 1.1;
+                    }
+                    
+                    .print-subtitle {
+                        font-size: 12pt !important;
+                        font-weight: bold;
+                        margin-bottom: 0 !important;
+                        color: #000;
+                        line-height: 1.1;
+                    }
+                    
+                    .form-number {
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        font-size: 8pt !important;
+                        color: #666;
+                        margin-bottom: 2px !important;
+                        text-align: right;
+                    }
+                    
+                    .print-section {
+                        margin-bottom: 10px !important;
+                        margin-top: 6px !important;
+                        width: 100%;
+                        page-break-inside: avoid;
+                    }
+                    
+                    .print-section-title {
+                        font-size: 11pt !important;
+                        font-weight: bold;
+                        margin-bottom: 6px !important;
+                        padding: 3px 0 !important;
+                        border-bottom: 1px solid #000;
+                        line-height: 1.1;
+                        width: 100%;
+                        background: transparent !important;
+                        padding-left: 4px !important;
+                    }
+                    
+                    .print-field-row {
+                        display: flex;
+                        align-items: center;
+                        margin-bottom: 4px !important;
+                        min-height: 16px !important;
+                        line-height: 1.1;
+                        width: 100%;
+                    }
+                    
+                    .print-label {
+                        font-weight: bold;
+                        font-size: 10pt !important;
+                        width: 160px !important;
+                        min-width: 160px !important;
+                        max-width: 160px !important;
+                        padding-right: 8px !important;
+                        flex-shrink: 0;
+                        color: #000;
+                    }
+                    
+                    .print-label-small {
+                        font-weight: bold;
+                        font-size: 10pt !important;
+                        width: 100px !important;
+                        min-width: 100px !important;
+                        max-width: 100px !important;
+                        padding-right: 6px !important;
+                        flex-shrink: 0;
+                        color: #000;
+                    }
+                    
+                    .print-value {
+                        font-size: 10pt !important;
+                        flex: 1;
+                        min-height: 16px !important;
+                        line-height: 1.1;
+                        word-break: break-word;
+                        border-bottom: 1px solid #999;
+                        padding-bottom: 2px !important;
+                        color: #000;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                    
+                    .print-grid-2col {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 10px !important;
+                        margin-bottom: 6px !important;
+                        width: 100%;
+                    }
+                    
+                    .print-grid-3col {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr;
+                        gap: 8px !important;
+                        margin-bottom: 6px !important;
+                        width: 100%;
+                    }
+                    
+                    .print-guardian-section {
+                        background: #f8f8f8;
+                        padding: 6px 8px !important;
+                        margin: 4px 0 8px 0 !important;
+                        width: 100%;
+                    }
+                    
+                    .interest-section {
+                        margin-top: 6px !important;
+                        width: 100%;
+                    }
+                    
+                    .interest-box {
+                        width: 100%;
+                        min-height: 60px !important;
+                        max-height: 60px !important;
+                        padding: 4px 6px !important;
+                        font-size: 10pt !important;
+                        line-height: 1.2;
+                        margin-top: 4px !important;
+                        word-break: break-word;
+                        background: transparent !important;
+                        border: 0.5px solid #ddd;
+                        overflow: hidden;
+                    }
+                    
+                    .print-declaration {
+                        margin-top: 12px !important;
+                        padding-top: 8px !important;
+                        border-top: 1px solid #000;
+                        width: 100%;
+                    }
+                    
+                    .print-declaration-title {
+                        font-size: 11pt !important;
+                        font-weight: bold;
+                        margin-bottom: 6px !important;
+                        text-align: center;
+                        line-height: 1.1;
+                    }
+                    
+                    .declaration-dual {
+                        margin-bottom: 8px !important;
+                    }
+                    
+                    .declaration-malay {
+                        margin-bottom: 4px !important;
+                        text-align: justify;
+                        font-size: 9pt !important;
+                        line-height: 1.3;
+                    }
+                    
+                    .declaration-english {
+                        margin-bottom: 8px !important;
+                        text-align: justify;
+                        font-style: italic;
+                        font-size: 9pt !important;
+                        line-height: 1.3;
+                    }
+                    
+                    .print-signature-area {
+                        margin-top: 10px !important;
+                        width: 100%;
+                    }
+                    
+                    .signature-box {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 8px !important;
+                        width: 100%;
+                    }
+                    
+                    .signature-item {
+                        width: 48%;
+                        text-align: center;
+                    }
+                    
+                    .signature-line {
+                        width: 250px !important;
+                        height: 40px !important;
+                        margin: 8px auto 4px auto !important;
+                        font-weight: bold;
+                        font-size: 10pt !important;
+                        line-height: 1;
+                        border-bottom: 1px solid #000;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+                    
+                    .signature-name {
+                        font-size: 9pt !important;
+                        margin-top: 1px !important;
+                        color: #000;
+                        line-height: 1.1;
+                        min-height: 12px !important;
+                    }
+                    
+                    .signature-date {
+                        font-size: 9pt !important;
+                        text-align: center;
+                        margin-top: 1px !important;
+                        color: #000;
+                        line-height: 1.1;
+                        min-height: 12px !important;
+                    }
+                    
+                    .form-footer {
+                        margin-top: 10px !important;
+                        padding-top: 6px !important;
+                        border-top: 0.5px solid #666;
+                        font-size: 9pt !important;
+                        color: #444;
+                        line-height: 1.1;
+                        width: 100%;
+                    }
+                    
+                    .office-use-section {
+                        margin-top: 4px !important;
+                        padding: 4px 6px !important;
+                        border: 0.5px solid #666;
+                        min-height: 50px !important;
+                        font-size: 9pt !important;
+                        background: transparent !important;
+                    }
+
+                    .print-header {
+                        position: relative;
+                        text-align: center;
+                        margin-bottom: 15px !important;
+                        padding: 15px 0 20px 0 !important;
+                        border-bottom: 1.5px solid #000;
+                    }
+
+                    .print-logo {
+                        position: absolute;
+                        top: 6px;              
+                        left: 10px;   
+                        top: 0;
+                        left: 0;
+                        height: 70px;   /* KEY: keep it small */
+                        width: auto;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-form">
+                    <div class="form-number">Form No.: APP-{{ event.id|stringformat:"03d" }}-${new Date().toISOString().slice(2,10).replace(/-/g,'')}</div>
+                    
+                    <div class="print-header">
+                        <img src="${LOGO_URL}" class="print-logo" alt="SES Logo">
+                        <div class="print-title">BORANG PERMOHONAN & TEMUDUGA</div>
+                        <div class="print-subtitle">APPLICATION & INTERVIEW FORM</div>
+                    </div>
+
+                    <!-- Section 1: Applicant Information -->
+                    <div class="print-section">
+                        <div class="print-section-title">1. MAKLUMAT PEMOHON / APPLICANT INFORMATION</div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Pegawai Pendaftaran / Registration Officer:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.registration_officer))}</div>
+                        </div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Program Dipilih / Applied Programme:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.applied_programme))}</div>
+                        </div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Nama Penuh (IC) / Full Name (as per IC):</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.full_name))}</div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Address Details -->
+                    <div class="print-section">
+                        <div class="print-section-title">2. MAKLUMAT ALAMAT / ADDRESS DETAILS</div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Alamat Baris 1 / Address Line 1:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.address1))}</div>
+                        </div>
+                        
+                        ${app.address2 ? `
+                        <div class="print-field-row">
+                            <div class="print-label">Alamat Baris 2 / Address Line 2:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.address2))}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="print-grid-3col">
+                            <div class="print-field-row">
+                                <div class="print-label-small">Bandar / City:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.city))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label-small">Poskod / Postcode:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.postcode))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label-small">Negeri / State:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.state))}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Personal Details -->
+                    <div class="print-section">
+                        <div class="print-section-title">3. MAKLUMAT PERIBADI / PERSONAL DETAILS</div>
+                        
+                        <div class="print-grid-2col">
+                            <div class="print-field-row">
+                                <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.ic_no))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label">Status Perkahwinan / Marital Status:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.marriage_status))}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="print-grid-2col">
+                            <div class="print-field-row">
+                                <div class="print-label">Alamat Emel / Email Address:</div>
+                                <div class="print-value">${escapeHtml(app.email)}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label">No. Telefon / Phone Number:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.phone_no))}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Father's Information -->
+                    <div class="print-section">
+                        <div class="print-section-title">4. MAKLUMAT BAPA / FATHER'S INFORMATION</div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Nama Penuh / Full Name:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.father_name))}</div>
+                        </div>
+                        
+                        <div class="print-grid-2col">
+                            <div class="print-field-row">
+                                <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.father_ic))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label">No. Telefon / Phone Number:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.father_phone))}</div>
+                            </div>
+                        </div>
+                        
+                        ${app.father_occupation ? `
+                        <div class="print-field-row">
+                            <div class="print-label">Pekerjaan / Occupation:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.father_occupation))}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="print-grid-2col">
+                            ${app.father_income ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.father_income))}</div>
+                            </div>
+                            ` : ''}
+                            
+                            ${app.father_dependants ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.father_dependants))}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Mother's Information -->
+                    <div class="print-section">
+                        <div class="print-section-title">5. MAKLUMAT IBU / MOTHER'S INFORMATION</div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Nama Penuh / Full Name:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.mother_name))}</div>
+                        </div>
+                        
+                        <div class="print-grid-2col">
+                            <div class="print-field-row">
+                                <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_ic))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label">No. Telefon / Phone Number:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_phone))}</div>
+                            </div>
+                        </div>
+                        
+                        ${app.mother_occupation ? `
+                        <div class="print-field-row">
+                            <div class="print-label">Pekerjaan / Occupation:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.mother_occupation))}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="print-grid-2col">
+                            ${app.mother_income ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_income))}</div>
+                            </div>
+                            ` : ''}
+                            
+                            ${app.mother_dependants ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_dependants))}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Section 6: Programme Interest -->
+                    <div class="print-section">
+                        <div class="print-section-title">6. MINAT PROGRAM / PROGRAMME INTEREST (Boleh lebih dari 1 program / Can be more than 1 programme)</div>
+                        <div class="interest-section">
+                            <div class="interest-box">
+                                ${app.interested_programme ? toUpperCase(escapeHtml(app.interested_programme)) : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 7: Declaration -->
+                    <div class="print-declaration">
+                        <div class="print-declaration-title">PENGAKUAN DAN TANDATANGAN / DECLARATION & SIGNATURE</div>
+                        
+                        <div class="declaration-dual">
+                            <div class="declaration-malay">
+                                Saya dengan ini mengaku bahawa semua maklumat yang diberikan dalam borang permohonan ini adalah benar, lengkap, dan tepat mengikut pengetahuan saya.
+                            </div>
+                            
+                            <div class="declaration-english">
+                                I hereby declare that all information given in this application form is true, complete, and accurate to the best of my knowledge.
+                            </div>
+                        </div>
+
+                        <div class="print-signature-area">
+                            <div class="signature-box">
+                                <div class="signature-item">
+                                    <div class="signature-line"></div>
+                                    <div class="signature-name">Tandatangan Pemohon / Applicant's Signature</div>
+                                    <div class="signature-name" style="margin-top: 4px;">
+                                        Nama / Name: <span style="font-weight: bold;">${toUpperCase(escapeHtml(app.full_name))}</span><br>
+                                        Tarikh / Date: <span style="font-weight: bold;">${new Date().toLocaleDateString('en-GB')}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="signature-item">
+                                    <div class="signature-line"></div>
+                                    <div class="signature-date">Tandatangan Pegawai Temuduga / Interview Officer's Signature</div>
+                                    <div class="signature-date" style="margin-top: 4px;">
+                                        Tarikh / Date: <span style="font-weight: bold;">${new Date().toLocaleDateString('en-GB')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Footer - OFFICE USE ONLY -->
+                    <div class="form-footer">
+                        <div class="office-use-section">
+                            <strong>UNTUK KEGUNAAN PEJABAT SAHAJA / FOR OFFICE USE ONLY</strong><br>
+                            <div style="margin-top: 2px;">
+                                <br>
+                            </div>
+                            <div style="margin-top: 1px;">
+                                Catatan / Remarks: _____________________________________________________________________________________________
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        setTimeout(() => {
+                            if (window.opener) {
+                                window.close();
+                            }
+                        }, 500);
+                    };
+                <\/script>
+            </body>
+            </html>
+        `;
+        
+        // Open print window
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printHtml);
+        printWindow.document.close();
+    };
     
     // Helper: Escape HTML
     function escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
@@ -1396,30 +2211,39 @@
             qrImage.addEventListener('click', function() {
                 if (qrModal) {
                     qrModal.classList.add('active');
-                    qrModal.classList.remove('fullscreen');
                     document.body.style.overflow = 'hidden';
-                    fullscreenIcon.className = 'bi bi-fullscreen';
                 }
             });
         }
         
-        // Close modal when clicking outside (only in window mode)
+        // Close modal when clicking outside
         if (qrModal) {
             qrModal.addEventListener('click', function(e) {
-                if (e.target === qrModal && !qrModal.classList.contains('fullscreen')) {
+                if (e.target === qrModal) {
                     closeQRModal();
                 }
             });
         }
         
+        // Fullscreen change handler
+        document.addEventListener('fullscreenchange', function() {
+            if (fullscreenIcon) {
+                if (document.fullscreenElement) {
+                    fullscreenIcon.className = 'bi bi-fullscreen-exit';
+                } else {
+                    fullscreenIcon.className = 'bi bi-fullscreen';
+                }
+            }
+        });
+        
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // Escape to close modal or exit fullscreen
+            // Escape to close modal
             if (e.key === 'Escape' && qrModal && qrModal.classList.contains('active')) {
-                if (qrModal.classList.contains('fullscreen')) {
-                    toggleFullscreen(); // Exit fullscreen first
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
                 } else {
-                    closeQRModal(); // Close modal if not in fullscreen
+                    closeQRModal();
                 }
             }
             
@@ -1509,70 +2333,6 @@
                 }
             });
         }
-        
-        // Add hover effects
-        const buttons = document.querySelectorAll('.btn-action, .qr-btn, .modal-btn');
-        buttons.forEach(button => {
-            button.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-2px)';
-            });
-            
-            button.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
-        
-        // Animation styles
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes highlightFade {
-                0% { background-color: rgba(25, 135, 84, 0.2); }
-                100% { background-color: transparent; }
-            }
-            
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-            
-            .attendee-item {
-                transition: all 0.3s ease;
-            }
-        `;
-        document.head.appendChild(style);
-        
-        // Initialize real-time updates
-        // Start polling for updates
-        setInterval(fetchLatestAttendees, refreshInterval);
-        setInterval(fetchStatistics, refreshInterval * 2);
-        
-        // Initial fetch
-        fetchLatestAttendees();
-        fetchStatistics();
-        
-        // Pause updates when page is not visible
-        document.addEventListener('visibilitychange', function() {
-            isActive = !document.hidden;
-        });
-        
-        // Also fetch when page becomes visible
-        document.addEventListener('focus', function() {
-            isActive = true;
-            fetchLatestAttendees();
-            fetchStatistics();
-        });
-        
-        // Display keyboard shortcuts help
-        console.log('QR Code Modal Keyboard Shortcuts:');
-        console.log('- F: Toggle fullscreen mode');
-        console.log('- ESC: Exit fullscreen or close modal');
-        console.log('- D: Download QR code');
-        console.log('- C: Copy URL to clipboard');
     });
 </script>
 {% endblock %}
