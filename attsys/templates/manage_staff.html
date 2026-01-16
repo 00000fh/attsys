@@ -1,50 +1,739 @@
 {% extends 'base.html' %}
 {% block title %}Manage Staff{% endblock %}
 
-{% block content %}
-<h3>Manage Staff Accounts</h3>
+{% block extra_css %}
+<style>
+    /* Staff Management specific styles */
+    :root {
+        --staff-card-bg: white;
+        --staff-card-border: #e9ecef;
+        --status-active: #198754;
+        --status-inactive: #dc3545;
+        --status-pending: #fd7e14;
+    }
 
-<table class="table table-bordered mt-3">
-    <thead class="table-dark">
-        <tr>
-            <th>Username</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for staff in staff_users %}
-        <tr>
-            <td>{{ staff.username }}</td>
-            <td>
-                {% if staff.is_active %}
-                    <span class="badge bg-success">Active</span>
-                {% else %}
-                    <span class="badge bg-danger">Disabled</span>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--staff-card-bg);
+        border: 1px solid var(--staff-card-border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        background: var(--gray-100);
+    }
+
+    .stat-icon i {
+        font-size: 1.25rem;
+        color: var(--dark);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark);
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin-bottom: 1rem;
+    }
+
+    .staff-table {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .staff-table thead {
+        background: var(--gray-50);
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    .staff-table th {
+        font-weight: 600;
+        color: var(--gray-700);
+        padding: 1rem 1.5rem;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .staff-table td {
+        padding: 1rem 1.5rem;
+        border-color: var(--gray-100);
+        vertical-align: middle;
+    }
+
+    .staff-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: var(--primary);
+        font-size: 0.875rem;
+    }
+
+    .staff-name {
+        font-weight: 500;
+        color: var(--dark);
+        margin-bottom: 0.125rem;
+    }
+
+    .staff-email {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background: rgba(25, 135, 84, 0.1);
+        color: var(--status-active);
+    }
+
+    .status-inactive {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--status-inactive);
+    }
+
+    .event-count {
+        font-weight: 600;
+        color: var(--dark);
+        font-size: 1.125rem;
+    }
+
+    .event-label {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn-toggle {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        border-radius: 8px;
+        font-weight: 500;
+        min-width: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-toggle:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-toggle-success {
+        background: var(--success);
+        border: 1px solid var(--success);
+        color: white;
+    }
+
+    .btn-toggle-success:hover {
+        background: #157347;
+        border-color: #157347;
+        color: white;
+    }
+
+    .btn-toggle-danger {
+        background: #dc3545;
+        border: 1px solid #dc3545;
+        color: white;
+    }
+
+    .btn-toggle-danger:hover {
+        background: #bb2d3b;
+        border-color: #bb2d3b;
+        color: white;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: var(--gray-600);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+
+    .last-active {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+    }
+
+    .search-container {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-input {
+        padding-left: 2.5rem;
+        border-radius: 10px;
+        border: 1px solid var(--gray-300);
+        height: 44px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-500);
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .badge-events {
+        background: var(--primary-light);
+        color: var(--primary);
+        font-weight: 500;
+    }
+
+    .btn-add-staff {
+        background: var(--dark);
+        border: 1px solid var(--dark);
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-add-staff:hover {
+        background: var(--gray-800);
+        border-color: var(--gray-800);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .staff-table {
+            font-size: 0.875rem;
+        }
+        
+        .staff-table th,
+        .staff-table td {
+            padding: 0.75rem 1rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .btn-toggle {
+            min-width: 80px;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+
+    /* Animation for status changes */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .staff-table tbody tr {
+        animation: fadeIn 0.3s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="staff-management-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2 fw-bold mb-2 text-dark">Staff Management</h1>
+                <p class="text-muted mb-0">
+                    Manage staff accounts, permissions, and access controls
+                </p>
+            </div>
+            <button class="btn-add-staff" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                <i class="bi bi-person-plus"></i>
+                Add Staff
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <div class="stat-value">{{ staff_users|length }}</div>
+            <div class="stat-label">Total Staff Members</div>
+            <div class="progress-thin mt-2">
+                <div class="progress-bar bg-dark" role="progressbar" 
+                     style="width: {% widthratio active_staff_count staff_users|length 100 %}%"></div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ active_staff_count }}</div>
+            <div class="stat-label">Active Staff</div>
+            <div class="progress-thin mt-2">
+                <div class="progress-bar bg-success" role="progressbar" 
+                     style="width: {% widthratio active_staff_count staff_users|length 100 %}%"></div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-x-circle"></i>
+            </div>
+            <div class="stat-value">{{ inactive_staff_count }}</div>
+            <div class="stat-label">Inactive Staff</div>
+            <div class="progress-thin mt-2">
+                <div class="progress-bar bg-danger" role="progressbar" 
+                     style="width: {% widthratio inactive_staff_count staff_users|length 100 %}%"></div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-calendar-event"></i>
+            </div>
+            <div class="stat-value">{{ total_events }}</div>
+            <div class="stat-label">Total Events</div>
+            <div class="progress-thin mt-2">
+                <div class="progress-bar bg-dark" role="progressbar" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" class="form-control search-input" id="staffSearch" 
+               placeholder="Search staff by name, email, or username...">
+    </div>
+
+    <!-- Staff Table -->
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 staff-table">
+            <thead>
+                <tr>
+                    <th class="ps-4">Staff Member</th>
+                    <th>Status</th>
+                    <th>Events</th>
+                    <th>Last Active</th>
+                    <th class="pe-4 text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="staffTableBody">
+                {% for staff in staff_users %}
+                <tr class="staff-row" data-search="{{ staff.username }} {{ staff.email }}">
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar me-3">
+                                {{ staff.username|first|upper }}
+                            </div>
+                            <div>
+                                <div class="staff-name">{{ staff.username }}</div>
+                                <div class="staff-email">{{ staff.email|default:"No email" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if staff.is_active %}
+                            <span class="status-badge status-active">
+                                <i class="bi bi-check-circle-fill me-1"></i>
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-inactive">
+                                <i class="bi bi-x-circle-fill me-1"></i>
+                                Disabled
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="event-count">
+                            {{ staff.events.count|default:0 }}
+                        </div>
+                        <div class="event-label">
+                            events created
+                        </div>
+                    </td>
+                    <td>
+                        <div class="last-active">
+                            {% if staff.last_login %}
+                                {{ staff.last_login|date:"M d, Y" }}
+                            {% else %}
+                                Never logged in
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="pe-4">
+                        <div class="action-buttons">
+                            <form method="post" action="{% url 'toggle_staff' staff.id %}" class="d-inline">
+                                {% csrf_token %}
+                                {% if staff.is_active %}
+                                    <button type="submit" class="btn btn-toggle-danger btn-toggle">
+                                        <i class="bi bi-person-x"></i>
+                                        Disable
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-toggle-success btn-toggle">
+                                        <i class="bi bi-person-check"></i>
+                                        Enable
+                                    </button>
+                                {% endif %}
+                            </form>
+                            <button class="btn btn-outline-dark btn-toggle" 
+                                    onclick="viewStaffDetails('{{ staff.id }}')">
+                                <i class="bi bi-eye"></i>
+                                View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5">
+                        <div class="empty-state">
+                            <i class="bi bi-people"></i>
+                            <h6 class="mt-2 mb-3">No staff members found</h6>
+                            <p class="mb-4">Start by adding your first staff member</p>
+                            <button class="btn-add-staff" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                                <i class="bi bi-person-plus"></i>
+                                Add Staff Member
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination (if needed) -->
+    {% if staff_users.has_other_pages %}
+    <nav aria-label="Staff pagination">
+        <ul class="pagination justify-content-center mt-4">
+            {% if staff_users.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ staff_users.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in staff_users.paginator.page_range %}
+                {% if staff_users.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > staff_users.number|add:'-3' and num < staff_users.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
                 {% endif %}
-            </td>
-            <td>
-                <form method="post" action="{% url 'toggle_staff' staff.id %}">
-                    {% csrf_token %}
-                    {% if staff.is_active %}
-                        <button class="btn btn-sm btn-danger">
-                            Disable
-                        </button>
-                    {% else %}
-                        <button class="btn btn-sm btn-success">
-                            Enable
-                        </button>
-                    {% endif %}
+            {% endfor %}
+            
+            {% if staff_users.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ staff_users.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Add Staff Modal -->
+<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStaffModalLabel">Add New Staff Member</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Staff accounts allow users to create and manage events
+                </div>
+                
+                <form id="addStaffForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" required>
+                        <div class="form-text">Must be unique and 3-30 characters</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone">
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="sendWelcomeEmail" checked>
+                        <label class="form-check-label" for="sendWelcomeEmail">
+                            Send welcome email with login instructions
+                        </label>
+                    </div>
                 </form>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="3" class="text-center text-muted">
-                No staff found
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dark" onclick="addNewStaff()">
+                    <i class="bi bi-person-plus me-2"></i>
+                    Add Staff Member
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Staff Management JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize animations
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            }, index * 100);
+        });
+
+        // Initialize search functionality
+        const searchInput = document.getElementById('staffSearch');
+        const staffRows = document.querySelectorAll('.staff-row');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            staffRows.forEach(row => {
+                const searchData = row.getAttribute('data-search').toLowerCase();
+                if (searchTerm === '' || searchData.includes(searchTerm)) {
+                    row.style.display = '';
+                    row.style.animation = 'fadeIn 0.3s ease-out';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Add click effect to table rows
+        const tableRows = document.querySelectorAll('.staff-table tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (!e.target.closest('button') && !e.target.closest('form')) {
+                    const staffId = this.querySelector('.action-buttons form').action.split('/').filter(Boolean).pop();
+                    viewStaffDetails(staffId);
+                }
+            });
+            
+            if (!row.classList.contains('empty-state')) {
+                row.style.cursor = 'pointer';
+            }
+        });
+
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Update progress bars with animation
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            
+            setTimeout(() => {
+                bar.style.transition = 'width 1s ease-in-out';
+                bar.style.width = width;
+            }, 500);
+        });
+    });
+
+    // View staff details
+    function viewStaffDetails(staffId) {
+        // This would typically make an API call to get staff details
+        // For now, show a placeholder alert
+        alert(`Viewing details for staff ID: ${staffId}\n\nIn a real implementation, this would open a detailed view or modal with:\n- Staff information\n- Event history\n- Performance metrics\n- Activity logs`);
+        
+        // Example of what this function might do:
+        // fetch(`/api/staff/${staffId}/details/`)
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         // Open modal or show details
+        //         console.log('Staff details:', data);
+        //     });
+    }
+
+    // Add new staff member
+    function addNewStaff() {
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (!username || !email || !password || !confirmPassword) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
+        
+        // This would typically submit a form or make an API call
+        // For demonstration, show success message
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addStaffModal'));
+        modal.hide();
+        
+        // Show success message
+        alert(`Staff member "${username}" has been created successfully!\n\nAn email with login instructions has been sent to ${email}`);
+        
+        // In real implementation, you would reload the page or update the table via AJAX
+        // window.location.reload();
+    }
+
+    // Handle toggle staff status (already in form, but adding confirmation)
+    document.querySelectorAll('form[action*="toggle_staff"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const button = this.querySelector('button');
+            const action = button.textContent.trim().toLowerCase();
+            const staffName = this.closest('tr').querySelector('.staff-name').textContent;
+            
+            if (!confirm(`Are you sure you want to ${action} ${staffName}?`)) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Real-time updates simulation
+    function simulateRealTimeUpdates() {
+        // In a real app, this would connect via WebSockets or use polling
+        // For demonstration, just update the time display periodically
+        setInterval(() => {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            // Update any "last active" times that are recent
+            document.querySelectorAll('.last-active').forEach(el => {
+                if (el.textContent.includes('Today')) {
+                    // Already updated
+                } else if (el.textContent.includes('Never')) {
+                    // Leave as is
+                } else {
+                    // In real app, this would check actual last login time
+                }
+            });
+        }, 30000); // Update every 30 seconds
+    }
+
+    // Initialize real-time updates
+    simulateRealTimeUpdates();
+</script>
 {% endblock %}

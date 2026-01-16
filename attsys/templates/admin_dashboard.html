@@ -1,80 +1,818 @@
 {% extends 'base.html' %}
-{% block title %}Admin Dashboard{% endblock %}
+
+{% block title %}{% if is_admin %}Admin{% else %}Staff{% endif %} Dashboard | ATTSYS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard-specific styles */
+    :root {
+        --dashboard-bg: #f8fafc;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        background: var(--gray-100);
+    }
+
+    .stat-icon i {
+        font-size: 1.25rem;
+        color: var(--dark);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark);
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin-bottom: 1rem;
+    }
+
+    .stat-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        background: var(--gray-100);
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+
+    .dashboard-table {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+    }
+
+    .dashboard-table thead {
+        background: var(--gray-50);
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    .dashboard-table th {
+        font-weight: 600;
+        color: var(--gray-700);
+        padding: 1rem 1.5rem;
+        border: none;
+    }
+
+    .dashboard-table td {
+        padding: 1rem 1.5rem;
+        border-color: var(--gray-100);
+    }
+
+    .dashboard-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .event-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background: rgba(25, 135, 84, 0.1);
+        color: var(--success);
+    }
+
+    .status-inactive {
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+
+    .event-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+
+    .indicator-active {
+        background: var(--success);
+    }
+
+    .indicator-inactive {
+        background: var(--gray-500);
+    }
+
+    .quick-stats-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .quick-stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .quick-stat-item:last-child {
+        border-bottom: none;
+    }
+
+    .active-events-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .active-event-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .active-event-item:last-child {
+        border-bottom: none;
+    }
+
+    .event-title {
+        font-weight: 500;
+        color: var(--dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .event-meta {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-section {
+        margin-bottom: 2rem;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: var(--gray-600);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+
+    .progress-thin {
+        height: 4px;
+        background: var(--gray-200);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .progress-thin .progress-bar {
+        border-radius: 2px;
+    }
+
+    .btn-action {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        border-radius: 8px;
+    }
+
+    .attendance-count {
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .star-rating {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+    }
+
+    .admin-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--gray-500);
+        margin-top: 0.25rem;
+    }
+
+    .staff-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--primary);
+        margin-top: 0.25rem;
+    }
+
+    .role-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        background: var(--dark);
+        color: white;
+        font-weight: 500;
+    }
+
+    .role-badge-admin {
+        background: #dc3545;
+    }
+
+    .role-badge-staff {
+        background: #0d6efd;
+    }
+
+    @media (max-width: 768px) {
+        .stat-value {
+            font-size: 1.75rem;
+        }
+        
+        .dashboard-table {
+            font-size: 0.875rem;
+        }
+        
+        .dashboard-table th,
+        .dashboard-table td {
+            padding: 0.75rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h3 class="mb-4">Admin Dashboard</h3>
-
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card text-bg-primary shadow">
-            <div class="card-body">
-                <h6>Total Events</h6>
-                <h2>{{ total_events }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card text-bg-success shadow">
-            <div class="card-body">
-                <h6>Active Events</h6>
-                <h2>{{ active_events }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card text-bg-dark shadow">
-            <div class="card-body">
-                <h6>Total Attendees</h6>
-                <h2>{{ total_attendees }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card text-bg-warning shadow">
-            <div class="card-body">
-                <h6>Today Check-ins</h6>
-                <h2>{{ today_checkins }}</h2>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="card shadow">
-    <div class="card-header fw-bold">
-        Recent Events
-    </div>
-    <table class="table mb-0">
-        <thead>
-            <tr>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for event in recent_events %}
-            <tr>
-                <td>{{ event.title }}</td>
-                <td>{{ event.date }}</td>
-                <td>
-                    {% if event.is_active %}
-                        <span class="badge bg-success">Active</span>
+<div class="dashboard-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2 fw-bold mb-2 text-dark">
+                    {% if is_admin %}
+                    Admin Dashboard
                     {% else %}
-                        <span class="badge bg-secondary">Inactive</span>
+                    Staff Dashboard
                     {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="3" class="text-muted text-center">
-                    No events yet
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                </h1>
+                <div class="d-flex align-items-center gap-2">
+                    <p class="text-muted mb-0">
+                        {% if is_admin %}
+                        System overview and analytics
+                        {% else %}
+                        Your events and attendance statistics
+                        {% endif %}
+                    </p>
+                    <span class="role-badge {% if is_admin %}role-badge-admin{% else %}role-badge-staff{% endif %}">
+                        {{ user.role }}
+                    </span>
+                </div>
+            </div>
+            {% if not is_admin %}
+            <a href="{% url 'create_event' %}" class="btn btn-dark d-flex align-items-center">
+                <i class="bi bi-plus-lg me-2"></i>
+                Create Event
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Card 1: Total Events -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    <span class="stat-badge">
+                        {{ active_events|default:0 }} Active
+                    </span>
+                </div>
+                <div class="stat-value">{{ total_events|default:0 }}</div>
+                <div class="stat-label">
+                    {% if is_admin %}
+                    Total System Events
+                    {% else %}
+                    Your Events
+                    {% endif %}
+                </div>
+                <div class="{% if is_admin %}admin-label{% else %}staff-label{% endif %}">
+                    {% if is_admin %}All events across the system{% else %}Events you created{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Total Attendees -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <span class="stat-badge">
+                        +{{ today_checkins|default:0 }} Today
+                    </span>
+                </div>
+                <div class="stat-value">{{ total_attendees|default:0 }}</div>
+                <div class="stat-label">
+                    {% if is_admin %}
+                    Total Attendees
+                    {% else %}
+                    Your Attendees
+                    {% endif %}
+                </div>
+                <div class="{% if is_admin %}admin-label{% else %}staff-label{% endif %}">
+                    {% if is_admin %}All attendees across the system{% else %}Attendees in your events{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Staff Members (Only for Admin) -->
+        {% if is_admin %}
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <a href="{% url 'manage_staff' %}" class="text-decoration-none text-dark fs-8">
+                        Manage →
+                    </a>
+                </div>
+                <div class="stat-value">{{ total_staff|default:0 }}</div>
+                <div class="stat-label">Active Staff Members</div>
+                <div class="admin-label">Staff accounts currently active</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Card 4: Average Rating -->
+        <div class="col-xl-{% if is_admin %}3{% else %}4{% endif %} col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <span class="stat-badge">
+                        {{ total_feedback|default:0 }} Feedback
+                    </span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <div class="stat-value me-3">
+                        {% if avg_rating %}{{ avg_rating|floatformat:1 }}{% else %}0.0{% endif %}
+                    </div>
+                    <div class="star-rating">
+                        {% with rating=avg_rating|default:0 %}
+                        {% for i in "12345"|make_list %}
+                        <i class="bi bi-star-fill {% if forloop.counter <= rating|add:"0.5" %}text-warning{% else %}text-gray-300{% endif %}"></i>
+                        {% endfor %}
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="stat-label">
+                    {% if is_admin %}
+                    System Average Rating
+                    {% else %}
+                    Your Events' Rating
+                    {% endif %}
+                </div>
+                <div class="{% if is_admin %}admin-label{% else %}staff-label{% endif %}">
+                    {% if is_admin %}Average rating across all events{% else %}Average rating for your events{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 5: Applications -->
+        <div class="col-xl-{% if is_admin %}3{% else %}4{% endif %} col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-file-text"></i>
+                    </div>
+                    <span class="stat-badge">
+                        {% if total_attendees > 0 %}
+                        {% widthratio total_applications total_attendees 100 %}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                        Rate
+                    </span>
+                </div>
+                <div class="stat-value">{{ total_applications|default:0 }}</div>
+                <div class="stat-label">
+                    {% if is_admin %}
+                    Total Applications
+                    {% else %}
+                    Your Applications
+                    {% endif %}
+                </div>
+                <div class="{% if is_admin %}admin-label{% else %}staff-label{% endif %}">
+                    {% if is_admin %}Full application forms submitted{% else %}Applications for your events{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 6: Feedback Count (Staff view only) -->
+        {% if not is_admin %}
+        <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-chat-left-text"></i>
+                    </div>
+                    <span class="stat-badge">
+                        {{ avg_rating|floatformat:1 }}/5
+                    </span>
+                </div>
+                <div class="stat-value">{{ total_feedback|default:0 }}</div>
+                <div class="stat-label">Feedback Received</div>
+                <div class="staff-label">Feedback for your events</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Recent Events -->
+        <div class="col-lg-8 mb-4">
+            <div class="dashboard-section">
+                <div class="dashboard-table">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Event</th>
+                                    {% if is_admin %}
+                                    <th>Created By</th>
+                                    {% endif %}
+                                    <th>Date</th>
+                                    <th>Attendance</th>
+                                    <th>Status</th>
+                                    <th class="pe-4 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in events %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="event-indicator {% if event.is_active %}indicator-active{% else %}indicator-inactive{% endif %} me-3"></div>
+                                            <div>
+                                                <div class="event-title">{{ event.title|truncatechars:30 }}</div>
+                                                <div class="event-meta">{{ event.venue|truncatechars:25 }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    {% if is_admin %}
+                                    <td>
+                                        <div class="event-title">{{ event.created_by.get_full_name|default:event.created_by.username }}</div>
+                                        <div class="event-meta">{{ event.created_by.email }}</div>
+                                    </td>
+                                    {% endif %}
+                                    <td>
+                                        <div>{{ event.date|date:"M d, Y" }}</div>
+                                        <div class="event-meta">{{ event.start_time|time:"g:i A" }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="attendance-count">{{ event.attendees.count|default:0 }}</div>
+                                        <div class="event-meta">{{ event.applications.count|default:0 }} applications</div>
+                                    </td>
+                                    <td>
+                                        <span class="event-status {% if event.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                            <span class="event-indicator {% if event.is_active %}indicator-active{% else %}indicator-inactive{% endif %} me-1"></span>
+                                            {% if event.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-dark btn-action">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="{% if is_admin %}6{% else %}5{% endif %}" class="text-center py-5">
+                                        <div class="empty-state">
+                                            <i class="bi bi-calendar-x"></i>
+                                            <h6 class="mt-2 mb-3">No events created yet</h6>
+                                            {% if not is_admin %}
+                                            <a href="{% url 'create_event' %}" class="btn btn-dark">
+                                                Create your first event
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Today's Overview -->
+            <div class="quick-stats-card mb-4">
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-calendar-day me-2"></i>
+                    Today's Overview
+                </h6>
+                <div class="quick-stat-item">
+                    <span class="text-muted">Today's Check-ins</span>
+                    <span class="fw-semibold">{{ today_checkins|default:0 }}</span>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="text-muted">Applications Today</span>
+                    <span class="fw-semibold" id="todayApplications">
+                        {% if is_admin %}
+                        {{ total_applications|default:0 }}
+                        {% else %}
+                        {{ total_applications|default:0 }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="text-muted">Feedback Today</span>
+                    <span class="fw-semibold" id="todayFeedback">
+                        {{ total_feedback|default:0 }}
+                    </span>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="text-muted">New Events Today</span>
+                    <span class="fw-semibold" id="todayEvents">
+                        {% if is_admin %}
+                        {{ events|length|default:0 }}
+                        {% else %}
+                        {{ events|length|default:0 }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Active Events -->
+            <div class="quick-stats-card">
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-lightning-charge me-2"></i>
+                    Active Events
+                </h6>
+                {% if active_events > 0 %}
+                <ul class="active-events-list">
+                    {% for event in events %}
+                        {% if event.is_active and forloop.counter <= 3 %}
+                        <li class="active-event-item">
+                            <div>
+                                <div class="event-title">{{ event.title|truncatechars:20 }}</div>
+                                <div class="event-meta">
+                                    {{ event.attendees.count|default:0 }} checked in • 
+                                    {{ event.applications.count|default:0 }} applications
+                                </div>
+                            </div>
+                            <a href="{% url 'event_detail' event.id %}" class="text-decoration-none text-dark">
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state py-3">
+                    <i class="bi bi-pause-circle"></i>
+                    <p class="mt-2 mb-0 fs-8">No active events</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-stats-card">
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-lightning me-2"></i>
+                    Quick Actions
+                </h6>
+                <div class="d-grid gap-2">
+                    {% if is_admin %}
+                    <a href="{% url 'manage_staff' %}" class="btn btn-outline-dark btn-action">
+                        <i class="bi bi-people me-2"></i>
+                        Manage Staff
+                    </a>
+                    <a href="{% url 'dashboard_stats' %}" class="btn btn-outline-dark btn-action">
+                        <i class="bi bi-graph-up me-2"></i>
+                        View Analytics
+                    </a>
+                    {% else %}
+                    <a href="{% url 'create_event' %}" class="btn btn-dark btn-action">
+                        <i class="bi bi-plus-lg me-2"></i>
+                        Create New Event
+                    </a>
+                    {% endif %}
+                    <a href="#" class="btn btn-outline-dark btn-action" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Refresh Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Stats -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="quick-stats-card">
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-speedometer2 me-2"></i>
+                    Performance Summary
+                </h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="quick-stat-item">
+                            <span class="text-muted">Attendance Rate</span>
+                            <span class="fw-semibold text-success">
+                                {% if total_events > 0 %}
+                                {% widthratio total_attendees total_events|add:total_events 100 %}%
+                                {% else %}
+                                0%
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="quick-stat-item">
+                            <span class="text-muted">Application Rate</span>
+                            <span class="fw-semibold text-primary">
+                                {% if total_attendees > 0 %}
+                                {% widthratio total_applications total_attendees 100 %}%
+                                {% else %}
+                                0%
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="quick-stat-item">
+                            <span class="text-muted">Active Rate</span>
+                            <span class="fw-semibold {% if active_events > 0 %}text-success{% else %}text-warning{% endif %}">
+                                {% if total_events > 0 %}
+                                {% widthratio active_events total_events 100 %}%
+                                {% else %}
+                                0%
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Dashboard-specific JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stat cards on load
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            }, index * 100);
+        });
+
+        // Add click effect to table rows
+        const tableRows = document.querySelectorAll('.dashboard-table tbody tr');
+        tableRows.forEach(row => {
+            if (!row.querySelector('.empty-state')) {
+                row.addEventListener('click', function(e) {
+                    if (!e.target.closest('a') && !e.target.closest('button')) {
+                        const link = this.querySelector('a.btn-action');
+                        if (link) {
+                            link.click();
+                        }
+                    }
+                });
+                
+                row.style.cursor = 'pointer';
+            }
+        });
+
+        // Auto-refresh dashboard stats every 30 seconds
+        function refreshDashboardStats() {
+            fetch("{% url 'dashboard_stats' %}")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update all stat cards
+                        document.querySelectorAll('.stat-value')[0].textContent = data.total_events;
+                        document.querySelectorAll('.stat-value')[1].textContent = data.total_attendees;
+                        
+                        // Update active events badge
+                        const activeBadge = document.querySelector('.stat-badge');
+                        if (activeBadge) {
+                            activeBadge.textContent = data.active_events + ' Active';
+                        }
+                        
+                        // Update today checkins badge
+                        const todayBadge = document.querySelectorAll('.stat-badge')[1];
+                        if (todayBadge) {
+                            todayBadge.textContent = '+' + data.today_checkins + ' Today';
+                        }
+                        
+                        // Update feedback badge
+                        const feedbackBadge = document.querySelectorAll('.stat-badge')[2];
+                        if (feedbackBadge) {
+                            feedbackBadge.textContent = data.total_feedback + ' Feedback';
+                        }
+                        
+                        // Update rating
+                        const ratingValue = document.querySelectorAll('.stat-value')[{% if is_admin %}3{% else %}2{% endif %}];
+                        if (ratingValue) {
+                            ratingValue.textContent = data.avg_rating.toFixed(1);
+                        }
+                        
+                        // Update star rating
+                        const stars = document.querySelectorAll('.star-rating .bi-star-fill');
+                        stars.forEach((star, index) => {
+                            if (data.avg_rating >= index + 1) {
+                                star.classList.add('text-warning');
+                                star.classList.remove('text-gray-300');
+                            } else if (data.avg_rating >= index + 0.5) {
+                                star.classList.add('text-warning');
+                                star.classList.remove('text-gray-300');
+                            } else {
+                                star.classList.remove('text-warning');
+                                star.classList.add('text-gray-300');
+                            }
+                        });
+                        
+                        // Update today's overview
+                        document.getElementById('todayApplications').textContent = data.total_applications;
+                        document.getElementById('todayFeedback').textContent = data.total_feedback;
+                        document.getElementById('todayEvents').textContent = data.recent_events.length;
+                        
+                        console.log('Dashboard stats updated at ' + data.timestamp);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing dashboard stats:', error);
+                });
+        }
+
+        // Start auto-refresh if user is admin
+        {% if is_admin %}
+        setInterval(refreshDashboardStats, 30000); // Every 30 seconds
+        
+        // Also refresh on tab focus
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                refreshDashboardStats();
+            }
+        });
+        {% endif %}
+
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
 {% endblock %}

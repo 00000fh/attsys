@@ -235,6 +235,16 @@
         .dashboard-table td {
             padding: 0.75rem 1rem;
         }
+        
+        /* Adjust grid for mobile */
+        .stat-card {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    /* Hide staff card for non-admin users */
+    .staff-card-hidden {
+        display: none !important;
     }
 </style>
 {% endblock %}
@@ -277,7 +287,13 @@
                     </span>
                 </div>
                 <div class="stat-value">{{ total_events }}</div>
-                <div class="stat-label">Total Events</div>
+                <div class="stat-label">
+                    {% if user.role == 'ADMIN' %}
+                    Total Events
+                    {% else %}
+                    Your Events
+                    {% endif %}
+                </div>
                 <div class="progress-thin mt-2">
                     <div class="progress-bar bg-dark" role="progressbar" 
                          style="width: {% widthratio active_events total_events 100 %}%"></div>
@@ -297,7 +313,13 @@
                     </span>
                 </div>
                 <div class="stat-value">{{ total_attendees }}</div>
-                <div class="stat-label">Total Attendees</div>
+                <div class="stat-label">
+                    {% if user.role == 'ADMIN' %}
+                    Total Attendees
+                    {% else %}
+                    Your Attendees
+                    {% endif %}
+                </div>
                 <div class="progress-thin mt-2">
                     <div class="progress-bar bg-dark" role="progressbar" 
                          style="width: {% widthratio today_checkins total_attendees 100 %}%"></div>
@@ -305,26 +327,46 @@
             </div>
         </div>
 
-        <!-- Staff Members -->
+        <!-- Staff Members (Only for Admin) -->
+        {% if user.role == 'ADMIN' %}
         <div class="col-xl-3 col-lg-6 col-md-6">
             <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="stat-icon">
                         <i class="bi bi-person-badge"></i>
                     </div>
-                    {% if user.role == 'ADMIN' %}
                     <a href="{% url 'manage_staff' %}" class="text-decoration-none text-dark fs-8">
                         Manage →
                     </a>
-                    {% endif %}
                 </div>
-                <div class="stat-value">{{ total_staff }}</div>
+                <div class="stat-value">{{ total_staff|default:0 }}</div>
                 <div class="stat-label">Staff Members</div>
                 <div class="progress-thin mt-2">
                     <div class="progress-bar bg-dark" role="progressbar" style="width: 75%"></div>
                 </div>
             </div>
         </div>
+        {% else %}
+        <!-- Applications Card (For Staff) -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-file-text"></i>
+                    </div>
+                    <span class="stat-badge">
+                        {{ total_feedback|default:0 }} Feedback
+                    </span>
+                </div>
+                <div class="stat-value">{{ total_applications|default:0 }}</div>
+                <div class="stat-label">Applications</div>
+                <div class="progress-thin mt-2">
+                    <div class="progress-bar bg-dark" role="progressbar" 
+                         style="width: {% widthratio total_applications total_attendees 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Average Rating -->
         <div class="col-xl-3 col-lg-6 col-md-6">
@@ -356,6 +398,28 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Additional Card for Admin (Applications) -->
+        {% if user.role == 'ADMIN' %}
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <i class="bi bi-file-text"></i>
+                    </div>
+                    <span class="stat-badge">
+                        Complete Forms
+                    </span>
+                </div>
+                <div class="stat-value">{{ total_applications|default:0 }}</div>
+                <div class="stat-label">Total Applications</div>
+                <div class="progress-thin mt-2">
+                    <div class="progress-bar bg-dark" role="progressbar" 
+                         style="width: {% widthratio total_applications total_attendees 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Main Content -->
@@ -376,7 +440,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for event in events|slice:":10" %}
+                                {% for event in events %}
                                 <tr>
                                     <td class="ps-4">
                                         <div class="d-flex align-items-center">
@@ -438,6 +502,12 @@
                     <span class="text-muted">Today's Check-ins</span>
                     <span class="fw-semibold">{{ today_checkins|default:0 }}</span>
                 </div>
+                {% if user.role == 'ADMIN' %}
+                <div class="quick-stat-item">
+                    <span class="text-muted">Active Events</span>
+                    <span class="fw-semibold">{{ active_events|default:0 }}</span>
+                </div>
+                {% endif %}
                 <div class="quick-stat-item">
                     <span class="text-muted">Applications</span>
                     <span class="fw-semibold">{{ total_applications|default:0 }}</span>
@@ -450,7 +520,13 @@
 
             <!-- Active Events -->
             <div class="quick-stats-card">
-                <h6 class="fw-semibold mb-3">Active Events</h6>
+                <h6 class="fw-semibold mb-3">
+                    {% if user.role == 'ADMIN' %}
+                    Active Events
+                    {% else %}
+                    Your Active Events
+                    {% endif %}
+                </h6>
                 {% if active_events > 0 %}
                 <ul class="active-events-list">
                     {% for event in events %}
