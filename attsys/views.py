@@ -380,36 +380,95 @@ def event_detail(request, event_id):
 
     if event.is_active and now_malaysia > event_end:
         event.is_active = False
-        # Don't nullify the token, just keep it but event is inactive
+        # Don't nullify the token when auto-stopping
         event.save(update_fields=['is_active'])
-        # Refresh the event object to get updated state
+        # Refresh the event object
         event.refresh_from_db()
 
-    # 🔹 QR generation - FIXED: Use reverse() to build correct URL
+    # 🔹 QR generation - FIXED: Use proper URL generation
     qr_image = None
+    qr_url = None
+    
     if event.is_active:
-        # Ensure check_in_token exists
+        # Ensure check_in_token exists and is properly formatted
         if not event.check_in_token:
             event.check_in_token = uuid.uuid4()
             event.save(update_fields=['check_in_token'])
             event.refresh_from_db()
         
-        # Build QR URL using reverse
         try:
-            checkin_url = request.build_absolute_uri(
-                reverse('check_in', args=[event.id, event.check_in_token])
+            # Get the check-in URL using Django's reverse
+            from django.urls import reverse
+            
+            # IMPORTANT: Convert token to string for URL
+            token_str = str(event.check_in_token)
+            
+            # Build the check-in URL
+            try:
+                # Try to get URL using reverse
+                checkin_path = reverse('check_in', args=[event.id, token_str])
+                
+                # Build full URL - IMPORTANT: Use https for production
+                if settings.DEBUG:
+                    qr_url = f"http://{request.get_host()}{checkin_path}"
+                else:
+                    qr_url = f"https://{request.get_host()}{checkin_path}"
+                    
+            except Exception as reverse_error:
+                print(f"Reverse error: {reverse_error}")
+                # Fallback: Build URL manually
+                qr_url = f"{request.scheme}://{request.get_host()}/check-in/{event.id}/{token_str}/"
+            
+            # Debug logging
+            print(f"DEBUG QR GENERATION:")
+            print(f"  Event ID: {event.id}")
+            print(f"  Token: {token_str}")
+            print(f"  Token type: {type(event.check_in_token)}")
+            print(f"  QR URL: {qr_url}")
+            
+            # Generate QR code with better settings
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
             )
+            qr.add_data(qr_url)
+            qr.make(fit=True)
             
-            # Verify the URL is correct
-            print(f"DEBUG: Generated check-in URL: {checkin_url}")  # Remove in production
-            
-            qr = qrcode.make(checkin_url)
+            img = qr.make_image(fill_color="black", back_color="white")
             buffer = BytesIO()
-            qr.save(buffer, format="PNG")
+            img.save(buffer, format="PNG")
             qr_image = base64.b64encode(buffer.getvalue()).decode()
+            
         except Exception as e:
             print(f"Error generating QR code: {e}")
-            # Don't crash if QR generation fails
+            import traceback
+            traceback.print_exc()
+            # Generate a simple error QR as fallback
+            try:
+                # Create a fallback URL
+                fallback_url = f"{request.scheme}://{request.get_host()}/check-in/{event.id}/{event.check_in_token}/"
+                print(f"Fallback URL: {fallback_url}")
+                
+                qr = qrcode.QRCode(
+                    version=1,
+                    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                    box_size=10,
+                    border=4,
+                )
+                qr.add_data(fallback_url)
+                qr.make(fit=True)
+                
+                img = qr.make_image(fill_color="black", back_color="white")
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_image = base64.b64encode(buffer.getvalue()).decode()
+                qr_url = fallback_url
+            except Exception as fallback_error:
+                print(f"Fallback QR generation failed: {fallback_error}")
+                qr_image = None
+                qr_url = None
 
     # 🔹 Get registration information for each attendee (optimized)
     attendee_list = []
@@ -519,6 +578,7 @@ def event_detail(request, event_id):
         'event': event,
         'attendees': attendee_list,
         'qr_image': qr_image,
+        'qr_url': qr_url,  # ADD THIS FOR TESTING
         'attendance_by_hour': formatted_attendance,
         'feedbacks': feedbacks,
         'avg_rating': round(avg_rating, 1),  # Round to 1 decimal
@@ -531,6 +591,11 @@ def event_detail(request, event_id):
         'now_malaysia': now_malaysia,
         'event_end': event_end,
         'is_event_active': event.is_active and now_malaysia <= event_end,
+        'debug_info': {  # Add for debugging
+            'check_in_token': str(event.check_in_token) if event.check_in_token else 'None',
+            'qr_generated': qr_image is not None,
+            'is_active': event.is_active,
+        }
     })
 
 
@@ -542,30 +607,103 @@ def toggle_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if not event.is_active:
+        # Starting the event: Activate it and generate new token
         event.is_active = True
-        event.check_in_token = uuid.uuid4()
+        event.check_in_token = uuid.uuid4()  # This will be a UUID object
+        event.save()
+        
+        # Debug logging
+        print(f"EVENT STARTED:")
+        print(f"  Event: {event.title}")
+        print(f"  New Token: {event.check_in_token}")
+        print(f"  Token Type: {type(event.check_in_token)}")
+        
+        messages.success(request, f"Event '{event.title}' has been started. QR code is now active.")
     else:
+        # Stopping the event: Keep token but mark as inactive
         event.is_active = False
-        event.check_in_token = uuid.uuid4()  # keep token valid
+        # DON'T change the token when stopping
+        event.save()
+        messages.warning(request, f"Event '{event.title}' has been stopped. QR code is now inactive.")
 
-    event.save()
     return redirect('event_detail', event_id=event.id)
 
 
 def check_in(request, event_id, token):
-    event = get_object_or_404(
-        Event,
-        id=event_id,
-        check_in_token=token,
-        is_active=True
-    )
+    """
+    Public check-in view for attendees to submit application forms
+    """
+    try:
+        # Debug logging
+        print(f"CHECK-IN ATTEMPT:")
+        print(f"  Event ID: {event_id}")
+        print(f"  Token received: {token}")
+        print(f"  Token type: {type(token)}")
+        
+        # Get the event
+        event = get_object_or_404(Event, id=event_id)
+        
+        # Check if event is active
+        if not event.is_active:
+            return render(request, 'error.html', {
+                'title': 'Event Inactive',
+                'error': 'This event is no longer active for check-in.',
+                'event': event
+            })
+        
+        # Check token - IMPORTANT: Compare as strings
+        event_token_str = str(event.check_in_token)
+        received_token_str = str(token)
+        
+        print(f"  Event token: {event_token_str}")
+        print(f"  Token match: {event_token_str == received_token_str}")
+        
+        if event_token_str != received_token_str:
+            return render(request, 'error.html', {
+                'title': 'Invalid QR Code',
+                'error': 'This QR code is invalid or has expired. Please ask the event organizer for a new QR code.',
+                'event': event
+            })
+            
+    except Event.DoesNotExist:
+        return render(request, 'error.html', {
+            'title': 'Event Not Found',
+            'error': 'The event you are trying to check into does not exist.'
+        })
+    except Exception as e:
+        print(f"Error in check-in validation: {e}")
+        import traceback
+        traceback.print_exc()
+        return render(request, 'error.html', {
+            'title': 'Error',
+            'error': 'An error occurred while processing your check-in. Please try again.'
+        })
 
-    # Block staff/admin from checking in
+    # Block staff/admin from checking in as attendees
     if request.user.is_authenticated and request.user.role in ['STAFF', 'ADMIN']:
-        return HttpResponseForbidden("Staff/Admin cannot check in as attendee")
+        return render(request, 'error.html', {
+            'title': 'Staff/Admin Access',
+            'error': 'Staff and Admin users cannot check in as attendees. Please use a different browser or incognito mode.'
+        })
 
     if request.method == 'POST':
         try:
+            # Validate required fields
+            required_fields = [
+                'registration_officer', 'applied_programme', 'full_name',
+                'address1', 'city', 'postcode', 'state', 'ic_no', 'email',
+                'phone_no', 'marriage_status', 'father_name', 'father_ic',
+                'father_phone', 'mother_name', 'mother_ic', 'mother_phone'
+            ]
+            
+            for field in required_fields:
+                if not request.POST.get(field, '').strip():
+                    return render(request, 'check_in.html', {
+                        'event': event,
+                        'error': f'Please fill in all required fields. Missing: {field.replace("_", " ").title()}',
+                        'form_data': request.POST
+                    })
+
             # Handle SPM Total Credit - convert to integer
             spm_total_credit_str = request.POST.get('spm_total_credit', '0').strip()
             spm_total_credit = int(spm_total_credit_str) if spm_total_credit_str.isdigit() else 0
@@ -577,6 +715,11 @@ def check_in(request, event_id, token):
             mother_dependants_str = request.POST.get('mother_dependants', '0').strip()
             mother_dependants = int(mother_dependants_str) if mother_dependants_str.isdigit() else 0
 
+            # Get interest choices
+            interest_choice1 = request.POST.get('interest_choice1', '').strip()
+            interest_choice2 = request.POST.get('interest_choice2', '').strip()
+            interest_choice3 = request.POST.get('interest_choice3', '').strip()
+            
             # Create Application record with all fields
             application = Application.objects.create(
                 event=event,
@@ -605,28 +748,44 @@ def check_in(request, event_id, token):
                 mother_occupation=request.POST.get('mother_occupation', '').strip(),
                 mother_income=request.POST.get('mother_income', '').strip(),
                 mother_dependants=mother_dependants,
-                interest_choice1=request.POST.get('interest_choice1', '').strip(),
-                interest_choice2=request.POST.get('interest_choice2', '').strip(),
-                interest_choice3=request.POST.get('interest_choice3', '').strip(),
+                interest_choice1=interest_choice1,
+                interest_choice2=interest_choice2,
+                interest_choice3=interest_choice3,
                 interested_programme=(
-                    f"1. {request.POST.get('interest_choice1', '').strip()}\n"
-                    f"2. {request.POST.get('interest_choice2', '').strip()}\n"
-                    f"3. {request.POST.get('interest_choice3', '').strip()}"
+                    f"1. {interest_choice1}\n"
+                    f"2. {interest_choice2}\n"
+                    f"3. {interest_choice3}"
                 ).strip()
             )
             
             # Also mark as attendee for attendance tracking
-            attendee = Attendee.objects.create(
+            attendee, created = Attendee.objects.get_or_create(
                 event=event,
-                name=request.POST['full_name'].strip(),
                 email=request.POST['email'].strip().lower(),
-                phone_number=request.POST['phone_no'].strip()
+                defaults={
+                    'name': request.POST['full_name'].strip(),
+                    'phone_number': request.POST['phone_no'].strip()
+                }
             )
             
-            # Show simple success message (no print options)
+            # If attendee already exists, update their info
+            if not created:
+                attendee.name = request.POST['full_name'].strip()
+                attendee.phone_number = request.POST['phone_no'].strip()
+                attendee.save()
+            
+            # Log successful check-in
+            print(f"SUCCESSFUL CHECK-IN:")
+            print(f"  Event: {event.title}")
+            print(f"  Attendee: {attendee.name}")
+            print(f"  Email: {attendee.email}")
+            print(f"  Application ID: {application.id}")
+            
+            # Show success message
             return render(request, 'success.html', {
                 'event': event,
-                'application': application
+                'application': application,
+                'attendee': attendee
             })
 
         except IntegrityError as e:
@@ -636,17 +795,25 @@ def check_in(request, event_id, token):
                 error_msg = 'You have already submitted an application for this event.'
             else:
                 error_msg = 'An error occurred. Please try again.'
+            
+            print(f"Integrity Error in check-in: {e}")
             return render(request, 'check_in.html', {
                 'event': event,
-                'error': error_msg
+                'error': error_msg,
+                'form_data': request.POST
             })
+            
         except Exception as e:
-            print(f"Error in check_in: {e}")
+            print(f"Error in check_in POST: {e}")
+            import traceback
+            traceback.print_exc()
             return render(request, 'check_in.html', {
                 'event': event,
-                'error': 'An unexpected error occurred. Please try again.'
+                'error': 'An unexpected error occurred. Please try again.',
+                'form_data': request.POST
             })
 
+    # GET request - show check-in form
     return render(request, 'check_in.html', {'event': event})
 
 

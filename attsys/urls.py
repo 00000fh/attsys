@@ -25,7 +25,7 @@ urlpatterns = [
     path('api/event/<int:event_id>/realtime-stats/', views.get_realtime_stats, name='realtime_stats'),
     
     # QR public page - THIS IS THE KEY ONE
-    path('check-in/<int:event_id>/<uuid:token>/', views.check_in, name='check_in'),  # ← Will be /attsys/check-in/... if included in ses/urls.py
+    path('check-in/<int:event_id>/<str:token>/', views.check_in, name='check_in'),  # ← Will be /attsys/check-in/... if included in ses/urls.py
     
     # Other API endpoints...
     path('api/attendee/<int:attendee_id>/details/', views.get_attendee_details, name='get_attendee_details'),
