@@ -1270,41 +1270,6 @@
         </a>
     </div>
 
-    <!-- DEBUG SECTION - REMOVE AFTER FIXING -->
-    <div class="debug-section">
-        <h6><i class="bi bi-bug me-2"></i>Debug Information</h6>
-        <div class="debug-info">
-            <div class="debug-item">
-                <span class="debug-label">Event Active:</span>
-                <span class="debug-value">{{ event.is_active|yesno:"Yes,No" }}</span>
-            </div>
-            <div class="debug-item">
-                <span class="debug-label">QR Image Exists:</span>
-                <span class="debug-value">{{ qr_image|yesno:"Yes,No" }}</span>
-            </div>
-            <div class="debug-item">
-                <span class="debug-label">Event Token:</span>
-                <span class="debug-value">{{ event.check_in_token|default:"No token" }}</span>
-            </div>
-            <div class="debug-item">
-                <span class="debug-label">QR URL:</span>
-                <span class="debug-value">{{ qr_url|default:"No QR URL"|truncatechars:50 }}</span>
-            </div>
-            <div class="debug-item">
-                <span class="debug-label">View Debug Info:</span>
-                <span class="debug-value">
-                    {% if debug_info %}
-                        Token: {{ debug_info.check_in_token|default:"None" }},
-                        QR Generated: {{ debug_info.qr_generated|yesno:"Yes,No" }},
-                        Active: {{ debug_info.is_active|yesno:"Yes,No" }}
-                    {% else %}
-                        No debug info from view
-                    {% endif %}
-                </span>
-            </div>
-        </div>
-    </div>
-
     <!-- QR Code Section - Compact -->
     {% if event.is_active %}
     <div class="qr-section">
