@@ -1,3 +1,4 @@
+# attsys/urls.py
 from django.urls import path
 from django.shortcuts import redirect
 from . import views
@@ -14,7 +15,7 @@ urlpatterns = [
     # Dashboard (protected)
     path('dashboard/', views.dashboard, name='dashboard'),
     
-    # Rest of your URLs...
+    # Event URLs
     path('event/create/', views.create_event, name='create_event'),
     path('event/<int:event_id>/', views.event_detail, name='event_detail'),
     path('event/<int:event_id>/toggle/', views.toggle_event, name='toggle_event'),
@@ -23,14 +24,12 @@ urlpatterns = [
     path('api/event/<int:event_id>/realtime-attendees/', views.get_realtime_attendees, name='realtime_attendees'),
     path('api/event/<int:event_id>/realtime-stats/', views.get_realtime_stats, name='realtime_stats'),
     
-    # QR public page
-    path('check-in/<int:event_id>/<uuid:token>/', views.check_in, name='check_in'),
+    # QR public page - THIS IS THE KEY ONE
+    path('check-in/<int:event_id>/<uuid:token>/', views.check_in, name='check_in'),  # ← Will be /attsys/check-in/... if included in ses/urls.py
     
+    # Other API endpoints...
     path('api/attendee/<int:attendee_id>/details/', views.get_attendee_details, name='get_attendee_details'),
-    
-    # CSV export
     path('event/<int:event_id>/export/', views.export_attendees_csv, name='export_attendees_csv'),
-    
     path('api/attendee/<int:attendee_id>/registration/', views.get_attendee_registration, name='get_attendee_registration'),
     path('api/registration/save/', views.save_registration, name='save_registration'),
     path('api/event/<int:event_id>/registration-stats/', views.get_registration_stats, name='get_registration_stats'),

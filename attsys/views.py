@@ -365,59 +365,76 @@ def event_detail(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if request.user.role == 'STAFF' and event.created_by != request.user:
-        return HttpResponseForbidden()
+        return HttpResponseForbidden("You don't have permission to view this event.")
 
     # ✅ DEFINE ATTENDEES FIRST
     attendees = event.attendees.all().order_by('-attended_at')
 
     # 🔹 Auto stop event if ended (using Malaysia time)
     now_malaysia = malaysia_now()
+    event_date = event.date
     event_end = timezone.make_aware(
-        timezone.datetime.combine(event.date, event.end_time)
+        timezone.datetime.combine(event_date, event.end_time)
     )
-    event_end = timezone.localtime(event_end)
+    event_end = timezone.localtime(event_end, timezone.get_current_timezone())
 
     if event.is_active and now_malaysia > event_end:
         event.is_active = False
-        event.check_in_token = None
-        event.save()
+        # Don't nullify the token, just keep it but event is inactive
+        event.save(update_fields=['is_active'])
+        # Refresh the event object to get updated state
+        event.refresh_from_db()
 
-    # 🔹 QR generation - FIXED: Only generate if event is active AND has a token
+    # 🔹 QR generation - FIXED: Use reverse() to build correct URL
     qr_image = None
-    if event.is_active and event.check_in_token:
-        qr_url = f"{request.scheme}://{request.get_host()}/attsys/check-in/{event.id}/{event.check_in_token}/"
-
-        qr = qrcode.make(qr_url)
-        buffer = BytesIO()
-        qr.save(buffer, format="PNG")
-        qr_image = base64.b64encode(buffer.getvalue()).decode()
-    elif event.is_active and not event.check_in_token:
-        # If event is active but missing token, generate one
-        event.check_in_token = uuid.uuid4()
-        event.save()
+    if event.is_active:
+        # Ensure check_in_token exists
+        if not event.check_in_token:
+            event.check_in_token = uuid.uuid4()
+            event.save(update_fields=['check_in_token'])
+            event.refresh_from_db()
         
-        # Now generate QR code
-        qr_url = f"{request.scheme}://{request.get_host()}/attsys/check-in/{event.id}/{event.check_in_token}/"
-        qr = qrcode.make(qr_url)
-        buffer = BytesIO()
-        qr.save(buffer, format="PNG")
-        qr_image = base64.b64encode(buffer.getvalue()).decode()
-
-    # 🔹 Get registration information for each attendee
-    attendee_list = []
-    for attendee in attendees:
-        # Try to get registration info
+        # Build QR URL using reverse
         try:
-            registration = Registration.objects.get(attendee=attendee)
+            checkin_url = request.build_absolute_uri(
+                reverse('check_in', args=[event.id, event.check_in_token])
+            )
+            
+            # Verify the URL is correct
+            print(f"DEBUG: Generated check-in URL: {checkin_url}")  # Remove in production
+            
+            qr = qrcode.make(checkin_url)
+            buffer = BytesIO()
+            qr.save(buffer, format="PNG")
+            qr_image = base64.b64encode(buffer.getvalue()).decode()
+        except Exception as e:
+            print(f"Error generating QR code: {e}")
+            # Don't crash if QR generation fails
+
+    # 🔹 Get registration information for each attendee (optimized)
+    attendee_list = []
+    # Prefetch related data to avoid N+1 queries
+    attendees_with_prefetch = attendees.prefetch_related(
+        'registration',
+        'event__applications'
+    )
+    
+    for attendee in attendees_with_prefetch:
+        # Check for registration
+        try:
+            registration = attendee.registration
             attendee.has_registration = True
             attendee.registration = registration
         except Registration.DoesNotExist:
             attendee.has_registration = False
             attendee.registration = None
         
-        # Try to get application info
+        # Check for application (case-insensitive email match)
         try:
-            application = Application.objects.get(event=event, email__iexact=attendee.email)
+            application = Application.objects.get(
+                event=event, 
+                email__iexact=attendee.email
+            )
             attendee.has_application = True
             attendee.application = application
         except Application.DoesNotExist:
@@ -426,52 +443,94 @@ def event_detail(request, event_id):
         
         attendee_list.append(attendee)
 
-    # 🔹 Analytics (using Malaysia time)
-    attendance_by_hour = (
-        attendees
-        .annotate(malaysia_hour=ExtractHour(F('attended_at') + timedelta(hours=8)))
-        .values('malaysia_hour')
-        .annotate(count=Count('id'))
-        .order_by('malaysia_hour')
-    )
-    
-    # Format hours for display
-    formatted_attendance = []
-    for item in attendance_by_hour:
-        hour = item['malaysia_hour']
-        time_str = f"{hour:02d}:00"
-        formatted_attendance.append({
-            'hour': time_str,
-            'count': item['count']
-        })
+    # 🔹 Analytics (using Malaysia time) - Fixed timezone handling
+    try:
+        attendance_by_hour = (
+            attendees
+            .annotate(
+                malaysia_hour=ExtractHour(
+                    timezone.localtime(F('attended_at'), timezone.get_current_timezone())
+                )
+            )
+            .values('malaysia_hour')
+            .annotate(count=Count('id'))
+            .order_by('malaysia_hour')
+        )
+        
+        # Format hours for display
+        formatted_attendance = []
+        for item in attendance_by_hour:
+            hour = item['malaysia_hour']
+            time_str = f"{hour:02d}:00"
+            formatted_attendance.append({
+                'hour': time_str,
+                'count': item['count']
+            })
+    except Exception as e:
+        print(f"Error calculating attendance by hour: {e}")
+        formatted_attendance = []
 
     # 🔹 Feedback analytics
     feedbacks = event.feedbacks.all().order_by('-submitted_at')
     avg_rating = feedbacks.aggregate(Avg('rating'))['rating__avg'] or 0
 
-    # 🔹 Calculate registration statistics for the summary cards
-    registrations = Registration.objects.filter(attendee__event=event)
-    total_registered = registrations.count()
-    total_paid = registrations.filter(payment_status='DONE').count()
-    total_pending = registrations.filter(payment_status='PENDING').count()
-    
-    # Calculate total revenue
-    from decimal import Decimal
-    total_revenue = Decimal('0.00')
-    for reg in registrations:
-        total_revenue += (reg.pre_registration_fee or Decimal('0.00')) + (reg.registration_fee or Decimal('0.00'))
+    # 🔹 Calculate registration statistics for the summary cards (optimized)
+    try:
+        registrations = Registration.objects.filter(attendee__event=event)
+        total_registered = registrations.count()
+        
+        # Get counts in a single query
+        status_counts = registrations.aggregate(
+            total_paid_count=Count('id', filter=Q(payment_status='DONE')),
+            total_pending_count=Count('id', filter=Q(payment_status='PENDING'))
+        )
+        
+        total_paid = status_counts['total_paid_count'] or 0
+        total_pending = status_counts['total_pending_count'] or 0
+        
+        # Calculate total revenue efficiently
+        revenue_data = registrations.aggregate(
+            total_revenue=Sum(
+                F('pre_registration_fee') + F('registration_fee')
+            )
+        )
+        total_revenue = revenue_data['total_revenue'] or Decimal('0.00')
+        
+    except Exception as e:
+        print(f"Error calculating registration stats: {e}")
+        total_registered = 0
+        total_paid = 0
+        total_pending = 0
+        total_revenue = Decimal('0.00')
+
+    # 🔹 Applications count
+    total_applications = Application.objects.filter(event=event).count()
+
+    # 🔹 Today's check-ins (Malaysia time)
+    today_start = timezone.localtime(
+        timezone.now().replace(hour=0, minute=0, second=0, microsecond=0),
+        timezone.get_current_timezone()
+    )
+    today_checkins = attendees.filter(
+        attended_at__gte=today_start
+    ).count()
 
     return render(request, 'event_detail.html', {
         'event': event,
-        'attendees': attendee_list,  # Use the enhanced list
+        'attendees': attendee_list,
         'qr_image': qr_image,
         'attendance_by_hour': formatted_attendance,
         'feedbacks': feedbacks,
-        'avg_rating': avg_rating,
+        'avg_rating': round(avg_rating, 1),  # Round to 1 decimal
         'total_registered': total_registered,
         'total_paid': total_paid,
         'total_pending': total_pending,
         'total_revenue': f"{total_revenue:.2f}",
+        'total_applications': total_applications,
+        'today_checkins': today_checkins,
+        'now_malaysia': now_malaysia,
+        'event_end': event_end,
+        'is_event_active': event.is_active and now_malaysia <= event_end,
     })
 
 
@@ -592,13 +651,14 @@ def check_in(request, event_id, token):
 
 
 def qr_image(request, event_id):
-    event = Event.objects.get(id=event_id)
+    event = get_object_or_404(Event, id=event_id)
+    # Use check_in_token, not qr_token
     url = request.build_absolute_uri(
-        f"/check-in/{event.id}/{event.qr_token}/"
+        f"/check-in/{event.id}/{event.check_in_token}/"
     )
     img = qrcode.make(url)
     buffer = BytesIO()
-    img.save(buffer)
+    img.save(buffer, format="PNG")
     return HttpResponse(buffer.getvalue(), content_type="image/png")
 
 

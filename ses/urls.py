@@ -23,7 +23,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', lambda request: redirect('login')),  # Redirect root to login
-    path('', include('attsys.urls')),  # Include your app URLs
+    path('attsys/', include('attsys.urls')),  # Include your app URLs
 ]
 
 if settings.DEBUG:
