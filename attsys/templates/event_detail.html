@@ -1,3 +1,4 @@
+event_detail
 {% extends 'base.html' %}
 
 {% block title %}{{ event.title }} | ATTSYS{% endblock %}
@@ -487,33 +488,199 @@
         transform: scale(1.1);
     }
     
-    /* Toast Notification */
-    .toast {
+    /* ============================== */
+    /* NOTIFICATION SYSTEM (Like Dashboard) */
+    /* ============================== */
+    .notification-container {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        background: var(--success);
-        color: white;
-        padding: 0.75rem 1.25rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        transform: translateY(100px);
-        opacity: 0;
-        transition: all 0.3s ease;
-        z-index: 1200;
+        z-index: 9999;
         display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.875rem;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 350px;
+        pointer-events: none;
     }
     
-    .toast.show {
-        transform: translateY(0);
+    .notification {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid var(--success);
+        transform: translateX(100%);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        pointer-events: auto;
+        position: relative;
+        overflow: hidden;
+        max-width: 100%;
+    }
+    
+    .notification.show {
+        transform: translateX(0);
         opacity: 1;
     }
     
-    .toast i {
-        font-size: 1.1rem;
+    .notification.hide {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    
+    /* Notification Types */
+    .notification-success {
+        border-left-color: var(--success);
+    }
+    
+    .notification-success .notification-icon {
+        color: var(--success);
+    }
+    
+    .notification-error {
+        border-left-color: #dc3545;
+    }
+    
+    .notification-error .notification-icon {
+        color: #dc3545;
+    }
+    
+    .notification-warning {
+        border-left-color: var(--warning);
+    }
+    
+    .notification-warning .notification-icon {
+        color: var(--warning);
+    }
+    
+    .notification-info {
+        border-left-color: var(--primary);
+    }
+    
+    .notification-info .notification-icon {
+        color: var(--primary);
+    }
+    
+    .notification-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .notification-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    
+    .notification-text {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .notification-title {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 4px;
+        font-size: 0.95rem;
+        line-height: 1.3;
+    }
+    
+    .notification-message {
+        color: var(--gray-600);
+        font-size: 0.875rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+    
+    .notification-close {
+        background: transparent;
+        border: none;
+        color: var(--gray-500);
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        margin-left: 8px;
+    }
+    
+    .notification-close:hover {
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
+    
+    /* Progress Bar for Auto-dismiss */
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .notification-progress-bar {
+        height: 100%;
+        width: 100%;
+        transform: translateX(-100%);
+        background: currentColor;
+        opacity: 0.5;
+    }
+    
+    .notification-success .notification-progress-bar {
+        background: var(--success);
+    }
+    
+    .notification-error .notification-progress-bar {
+        background: #dc3545;
+    }
+    
+    .notification-warning .notification-progress-bar {
+        background: var(--warning);
+    }
+    
+    .notification-info .notification-progress-bar {
+        background: var(--primary);
+    }
+    
+    /* Animation */
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    @keyframes progressBar {
+        from {
+            transform: translateX(-100%);
+        }
+        to {
+            transform: translateX(0);
+        }
     }
     
     /* Debug Section */
@@ -1118,6 +1285,18 @@
         .debug-info {
             grid-template-columns: 1fr;
         }
+        
+        /* Notification responsive */
+        .notification-container {
+            bottom: 10px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+        
+        .notification {
+            max-width: 100%;
+        }
     }
     
     @media (max-width: 576px) {
@@ -1305,7 +1484,7 @@
                         <i class="bi bi-box-arrow-up-right"></i>
                         Open Link
                     </a>
-                    <button class="qr-btn qr-btn-secondary" onclick="copyToClipboard()"
+                    <button class="qr-btn qr-btn-secondary" onclick="showNotification('URL copied to clipboard!', 'success')"
                             {% if not qr_url %}disabled{% endif %}>
                         <i class="bi bi-clipboard"></i>
                         Copy URL
@@ -1416,6 +1595,11 @@
             </div>
         </div>
     </div>
+
+    <!-- ============================== -->
+    <!-- NOTIFICATION CONTAINER -->
+    <!-- ============================== -->
+    <div class="notification-container" id="notificationContainer"></div>
 
     <!-- ========================= -->
     <!-- UPDATED: Attendee Details Modal - Wider and Larger -->
@@ -1672,12 +1856,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <i class="bi bi-check-circle"></i>
-        <span id="toastMessage">Copied to clipboard!</span>
     </div>
 
     <!-- Stats Overview -->
@@ -1950,50 +2128,172 @@
     const LOGO_URL1 = "/static/images/seslogoo.png";
     const UPKB_LOGO_URL = "/static/images/upkb.png";
 
-    // Add this to your JavaScript section
-    window.exportRegistrationPDF = function() {
-        // Show loading indicator
-        const exportBtn = document.querySelector('[onclick="exportRegistrationPDF()"]');
-        const originalText = exportBtn.innerHTML;
-        exportBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Generating PDF...';
-        exportBtn.disabled = true;
+    // ==============================
+    // NOTIFICATION SYSTEM
+    // ==============================
+    class NotificationSystem {
+        constructor() {
+            this.container = document.getElementById('notificationContainer');
+            this.notifications = new Map();
+            this.nextId = 0;
+        }
         
-        // Make the request
-        fetch(`/attsys/api/event/{{ event.id }}/export-registrations-pdf/`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/pdf'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to generate PDF');
-            }
-            return response.blob();
-        })
-        .then(blob => {
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `registration_report_{{ event.title }}_${new Date().toISOString().slice(0,10)}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+        show(options) {
+            const id = this.nextId++;
+            const notification = this.createNotification(id, options);
+            this.notifications.set(id, notification);
             
-            // Show success toast
-            showToast('PDF report downloaded successfully!');
-        })
-        .catch(error => {
-            console.error('Error downloading PDF:', error);
-            showToast('Failed to generate PDF report', true);
-        })
-        .finally(() => {
-            // Reset button
-            exportBtn.innerHTML = originalText;
-            exportBtn.disabled = false;
-        });
+            // Add to container
+            this.container.appendChild(notification.element);
+            
+            // Show with animation
+            setTimeout(() => {
+                notification.element.classList.add('show');
+                
+                // Start progress bar
+                if (notification.progressBar) {
+                    notification.progressBar.style.animation = `progressBar ${options.duration || 5000}ms linear forwards`;
+                }
+                
+                // Auto dismiss
+                if (options.autoDismiss !== false) {
+                    notification.timeout = setTimeout(() => {
+                        this.dismiss(id);
+                    }, options.duration || 5000);
+                }
+            }, 10);
+            
+            return id;
+        }
+        
+        createNotification(id, options) {
+            const element = document.createElement('div');
+            element.className = `notification notification-${options.type || 'info'}`;
+            
+            // Icon mapping
+            const icons = {
+                success: 'bi-check-circle',
+                error: 'bi-x-circle',
+                warning: 'bi-exclamation-triangle',
+                info: 'bi-info-circle'
+            };
+            
+            const icon = icons[options.type || 'info'];
+            
+            element.innerHTML = `
+                <div class="notification-content">
+                    <i class="bi ${icon} notification-icon"></i>
+                    <div class="notification-text">
+                        <div class="notification-title">${options.title || ''}</div>
+                        <div class="notification-message">${options.message || ''}</div>
+                    </div>
+                    <button class="notification-close" data-id="${id}">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                ${options.autoDismiss !== false ? `
+                <div class="notification-progress">
+                    <div class="notification-progress-bar"></div>
+                </div>
+                ` : ''}
+            `;
+            
+            // Add click handlers
+            const closeBtn = element.querySelector('.notification-close');
+            closeBtn.addEventListener('click', () => this.dismiss(id));
+            
+            // Click to dismiss
+            if (options.clickToDismiss !== false) {
+                element.addEventListener('click', (e) => {
+                    if (!e.target.closest('.notification-close')) {
+                        this.dismiss(id);
+                    }
+                });
+            }
+            
+            return {
+                id,
+                element,
+                timeout: null,
+                progressBar: element.querySelector('.notification-progress-bar')
+            };
+        }
+        
+        dismiss(id) {
+            const notification = this.notifications.get(id);
+            if (!notification) return;
+            
+            // Clear timeout if exists
+            if (notification.timeout) {
+                clearTimeout(notification.timeout);
+            }
+            
+            // Hide with animation
+            notification.element.classList.remove('show');
+            notification.element.classList.add('hide');
+            
+            // Remove from DOM after animation
+            setTimeout(() => {
+                if (notification.element.parentNode) {
+                    notification.element.parentNode.removeChild(notification.element);
+                }
+                this.notifications.delete(id);
+            }, 300);
+        }
+        
+        success(message, title = 'Success') {
+            return this.show({
+                type: 'success',
+                title,
+                message
+            });
+        }
+        
+        error(message, title = 'Error') {
+            return this.show({
+                type: 'error',
+                title,
+                message
+            });
+        }
+        
+        warning(message, title = 'Warning') {
+            return this.show({
+                type: 'warning',
+                title,
+                message
+            });
+        }
+        
+        info(message, title = 'Info') {
+            return this.show({
+                type: 'info',
+                title,
+                message
+            });
+        }
+        
+        clearAll() {
+            for (const [id] of this.notifications) {
+                this.dismiss(id);
+            }
+        }
+    }
+    
+    // Global notification instance
+    const notifications = new NotificationSystem();
+    
+    // Global function to show notifications
+    window.showNotification = function(message, type = 'info', title = '') {
+        if (!title) {
+            switch(type) {
+                case 'success': title = 'Success'; break;
+                case 'error': title = 'Error'; break;
+                case 'warning': title = 'Warning'; break;
+                default: title = 'Info';
+            }
+        }
+        return notifications.show({ type, title, message });
     };
     
     // Form number counter
@@ -2007,8 +2307,6 @@
     const qrModal = document.getElementById('qrModal');
     const qrImage = document.getElementById('qrImage');
     const fullscreenIcon = document.getElementById('fullscreenIcon');
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
     
     // Open QR modal
     window.openQRModal = function() {
@@ -2037,19 +2335,19 @@
         }
     };
     
-    // Copy to clipboard function
+    // Copy to clipboard function with notification
     window.copyToClipboard = function() {
         const url = '{{ qr_url|default:"" }}';
         
         if (!url) {
-            showToast('QR URL is not available. Please refresh the page.', true);
+            showNotification('QR URL is not available. Please refresh the page.', 'error');
             return;
         }
         
         // Try modern clipboard API first
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(url).then(function() {
-                showToast('URL copied to clipboard');
+                showNotification('URL copied to clipboard!', 'success');
             }).catch(function(err) {
                 fallbackCopyToClipboard(url);
             });
@@ -2069,33 +2367,20 @@
         
         try {
             document.execCommand('copy');
-            showToast('URL copied to clipboard');
+            showNotification('URL copied to clipboard!', 'success');
         } catch (err) {
             console.error('Copy failed:', err);
-            showToast('Failed to copy', true);
+            showNotification('Failed to copy URL', 'error');
         }
         
         document.body.removeChild(textArea);
     }
     
-    // Show toast notification
-    function showToast(message, isError = false) {
-        if (!toast || !toastMessage) return;
-        
-        toastMessage.textContent = message;
-        toast.style.background = isError ? '#dc3545' : 'var(--success)';
-        toast.classList.add('show');
-        
-        setTimeout(function() {
-            toast.classList.remove('show');
-        }, 3000);
-    }
-    
-    // Download QR Code
+    // Download QR Code with notification
     window.downloadQR = function() {
         const qrDataUrl = 'data:image/png;base64,{{ qr_image }}';
         if (!qrDataUrl || qrDataUrl.includes('data:image/png;base64,')) {
-            showToast('QR code is not available to download', true);
+            showNotification('QR code is not available to download', 'error');
             return;
         }
         
@@ -2105,7 +2390,7 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        showToast('QR code downloaded');
+        showNotification('QR code downloaded successfully!', 'success');
     };
     
     // Show attendee details
@@ -2377,7 +2662,7 @@
     // Print attendee form
     window.printAttendeeForm = function() {
         if (!currentAttendeeData || !currentAttendeeData.application) {
-            showToast('No application data available to print', true);
+            showNotification('No application data available to print', 'error');
             return;
         }
         
@@ -3288,7 +3573,7 @@
         document.getElementById('summaryStatus').innerHTML = statusBadge;
     }
     
-    // Save registration
+    // Save registration with notification
     window.saveRegistration = function() {
         const form = document.getElementById('registrationForm');
         if (!form.checkValidity()) {
@@ -3316,7 +3601,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast('Registration saved successfully!');
+                showNotification('Registration saved successfully!', 'success');
                 
                 // Update UI
                 updateAttendeeRegistrationDisplay(currentAttendeeId, data.registration);
@@ -3327,12 +3612,12 @@
                 // Close modal
                 bootstrap.Modal.getInstance(document.getElementById('registrationModal')).hide();
             } else {
-                showToast(data.error || 'Failed to save registration', true);
+                showNotification(data.error || 'Failed to save registration', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast('An error occurred. Please try again.', true);
+            showNotification('An error occurred. Please try again.', 'error');
         })
         .finally(() => {
             saveBtn.disabled = false;
@@ -3425,9 +3710,50 @@
         modal.show();
     };
     
-    // Export registration report
+    // Export registration report with notification
     window.exportRegistrationReport = function() {
         window.open(`/attsys/api/event/{{ event.id }}/export-registrations/`, '_blank');
+        showNotification('Exporting registration data...', 'info');
+    };
+    
+    // Export registration PDF with notification
+    window.exportRegistrationPDF = function() {
+        // Show loading notification
+        const notificationId = showNotification('Generating PDF report...', 'info', 'Please wait');
+        
+        // Make the request
+        fetch(`/attsys/api/event/{{ event.id }}/export-registrations-pdf/`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/pdf'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to generate PDF');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `registration_report_{{ event.title }}_${new Date().toISOString().slice(0,10)}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Update notification
+            notifications.dismiss(notificationId);
+            showNotification('PDF report downloaded successfully!', 'success');
+        })
+        .catch(error => {
+            console.error('Error downloading PDF:', error);
+            notifications.dismiss(notificationId);
+            showNotification('Failed to generate PDF report', 'error');
+        });
     };
     
     // Create chart for stats modal
@@ -3656,6 +3982,11 @@
         
         // Load initial registration statistics
         updateRegistrationStats();
+        
+        // Show welcome notification on page load
+        setTimeout(() => {
+            showNotification('Welcome to Event Management! Use the actions below to manage attendees and registrations.', 'info', 'Event Detail');
+        }, 1000);
     });
 </script>
 {% endblock %}
