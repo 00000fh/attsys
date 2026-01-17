@@ -5,6 +5,8 @@ import uuid
 from django.utils import timezone
 from datetime import date, timedelta
 from decimal import Decimal
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class User(AbstractUser):
@@ -13,8 +15,19 @@ class User(AbstractUser):
         ('STAFF', 'Staff'),
     )
 
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='STAFF')
     phone_number = models.CharField(max_length=15, blank=True)
+    
+    def save(self, *args, **kwargs):
+        # Set permissions based on role
+        if self.role == 'ADMIN':
+            self.is_staff = True
+            self.is_superuser = True
+        elif self.role == 'STAFF':
+            self.is_staff = True
+            self.is_superuser = False
+        
+        super().save(*args, **kwargs)
 
 
 class Event(models.Model):
@@ -255,4 +268,24 @@ class Registration(models.Model):
     class Meta:
         ordering = ['-created_at']
 
-    
+
+@receiver(post_save, sender=User)
+def set_user_permissions(sender, instance, created, **kwargs):
+    """Automatically set is_staff and is_superuser based on role"""
+    if instance.role == 'ADMIN':
+        if not instance.is_staff or not instance.is_superuser:
+            instance.is_staff = True
+            instance.is_superuser = True
+            # Save without triggering signal again
+            User.objects.filter(pk=instance.pk).update(
+                is_staff=True,
+                is_superuser=True
+            )
+    elif instance.role == 'STAFF':
+        if not instance.is_staff or instance.is_superuser:
+            instance.is_staff = True
+            instance.is_superuser = False
+            User.objects.filter(pk=instance.pk).update(
+                is_staff=True,
+                is_superuser=False
+            )
