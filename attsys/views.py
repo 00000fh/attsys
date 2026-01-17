@@ -8,7 +8,7 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Event, Attendee, Feedback, Application
+from .models import Event, Attendee, Feedback, Application, Registration
 from django.http import HttpResponseForbidden, JsonResponse
 from django.db import IntegrityError
 from django.contrib import messages
@@ -16,19 +16,103 @@ from .models import User
 from django.utils.timezone import now, timedelta
 from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.db.models import Count, Avg, Q, F
-from django.db.models.functions import TruncHour, ExtractHour
+import pandas as pd
+from django.db.models import Sum, Count, Avg, Q, F, Value
+from django.db.models.functions import TruncHour, ExtractHour, Coalesce
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+import io
 import json
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+from decimal import Decimal, InvalidOperation
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from django.conf import settings
+from reportlab.pdfgen import canvas
 
 
 User = get_user_model()
 
+
+def link_callback(uri, rel):
+    """
+    Convert HTML URIs to absolute system paths so xhtml2pdf can access those resources
+    """
+    # Convert URIs to absolute path
+    if uri.startswith("data:"):
+        return uri
+    
+    # Handle static files
+    if uri.startswith("/static/"):
+        path = os.path.join(settings.STATIC_ROOT, uri.replace("/static/", ""))
+        if os.path.isfile(path):
+            return path
+    
+    # Handle media files
+    if uri.startswith("/media/"):
+        path = os.path.join(settings.MEDIA_ROOT, uri.replace("/media/", ""))
+        if os.path.isfile(path):
+            return path
+    
+    # Fallback to base URL
+    return uri
+
+def generate_pdf(template_src, context_dict={}):
+    """
+    Generate PDF from HTML template
+    """
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    result = BytesIO()
+    
+    # Generate PDF
+    pdf = pisa.CreatePDF(
+        BytesIO(html.encode("UTF-8")),
+        dest=result,
+        encoding='UTF-8',
+        link_callback=link_callback
+    )
+    
+    if not pdf.err:
+        return result.getvalue()
+    return None
+
+def render_to_pdf_response(template_src, context_dict, filename="report.pdf"):
+    """
+    Render template to PDF HTTP response
+    """
+    from io import BytesIO
+    from django.template.loader import get_template
+    from xhtml2pdf import pisa
+    
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    result = BytesIO()
+    
+    # Generate PDF
+    pdf = pisa.CreatePDF(
+        BytesIO(html.encode("UTF-8")),
+        dest=result,
+        encoding='UTF-8'
+    )
+    
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    return HttpResponse('PDF generation error', status=500)
+
+
 # Helper: Get current Malaysia time
 def malaysia_now():
-    return timezone.localtime(timezone.now())
+    """Get current time in Malaysia timezone (UTC+8)"""
+    # Create a timezone object for UTC+8
+    return timezone.now() + timedelta(hours=8)
 
 
 def login_view(request):
@@ -301,16 +385,28 @@ def event_detail(request, event_id):
         qr.save(buffer, format="PNG")
         qr_image = base64.b64encode(buffer.getvalue()).decode()
 
-    # 🔹 Read logo file and convert to base64
-    base64_logo = ""
-    try:
-        logo_path = BASE_DIR / "static" / "images" / "SES LOGO RENEW.png"
-        if logo_path.exists():
-            with open(logo_path, 'rb') as f:
-                base64_logo = base64.b64encode(f.read()).decode('utf-8')
-    except Exception as e:
-        print(f"Logo load error: {e}")
-        base64_logo = ""
+    # 🔹 Get registration information for each attendee
+    attendee_list = []
+    for attendee in attendees:
+        # Try to get registration info
+        try:
+            registration = Registration.objects.get(attendee=attendee)
+            attendee.has_registration = True
+            attendee.registration = registration
+        except Registration.DoesNotExist:
+            attendee.has_registration = False
+            attendee.registration = None
+        
+        # Try to get application info
+        try:
+            application = Application.objects.get(event=event, email__iexact=attendee.email)
+            attendee.has_application = True
+            attendee.application = application
+        except Application.DoesNotExist:
+            attendee.has_application = False
+            attendee.application = None
+        
+        attendee_list.append(attendee)
 
     # 🔹 Analytics (using Malaysia time)
     attendance_by_hour = (
@@ -335,14 +431,29 @@ def event_detail(request, event_id):
     feedbacks = event.feedbacks.all().order_by('-submitted_at')
     avg_rating = feedbacks.aggregate(Avg('rating'))['rating__avg'] or 0
 
+    # 🔹 Calculate registration statistics for the summary cards
+    registrations = Registration.objects.filter(attendee__event=event)
+    total_registered = registrations.count()
+    total_paid = registrations.filter(payment_status='DONE').count()
+    total_pending = registrations.filter(payment_status='PENDING').count()
+    
+    # Calculate total revenue
+    from decimal import Decimal
+    total_revenue = Decimal('0.00')
+    for reg in registrations:
+        total_revenue += (reg.pre_registration_fee or Decimal('0.00')) + (reg.registration_fee or Decimal('0.00'))
+
     return render(request, 'event_detail.html', {
         'event': event,
-        'attendees': attendees,
+        'attendees': attendee_list,  # Use the enhanced list
         'qr_image': qr_image,
         'attendance_by_hour': formatted_attendance,
         'feedbacks': feedbacks,
         'avg_rating': avg_rating,
-        'base64_logo': base64_logo,  # Add this to context
+        'total_registered': total_registered,
+        'total_paid': total_paid,
+        'total_pending': total_pending,
+        'total_revenue': f"{total_revenue:.2f}",
     })
 
 
@@ -811,3 +922,723 @@ def get_realtime_stats(request, event_id):
     }
     
     return JsonResponse(response_data)
+
+
+@login_required
+@require_GET
+def get_attendee_registration(request, attendee_id):
+    """Get registration data for an attendee"""
+    attendee = get_object_or_404(Attendee, id=attendee_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and attendee.event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        registration = Registration.objects.get(attendee=attendee)
+        data = {
+            'registration': {
+                'id': registration.id,
+                'course': registration.course,
+                'college': registration.college,
+                'register_date': registration.register_date.strftime('%Y-%m-%d') if registration.register_date else '',
+                'pre_registration_fee': str(registration.pre_registration_fee),
+                'registration_fee': str(registration.registration_fee),
+                'payment_status': registration.payment_status,
+                'remark': registration.remark,
+                'closer': registration.closer,
+                'referral_number': registration.referral_number,
+                'total_fee': str(registration.total_fee()),
+                'created_at': timezone.localtime(registration.created_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'updated_at': timezone.localtime(registration.updated_at).strftime('%Y-%m-%d %H:%M:%S')
+            }
+        }
+        return JsonResponse(data)
+    except Registration.DoesNotExist:
+        return JsonResponse({'registration': None})
+
+@login_required
+@csrf_exempt
+def save_registration(request):
+    """Save or update registration data with better validation"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    attendee_id = request.POST.get('attendee_id')
+    if not attendee_id:
+        return JsonResponse({'error': 'Attendee ID required'}, status=400)
+    
+    try:
+        attendee = Attendee.objects.get(id=attendee_id)
+    except Attendee.DoesNotExist:
+        return JsonResponse({'error': 'Attendee not found'}, status=404)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and attendee.event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        # Validate and parse data
+        course = request.POST.get('course', '').strip()
+        college = request.POST.get('college', '').strip()
+        closer = request.POST.get('closer', '').strip()
+        
+        # Required field validation
+        if not course:
+            return JsonResponse({'error': 'Course is required'}, status=400)
+        if not college:
+            return JsonResponse({'error': 'College is required'}, status=400)
+        if not closer:
+            return JsonResponse({'error': 'Closer name is required'}, status=400)
+        
+        # Parse date
+        register_date_str = request.POST.get('register_date', '')
+        if not register_date_str:
+            return JsonResponse({'error': 'Registration date is required'}, status=400)
+        
+        try:
+            # Accept multiple date formats
+            for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'):
+                try:
+                    register_date = datetime.strptime(register_date_str, fmt).date()
+                    break
+                except ValueError:
+                    continue
+            else:
+                return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD'}, status=400)
+        except (ValueError, TypeError) as e:
+            return JsonResponse({'error': f'Invalid date: {str(e)}'}, status=400)
+        
+        # FIX: Use Malaysia time for date validation
+        malaysia_today = malaysia_now().date()
+        
+        # Validate date is not in future (using Malaysia time)
+        if register_date > malaysia_today:
+            return JsonResponse({'error': 'Registration date cannot be in the future'}, status=400)
+        
+        # ALSO: Validate date is not too far in the past (optional)
+        # Let's say not more than 30 days ago
+        thirty_days_ago = malaysia_today - timedelta(days=30)
+        if register_date < thirty_days_ago:
+            return JsonResponse({'error': 'Registration date cannot be more than 30 days ago'}, status=400)
+        
+        # Parse fees with validation
+        try:
+            pre_registration_fee = Decimal(request.POST.get('pre_registration_fee', '0') or '0')
+            registration_fee = Decimal(request.POST.get('registration_fee', '0') or '0')
+            
+            if pre_registration_fee < 0:
+                return JsonResponse({'error': 'Pre-registration fee cannot be negative'}, status=400)
+            if registration_fee < 0:
+                return JsonResponse({'error': 'Registration fee cannot be negative'}, status=400)
+        except (ValueError, TypeError, InvalidOperation) as e:  # InvalidOperation needs to be imported
+            return JsonResponse({'error': f'Invalid fee format: {str(e)}'}, status=400)
+        
+        # Get or create registration
+        registration, created = Registration.objects.get_or_create(
+            attendee=attendee,
+            defaults={
+                'course': course,
+                'college': college,
+                'register_date': register_date,
+                'pre_registration_fee': pre_registration_fee,
+                'registration_fee': registration_fee,
+                'payment_status': request.POST.get('payment_status', 'PENDING'),
+                'remark': request.POST.get('remark', '').strip(),
+                'closer': closer,
+                'referral_number': request.POST.get('referral_number', '').strip()
+            }
+        )
+        
+        # Update if exists
+        if not created:
+            registration.course = course
+            registration.college = college
+            registration.register_date = register_date
+            registration.pre_registration_fee = pre_registration_fee
+            registration.registration_fee = registration_fee
+            registration.payment_status = request.POST.get('payment_status', 'PENDING')
+            registration.remark = request.POST.get('remark', '').strip()
+            registration.closer = closer
+            registration.referral_number = request.POST.get('referral_number', '').strip()
+            registration.save()
+        
+        # Prepare response data
+        response_data = {
+            'success': True,
+            'message': 'Registration saved successfully',
+            'registration': {
+                'id': registration.id,
+                'course': registration.course,
+                'college': registration.college,
+                'register_date': registration.register_date.strftime('%Y-%m-%d'),
+                'pre_registration_fee': str(registration.pre_registration_fee),
+                'registration_fee': str(registration.registration_fee),
+                'total_fee': str(registration.total_fee()),
+                'payment_status': registration.payment_status,
+                'closer': registration.closer,
+                'referral_number': registration.referral_number
+            }
+        }
+        
+        return JsonResponse(response_data)
+        
+    except IntegrityError as e:
+        return JsonResponse({'error': f'Database error: {str(e)}'}, status=500)
+    except Exception as e:
+        print(f"Error saving registration: {e}")
+        return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
+
+@login_required
+@require_GET
+def get_registration_stats(request, event_id):
+    """Get registration statistics for an event"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    # Get all registrations for this event
+    registrations = Registration.objects.filter(attendee__event=event)
+    
+    total_registered = registrations.count()
+    total_paid = registrations.filter(payment_status='DONE').count()
+    total_pending = registrations.filter(payment_status='PENDING').count()
+    
+    # Calculate total revenue
+    total_revenue = registrations.aggregate(
+        total=Sum(models.F('pre_registration_fee') + models.F('registration_fee'))
+    )['total'] or Decimal('0.00')
+    
+    return JsonResponse({
+        'success': True,
+        'total_registered': total_registered,
+        'total_paid': total_paid,
+        'total_pending': total_pending,
+        'total_revenue': f"{total_revenue:.2f}"
+    })
+
+@login_required
+@require_GET
+def get_full_registration_stats(request, event_id):
+    """Get comprehensive registration statistics with charts data"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    # Get all registrations for this event
+    registrations = Registration.objects.filter(attendee__event=event)
+    
+    # Basic stats
+    total_registered = registrations.count()
+    total_paid = registrations.filter(payment_status='DONE').count()
+    total_pending = registrations.filter(payment_status='PENDING').count()
+    
+    # Calculate total revenue
+    total_revenue = registrations.aggregate(
+        total=Sum(models.F('pre_registration_fee') + models.F('registration_fee'))
+    )['total'] or Decimal('0.00')
+    
+    # Top courses
+    top_courses = registrations.values('course').annotate(
+        count=models.Count('id'),
+        revenue=Sum(models.F('pre_registration_fee') + models.F('registration_fee'))
+    ).order_by('-count')[:5]
+    
+    # Top closers
+    top_closers = registrations.values('closer').annotate(
+        count=models.Count('id'),
+        revenue=Sum(models.F('pre_registration_fee') + models.F('registration_fee'))
+    ).order_by('-count')[:5]
+    
+    # Timeline (last 7 days)
+    seven_days_ago = timezone.now() - timedelta(days=7)
+    timeline_data = registrations.filter(
+        created_at__gte=seven_days_ago
+    ).extra({
+        'date': "DATE(created_at)"
+    }).values('date').annotate(
+        count=models.Count('id')
+    ).order_by('date')
+    
+    return JsonResponse({
+        'success': True,
+        'total_registered': total_registered,
+        'total_paid': total_paid,
+        'total_pending': total_pending,
+        'total_revenue': f"{total_revenue:.2f}",
+        'charts': {
+            'top_courses': [
+                {'label': item['course'] or 'Unknown', 'value': item['count'], 'revenue': float(item['revenue'] or 0)}
+                for item in top_courses
+            ],
+            'top_closers': [
+                {'label': item['closer'] or 'Unknown', 'value': item['count'], 'revenue': float(item['revenue'] or 0)}
+                for item in top_closers
+            ],
+            'timeline': [
+                {'date': item['date'].strftime('%Y-%m-%d'), 'count': item['count']}
+                for item in timeline_data
+            ]
+        }
+    })
+
+@login_required
+def export_registrations_csv(request, event_id):
+    """Export registration data as CSV"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and event.created_by != request.user:
+        return HttpResponseForbidden()
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="registrations_{event.title}_{date.today()}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'Attendee Name', 'Email', 'Phone', 
+        'Course', 'College', 'Registration Date',
+        'Pre-Registration Fee (RM)', 'Registration Fee (RM)', 'Total Fee (RM)',
+        'Payment Status', 'Closer', 'Referral Number', 'Remarks',
+        'Registered At', 'Last Updated'
+    ])
+    
+    registrations = Registration.objects.filter(attendee__event=event).select_related('attendee')
+    
+    for reg in registrations:
+        writer.writerow([
+            reg.attendee.name,
+            reg.attendee.email,
+            reg.attendee.phone_number,
+            reg.course,
+            reg.college,
+            reg.register_date.strftime('%Y-%m-%d') if reg.register_date else '',
+            str(reg.pre_registration_fee),
+            str(reg.registration_fee),
+            str(reg.total_fee()),
+            reg.get_payment_status_display(),
+            reg.closer,
+            reg.referral_number,
+            reg.remark,
+            timezone.localtime(reg.created_at).strftime('%Y-%m-%d %H:%M:%S'),
+            timezone.localtime(reg.updated_at).strftime('%Y-%m-%d %H:%M:%S')
+        ])
+    
+    return response
+
+@login_required
+def export_registrations_pdf(request, event_id):
+    """Enhanced PDF export with better formatting"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and event.created_by != request.user:
+        return HttpResponseForbidden()
+    
+    # Get all registrations
+    registrations = Registration.objects.filter(attendee__event=event).select_related('attendee')
+    
+    # Calculate statistics
+    total_registered = registrations.count()
+    total_paid = registrations.filter(payment_status='DONE').count()
+    total_pending = registrations.filter(payment_status='PENDING').count()
+    
+    # Calculate revenue
+    total_revenue = Decimal('0.00')
+    for reg in registrations:
+        total_revenue += (reg.pre_registration_fee or Decimal('0.00')) + (reg.registration_fee or Decimal('0.00'))
+    
+    # Get top courses
+    from django.db.models import Count
+    top_courses = registrations.values('course').annotate(
+        count=Count('id')
+    ).order_by('-count')[:5]
+    
+    # Create PDF in memory using SimpleDocTemplate for better tables
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=letter,
+        rightMargin=inch/2,
+        leftMargin=inch/2,
+        topMargin=inch/2,
+        bottomMargin=inch/2
+    )
+    
+    styles = getSampleStyleSheet()
+    
+    # Create custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        spaceAfter=12,
+        alignment=1  # Center
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle',
+        parent=styles['Heading2'],
+        fontSize=12,
+        spaceAfter=6,
+        textColor=colors.grey
+    )
+    
+    header_style = ParagraphStyle(
+        'HeaderStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.white,
+        alignment=1
+    )
+    
+    normal_style = styles['Normal']
+    
+    # Build story (content)
+    story = []
+    
+    # Title
+    story.append(Paragraph(f"<b>REGISTRATION REPORT</b>", title_style))
+    story.append(Paragraph(f"Event: {event.title}", subtitle_style))
+    story.append(Paragraph(f"Venue: {event.venue} | Date: {event.date}", styles['Normal']))
+    story.append(Paragraph(f"Generated: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')} by {request.user.get_full_name() or request.user.username}", styles['Italic']))
+    story.append(Spacer(1, 20))
+    
+    # Summary Statistics
+    summary_data = [
+        ['Total Registrations', 'Payment Done', 'Payment Pending', 'Total Revenue'],
+        [str(total_registered), str(total_paid), str(total_pending), f"RM {total_revenue:.2f}"]
+    ]
+    
+    summary_table = Table(summary_data, colWidths=[1.5*inch, 1.5*inch, 1.5*inch, 2*inch])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#f8f9fa')),
+        ('TEXTCOLOR', (0, 1), (-1, 1), colors.black),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, 1), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.grey)
+    ]))
+    
+    story.append(summary_table)
+    story.append(Spacer(1, 20))
+    
+    # Top Courses
+    if top_courses:
+        story.append(Paragraph("<b>Top 5 Courses by Registration</b>", styles['Heading3']))
+        story.append(Spacer(1, 5))
+        
+        course_data = [['Rank', 'Course', 'Registrations', 'Percentage']]
+        for i, course in enumerate(top_courses, 1):
+            percentage = (course['count'] / total_registered * 100) if total_registered > 0 else 0
+            course_data.append([
+                str(i),
+                course['course'] or 'Unknown',
+                str(course['count']),
+                f"{percentage:.1f}%"
+            ])
+        
+        course_table = Table(course_data, colWidths=[0.5*inch, 3*inch, 1.5*inch, 1.5*inch])
+        course_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498db')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('ALIGN', (1, 1), (1, -1), 'LEFT'),  # Left align course names
+        ]))
+        
+        story.append(course_table)
+        story.append(Spacer(1, 20))
+    
+    # Detailed Registration Table
+    story.append(Paragraph("<b>Detailed Registration Records</b>", styles['Heading3']))
+    story.append(Spacer(1, 5))
+    
+    # Create table data
+    table_data = [['No.', 'Attendee', 'Course', 'College', 'Reg Date', 'Total Fee', 'Payment', 'Closer']]
+    
+    for i, reg in enumerate(registrations, 1):
+        table_data.append([
+            str(i),
+            reg.attendee.name[:30] if reg.attendee.name else 'N/A',
+            reg.course[:20] if reg.course else 'N/A',
+            reg.college[:15] if reg.college else 'N/A',
+            reg.register_date.strftime('%d/%m/%Y') if reg.register_date else 'N/A',
+            f"RM {reg.total_fee():.2f}",
+            reg.get_payment_status_display(),
+            reg.closer[:15] if reg.closer else 'N/A'
+        ])
+    
+    # Add total row
+    if registrations:
+        table_data.append([
+            '', '', '', '', 'TOTAL:',
+            f"RM {total_revenue:.2f}",
+            '', ''
+        ])
+    
+    # Create table
+    col_widths = [0.4*inch, 1.8*inch, 1.5*inch, 1.2*inch, 1*inch, 1*inch, 1*inch, 1.2*inch]
+    table = Table(table_data, colWidths=col_widths, repeatRows=1)
+    
+    # Style the table
+    table.setStyle(TableStyle([
+        # Header style
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 6),
+        
+        # Row colors alternating
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -2), 0.5, colors.grey),  # Exclude total row from grid
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('TOPPADDING', (0, 1), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
+        
+        # Align columns
+        ('ALIGN', (0, 1), (0, -1), 'CENTER'),  # No. column
+        ('ALIGN', (4, 1), (4, -1), 'CENTER'),  # Date column
+        ('ALIGN', (5, 1), (5, -1), 'RIGHT'),   # Fee column
+        ('ALIGN', (6, 1), (6, -1), 'CENTER'),  # Payment column
+        
+        # Total row style
+        ('BACKGROUND', (4, -1), (5, -1), colors.HexColor('#f8f9fa')),
+        ('TEXTCOLOR', (4, -1), (5, -1), colors.black),
+        ('FONTNAME', (4, -1), (5, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (4, -1), (5, -1), 9),
+        ('BOX', (4, -1), (5, -1), 0.5, colors.grey),
+    ]))
+    
+    story.append(table)
+    story.append(Spacer(1, 20))
+    
+    # Payment Status Summary
+    if total_registered > 0:
+        paid_percentage = (total_paid / total_registered * 100)
+        pending_percentage = (total_pending / total_registered * 100)
+        
+        status_data = [
+            ['Payment Status', 'Count', 'Percentage'],
+            ['Done', str(total_paid), f"{paid_percentage:.1f}%"],
+            ['Pending', str(total_pending), f"{pending_percentage:.1f}%"]
+        ]
+        
+        status_table = Table(status_data, colWidths=[2*inch, 1.5*inch, 1.5*inch])
+        status_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#27ae60')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (0, 1), colors.HexColor('#d4edda')),
+            ('BACKGROUND', (0, 2), (0, 2), colors.HexColor('#fff3cd')),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey)
+        ]))
+        
+        story.append(status_table)
+        story.append(Spacer(1, 20))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    # Create response
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="registration_report_{event.id}_{datetime.now().strftime("%Y%m%d")}.pdf"'
+    
+    return response
+
+
+@login_required
+def export_comprehensive_report(request, event_id):
+    """Export comprehensive report including attendees, applications, and registrations"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and event.created_by != request.user:
+        return HttpResponseForbidden()
+    
+    try:
+        # Get all data
+        attendees = Attendee.objects.filter(event=event).select_related()
+        applications = Application.objects.filter(event=event)
+        registrations = Registration.objects.filter(attendee__event=event).select_related('attendee')
+        
+        # Create Excel file with multiple sheets
+        output = io.BytesIO()
+        
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            # Sheet 1: Summary
+            summary_data = {
+                'Event Information': [
+                    'Event Title', 'Venue', 'Date', 
+                    'Start Time', 'End Time', 'Status',
+                    'Total Attendees', 'Total Applications', 'Total Registrations'
+                ],
+                'Value': [
+                    event.title,
+                    event.venue,
+                    event.date.strftime('%Y-%m-%d'),
+                    event.start_time.strftime('%H:%M'),
+                    event.end_time.strftime('%H:%M'),
+                    'Active' if event.is_active else 'Inactive',
+                    attendees.count(),
+                    applications.count(),
+                    registrations.count()
+                ]
+            }
+            summary_df = pd.DataFrame(summary_data)
+            summary_df.to_excel(writer, sheet_name='Summary', index=False)
+            
+            # Sheet 2: All Attendees
+            if attendees.exists():
+                attendees_data = []
+                for attendee in attendees:
+                    # Try to get application
+                    try:
+                        app = applications.get(email__iexact=attendee.email)
+                        has_application = 'Yes'
+                        applied_programme = app.applied_programme
+                    except Application.DoesNotExist:
+                        has_application = 'No'
+                        applied_programme = ''
+                    
+                    # Try to get registration
+                    try:
+                        reg = registrations.get(attendee=attendee)
+                        has_registration = 'Yes'
+                        course = reg.course
+                        payment_status = reg.get_payment_status_display()
+                    except Registration.DoesNotExist:
+                        has_registration = 'No'
+                        course = ''
+                        payment_status = ''
+                    
+                    attendees_data.append({
+                        'Name': attendee.name,
+                        'Email': attendee.email,
+                        'Phone': attendee.phone_number or '',
+                        'Checked In At': timezone.localtime(attendee.attended_at).strftime('%Y-%m-%d %H:%M:%S'),
+                        'Has Application': has_application,
+                        'Applied Programme': applied_programme,
+                        'Has Registration': has_registration,
+                        'Course': course,
+                        'Payment Status': payment_status
+                    })
+                
+                attendees_df = pd.DataFrame(attendees_data)
+                attendees_df.to_excel(writer, sheet_name='All Attendees', index=False)
+            
+            # Sheet 3: Applications
+            if applications.exists():
+                apps_data = []
+                for app in applications:
+                    apps_data.append({
+                        'Full Name': app.full_name,
+                        'IC Number': app.ic_no,
+                        'Email': app.email,
+                        'Phone': app.phone_no,
+                        'Applied Programme': app.applied_programme,
+                        'SPM Credits': app.spm_total_credit,
+                        'Father Name': app.father_name,
+                        'Mother Name': app.mother_name,
+                        'Submitted At': timezone.localtime(app.submitted_at).strftime('%Y-%m-%d %H:%M:%S')
+                    })
+                
+                apps_df = pd.DataFrame(apps_data)
+                apps_df.to_excel(writer, sheet_name='Applications', index=False)
+            
+            # Sheet 4: Registrations
+            if registrations.exists():
+                regs_data = []
+                for reg in registrations:
+                    regs_data.append({
+                        'Attendee Name': reg.attendee.name,
+                        'Email': reg.attendee.email,
+                        'Course': reg.course,
+                        'College': reg.college,
+                        'Registration Date': reg.register_date.strftime('%Y-%m-%d') if reg.register_date else '',
+                        'Pre-Reg Fee (RM)': float(reg.pre_registration_fee or 0),
+                        'Reg Fee (RM)': float(reg.registration_fee or 0),
+                        'Total Fee (RM)': float(reg.total_fee()),
+                        'Payment Status': reg.get_payment_status_display(),
+                        'Closer': reg.closer,
+                        'Referral Number': reg.referral_number or '',
+                        'Remarks': reg.remark or ''
+                    })
+                
+                regs_df = pd.DataFrame(regs_data)
+                regs_df.to_excel(writer, sheet_name='Registrations', index=False)
+            
+            # Sheet 5: Statistics
+            stats_data = {
+                'Category': [
+                    'Total Attendees',
+                    'With Applications',
+                    'Without Applications',
+                    'Total Registrations',
+                    'Payment Completed',
+                    'Payment Pending',
+                    'Total Revenue (RM)',
+                    'Average Fee per Registration (RM)'
+                ],
+                'Count': [
+                    attendees.count(),
+                    applications.count(),
+                    attendees.count() - applications.count(),
+                    registrations.count(),
+                    registrations.filter(payment_status='DONE').count(),
+                    registrations.filter(payment_status='PENDING').count(),
+                    float(sum([reg.total_fee() for reg in registrations])),
+                    float(sum([reg.total_fee() for reg in registrations]) / registrations.count()) if registrations.count() > 0 else 0
+                ]
+            }
+            stats_df = pd.DataFrame(stats_data)
+            stats_df.to_excel(writer, sheet_name='Statistics', index=False)
+            
+            # Auto-adjust column widths for all sheets
+            for sheet_name in writer.sheets:
+                worksheet = writer.sheets[sheet_name]
+                for column in worksheet.columns:
+                    max_length = 0
+                    column_letter = column[0].column_letter
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    adjusted_width = min(max_length + 2, 50)
+                    worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        output.seek(0)
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{event.title}_comprehensive_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error generating comprehensive report: {e}")
+        messages.error(request, f"Error generating report: {str(e)}")
+        return redirect('event_detail', event_id=event_id)

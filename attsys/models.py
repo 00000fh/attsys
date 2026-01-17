@@ -2,6 +2,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 import uuid
+from django.utils import timezone
+from datetime import date, timedelta
+from decimal import Decimal
 
 
 class User(AbstractUser):
@@ -170,3 +173,86 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"{self.event.title} - {self.rating}★"
+
+class Registration(models.Model):
+    PAYMENT_STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('DONE', 'Done'),
+    )
+    
+    attendee = models.OneToOneField(
+        'Attendee',  # Use string reference to avoid circular import
+        on_delete=models.CASCADE,
+        related_name='registration'  # Changed from 'registration' to avoid conflict
+    )
+    
+    # New form fields
+    course = models.CharField(max_length=200, verbose_name="Course Applied")
+    college = models.CharField(max_length=200, verbose_name="College/Branch")
+    register_date = models.DateField(verbose_name="Registration Date")
+    
+    # Fee fields
+    pre_registration_fee = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Pre-Registration Fee (RM)"
+    )
+    registration_fee = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Registration Fee (RM)"
+    )
+    
+    payment_status = models.CharField(
+        max_length=10,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='PENDING',
+        verbose_name="Payment Status (Registration Fee)"
+    )
+    
+    remark = models.TextField(blank=True, verbose_name="Staff Remarks")
+    closer = models.CharField(max_length=100, verbose_name="Closer (Staff Name)")
+    referral_number = models.CharField(
+        max_length=50, 
+        blank=True,
+        verbose_name="Referral Number"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Registration for {self.attendee.name} - {self.course}"
+    
+    def total_fee(self):
+        return self.pre_registration_fee + self.registration_fee
+    
+    class Meta:
+        ordering = ['-created_at']
+
+    def total_fee(self):
+        """Calculate total fee"""
+        pre_fee = self.pre_registration_fee or Decimal('0.00')
+        reg_fee = self.registration_fee or Decimal('0.00')
+        return pre_fee + reg_fee
+
+    def total_fee(self):
+        """Calculate total fee"""
+        pre_fee = self.pre_registration_fee or Decimal('0.00')
+        reg_fee = self.registration_fee or Decimal('0.00')
+        return pre_fee + reg_fee
+    
+    def get_payment_status_display(self):
+        """Get human-readable payment status"""
+        if self.payment_status == 'DONE':
+            return 'Done'
+        elif self.payment_status == 'PENDING':
+            return 'Pending'
+        return self.payment_status
+    
+    class Meta:
+        ordering = ['-created_at']
+
+    

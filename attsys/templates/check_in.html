@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
-        /* Application Form Styles - Consistent Black & White */
+        /* (Your existing CSS remains exactly the same) */
         :root {
             --black: #000000;
             --white: #ffffff;
@@ -60,7 +60,7 @@
             border: 1px solid var(--gray-200);
             box-shadow: var(--box-shadow-hover);
             width: 100%;
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
             position: relative;
             overflow: hidden;
@@ -195,10 +195,10 @@
             line-height: 1.4;
         }
         
-        /* Form Grid - Consistent Layout */
+        /* Form Grid - Improved for Desktop */
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
         }
         
@@ -218,7 +218,7 @@
         
         .form-label.required::after {
             content: " *";
-            color: var(--gray-500);
+            color: #dc3545;
         }
         
         /* Form Controls - Consistent Styling */
@@ -256,70 +256,114 @@
             line-height: 1.6;
         }
         
-        /* Select Styling */
-        .form-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23000000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 16px 12px;
-            padding-right: 2.5rem;
-        }
-        
-        /* Guardian Sections - Same as Form Sections */
-        .guardian-section {
-            background: var(--white);
-            border-radius: var(--border-radius);
-            padding: 2.5rem;
-            border: 1px solid var(--gray-200);
-            box-shadow: var(--box-shadow);
-            transition: all var(--transition-speed) var(--transition-timing);
-        }
-        
-        .guardian-section:hover {
-            border-color: var(--gray-300);
-            box-shadow: var(--box-shadow-hover);
-        }
-        
-        .guardian-section .section-header {
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--gray-200);
-        }
-        
-        /* Programme Interest Grid - Consistent with Form Grid */
-        .programme-interest-grid {
+        /* Programme Selection Grid - Fixed Desktop Layout */
+        .programme-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
         }
         
-        .interest-box {
+        .programme-option {
+            position: relative;
+        }
+        
+        .programme-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .programme-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem 1rem;
             background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: var(--border-radius);
-            padding: 2rem;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
             transition: all var(--transition-speed) var(--transition-timing);
-            box-shadow: var(--box-shadow);
+            font-weight: 500;
+            color: var(--gray-800);
+            text-align: center;
+            height: 100%;
+            min-height: 100px;
+            position: relative;
         }
         
-        .interest-box:hover {
-            border-color: var(--gray-300);
-            box-shadow: var(--box-shadow-hover);
+        .programme-label:hover {
+            border-color: var(--gray-400);
+            background: var(--gray-50);
             transform: translateY(-2px);
         }
         
-        .interest-box-header {
+        .programme-option input[type="radio"]:checked + .programme-label {
+            border-color: var(--black);
+            background: var(--black);
+            color: var(--white);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .programme-option input[type="radio"]:checked + .programme-label::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        .programme-label i {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+            color: inherit;
+        }
+        
+        .programme-label span {
+            font-size: 1rem;
+            line-height: 1.3;
+            max-width: 100%;
+            word-break: break-word;
+        }
+        
+        /* Programme Interest - Simplified Version */
+        .interest-simple-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .interest-simple-box {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            transition: all var(--transition-speed) var(--transition-timing);
+            box-shadow: var(--box-shadow);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .interest-simple-box:hover {
+            border-color: var(--gray-300);
+            box-shadow: var(--box-shadow-hover);
+        }
+        
+        .interest-simple-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
             border-bottom: 1px solid var(--gray-200);
         }
         
-        .interest-box-title {
-            font-size: 1.1rem;
+        .interest-simple-title {
+            font-size: 1rem;
             font-weight: 600;
             color: var(--black);
             margin: 0;
@@ -329,35 +373,37 @@
             line-height: 1.4;
         }
         
-        .interest-box-title i {
+        .interest-simple-title i {
             color: var(--gray-600);
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
         
-        .interest-box-textarea {
+        .interest-simple-textarea {
             width: 100%;
-            min-height: 120px;
+            min-height: 100px;
             border: 2px solid var(--gray-300);
             border-radius: var(--border-radius-sm);
-            padding: 0.875rem 1rem;
+            padding: 0.75rem;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.95rem;
             resize: vertical;
             transition: all var(--transition-speed) var(--transition-timing);
             background: var(--white);
             color: var(--gray-900);
-            line-height: 1.6;
+            line-height: 1.5;
+            flex-grow: 1;
         }
         
-        .interest-box-textarea::placeholder {
+        .interest-simple-textarea::placeholder {
             color: var(--gray-400);
+            font-style: italic;
         }
         
-        .interest-box-textarea:hover {
+        .interest-simple-textarea:hover {
             border-color: var(--gray-400);
         }
         
-        .interest-box-textarea:focus {
+        .interest-simple-textarea:focus {
             outline: none;
             border-color: var(--black);
             box-shadow: var(--box-shadow-focus);
@@ -373,6 +419,18 @@
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-left: auto;
+        }
+        
+        /* SPM Credit Input */
+        .spm-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .spm-input {
+            flex: 1;
         }
         
         /* Optional Note - Consistent Styling */
@@ -496,10 +554,77 @@
             to { transform: rotate(360deg); }
         }
         
+        /* Debug Styles */
+        .debug-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 10000;
+            max-width: 300px;
+            display: none;
+        }
+        
         /* Responsive Design */
+        @media (min-width: 1200px) {
+            .form-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .interest-simple-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .programme-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1.5rem;
+            }
+            
+            .programme-label {
+                padding: 2rem 1rem;
+                min-height: 120px;
+            }
+            
+            .programme-label i {
+                font-size: 1.75rem;
+                margin-bottom: 1rem;
+            }
+            
+            .programme-label span {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 1199px) and (min-width: 992px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .interest-simple-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .programme-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
         @media (max-width: 992px) {
+            .programme-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            
             .programme-interest-grid,
             .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .interest-simple-grid {
                 grid-template-columns: 1fr;
             }
             
@@ -571,6 +696,34 @@
             .form-section {
                 margin-bottom: 2rem;
             }
+            
+            .programme-label {
+                padding: 1.25rem 1rem;
+                flex-direction: row;
+                justify-content: flex-start;
+                text-align: left;
+                min-height: auto;
+                padding-right: 2.5rem;
+            }
+            
+            .programme-label i {
+                font-size: 1.25rem;
+                margin-bottom: 0;
+                margin-right: 1rem;
+                flex-shrink: 0;
+            }
+            
+            .programme-label span {
+                font-size: 0.95rem;
+                text-align: left;
+            }
+            
+            .programme-option input[type="radio"]:checked + .programme-label::after {
+                top: 50%;
+                right: 1rem;
+                transform: translateY(-50%);
+                font-size: 1.1rem;
+            }
         }
         
         @media (max-width: 480px) {
@@ -591,9 +744,23 @@
             
             .form-control, 
             .form-select,
-            .interest-box-textarea {
+            .interest-simple-textarea {
                 padding: 0.75rem;
                 font-size: 16px; /* Prevent iOS zoom */
+            }
+            
+            .programme-label {
+                padding: 1rem 0.75rem;
+                padding-right: 2.25rem;
+            }
+            
+            .programme-label i {
+                font-size: 1.1rem;
+                margin-right: 0.75rem;
+            }
+            
+            .programme-label span {
+                font-size: 0.9rem;
             }
         }
         
@@ -606,7 +773,7 @@
             
             .form-section,
             .guardian-section,
-            .interest-box {
+            .interest-simple-box {
                 box-shadow: none;
                 border: 1px solid var(--gray-300);
             }
@@ -624,7 +791,7 @@
         /* Accessibility Improvements */
         .form-control:focus-visible,
         .form-select:focus-visible,
-        .interest-box-textarea:focus-visible,
+        .interest-simple-textarea:focus-visible,
         .btn-submit:focus-visible {
             outline: 2px solid var(--black);
             outline-offset: 2px;
@@ -640,7 +807,7 @@
             
             .form-section:hover,
             .guardian-section:hover,
-            .interest-box:hover,
+            .interest-simple-box:hover,
             .btn-submit:hover {
                 transform: none;
             }
@@ -648,10 +815,17 @@
             .section-icon:hover {
                 transform: none;
             }
+            
+            .programme-label:hover {
+                transform: none;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Debug Info Panel -->
+    <div class="debug-info" id="debugInfo"></div>
+
     <div class="application-container">
         <div class="form-card">
             <!-- Form Header -->
@@ -681,7 +855,7 @@
             {% endif %}
 
             <!-- Data Entry Form -->
-            <form class="form-content" id="dataEntryForm" method="POST" action="{% url 'check_in' event.id event.check_in_token %}">
+            <form class="form-content" id="dataEntryForm" method="POST" action="{% url 'check_in' event.id event.check_in_token %}" novalidate>
                 {% csrf_token %}
                 
                 <!-- Section 1: Basic Information -->
@@ -706,13 +880,36 @@
 
                         <div class="field-group">
                             <label class="form-label required">Applied Programme</label>
-                            <select class="form-select" name="applied_programme" required>
-                                <option value="">-- Select Programme --</option>
-                                <option value="Diploma">Diploma</option>
-                                <option value="Pra-Diploma">Pra-Diploma</option>
-                                <option value="TVET">TVET</option>
-                                <option value="Smart Tahfiz">Smart Tahfiz</option>
-                            </select>
+                            <div class="programme-grid">
+                                <div class="programme-option">
+                                    <input type="radio" id="programme_diploma" name="applied_programme" value="Diploma" required>
+                                    <label for="programme_diploma" class="programme-label">
+                                        <i class="bi bi-mortarboard"></i>
+                                        <span>Diploma</span>
+                                    </label>
+                                </div>
+                                <div class="programme-option">
+                                    <input type="radio" id="programme_pra_diploma" name="applied_programme" value="Pra-Diploma">
+                                    <label for="programme_pra_diploma" class="programme-label">
+                                        <i class="bi bi-book"></i>
+                                        <span>Pra-Diploma</span>
+                                    </label>
+                                </div>
+                                <div class="programme-option">
+                                    <input type="radio" id="programme_tvet" name="applied_programme" value="TVET">
+                                    <label for="programme_tvet" class="programme-label">
+                                        <i class="bi bi-tools"></i>
+                                        <span>TVET</span>
+                                    </label>
+                                </div>
+                                <div class="programme-option">
+                                    <input type="radio" id="programme_smart_tahfiz" name="applied_programme" value="Smart Tahfiz">
+                                    <label for="programme_smart_tahfiz" class="programme-label">
+                                        <i class="bi bi-moon-stars"></i>
+                                        <span>Smart Tahfiz</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="field-group">
@@ -720,6 +917,17 @@
                             <input type="text" class="form-control" 
                                    placeholder="Enter full name as per IC" 
                                    name="full_name" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label class="form-label">SPM Total Credit</label>
+                            <div class="spm-input-group">
+                                <input type="number" class="form-control spm-input" 
+                                       placeholder="e.g., 12" 
+                                       name="spm_total_credit" 
+                                       min="0" max="100" 
+                                       value="0">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -752,19 +960,6 @@
                                 <option value="Married">Married</option>
                                 <option value="Divorced">Divorced</option>
                             </select>
-                        </div>
-
-                        <div class="field-group">
-                            <label class="form-label required">SPM Total Credit</label>
-                            <input type="number" class="form-control" 
-                                   placeholder="e.g., 12" 
-                                   name="spm_total_credit" 
-                                   min="0" max="100" 
-                                   required
-                                   value="0">
-                            <small class="form-text text-muted" style="color: var(--gray-500); font-size: 0.8rem; margin-top: 0.25rem;">
-                                Total credit from SPM results (e.g., 4A 1B = 9 credits)
-                            </small>
                         </div>
 
                         <div class="field-group">
@@ -888,7 +1083,7 @@
                             <label class="form-label">Number of Dependants</label>
                             <input type="number" class="form-control" 
                                    placeholder="0" min="0" 
-                                   name="father_dependants">
+                                   name="father_dependants" value="0">
                             <span class="optional-note">Optional</span>
                         </div>
                     </div>
@@ -948,13 +1143,13 @@
                             <label class="form-label">Number of Dependants</label>
                             <input type="number" class="form-control" 
                                    placeholder="0" min="0" 
-                                   name="mother_dependants">
+                                   name="mother_dependants" value="0">
                             <span class="optional-note">Optional</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 6: Programme Interest -->
+                <!-- Section 6: Programme Interest - Simplified -->
                 <div class="form-section">
                     <div class="section-header">
                         <div class="section-icon">
@@ -962,57 +1157,57 @@
                         </div>
                         <div>
                             <h3 class="section-title">6. Programme Interest</h3>
-                            <p class="section-subtitle">Select and describe your preferred programme choices</p>
+                            <p class="section-subtitle">List your preferred programme choices</p>
                         </div>
                     </div>
 
-                    <div class="programme-interest-grid">
+                    <div class="interest-simple-grid">
                         <!-- First Choice -->
-                        <div class="interest-box">
-                            <div class="interest-box-header">
-                                <h4 class="interest-box-title">
-                                    <i class="bi bi-trophy"></i>
+                        <div class="interest-simple-box">
+                            <div class="interest-simple-header">
+                                <h4 class="interest-simple-title">
+                                    <i class="bi bi-1-circle"></i>
                                     First Choice
                                 </h4>
                                 <span class="optional-tag">Optional</span>
                             </div>
                             <textarea 
-                                class="interest-box-textarea"
-                                placeholder="Your most preferred programme and why..."
+                                class="interest-simple-textarea"
+                                placeholder="Enter your first choice programme"
                                 name="interest_choice1"
-                                rows="5"></textarea>
+                                rows="4"></textarea>
                         </div>
 
                         <!-- Second Choice -->
-                        <div class="interest-box">
-                            <div class="interest-box-header">
-                                <h4 class="interest-box-title">
-                                    <i class="bi bi-award"></i>
+                        <div class="interest-simple-box">
+                            <div class="interest-simple-header">
+                                <h4 class="interest-simple-title">
+                                    <i class="bi bi-2-circle"></i>
                                     Second Choice
                                 </h4>
                                 <span class="optional-tag">Optional</span>
                             </div>
                             <textarea 
-                                class="interest-box-textarea"
-                                placeholder="Your second preferred programme and areas of interest..."
+                                class="interest-simple-textarea"
+                                placeholder="Enter your second choice programme"
                                 name="interest_choice2"
-                                rows="5"></textarea>
+                                rows="4"></textarea>
                         </div>
 
                         <!-- Third Choice -->
-                        <div class="interest-box">
-                            <div class="interest-box-header">
-                                <h4 class="interest-box-title">
-                                    <i class="bi bi-star"></i>
-                                    Additional Interests
+                        <div class="interest-simple-box">
+                            <div class="interest-simple-header">
+                                <h4 class="interest-simple-title">
+                                    <i class="bi bi-3-circle"></i>
+                                    Third Choice
                                 </h4>
                                 <span class="optional-tag">Optional</span>
                             </div>
                             <textarea 
-                                class="interest-box-textarea"
-                                placeholder="Any other programmes or specific courses you're curious about..."
+                                class="interest-simple-textarea"
+                                placeholder="Enter your third choice programme"
                                 name="interest_choice3"
-                                rows="5"></textarea>
+                                rows="4"></textarea>
                         </div>
                     </div>
                 </div>
@@ -1023,6 +1218,10 @@
                         <i class="bi bi-check-circle"></i>
                         Submit Application & Mark Attendance
                     </button>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--gray-600);">
+                        <i class="bi bi-info-circle"></i>
+                        Please check all fields before submitting. You cannot edit after submission.
+                    </p>
                 </div>
             </form>
 
@@ -1040,6 +1239,21 @@
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('dataEntryForm');
             const submitBtn = document.getElementById('submitBtn');
+            const debugInfo = document.getElementById('debugInfo');
+            
+            // Show debug panel (for troubleshooting)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('debug')) {
+                debugInfo.style.display = 'block';
+            }
+            
+            // Function to update debug info
+            function updateDebugInfo(message) {
+                if (debugInfo.style.display === 'block') {
+                    debugInfo.innerHTML = message;
+                    console.log('[DEBUG]', message);
+                }
+            }
             
             // Auto-format IC numbers on blur
             document.querySelectorAll('input[placeholder*="IC"], input[placeholder*="ic"]').forEach(input => {
@@ -1079,8 +1293,41 @@
                 });
             });
             
+            // Validation error styling
+            const style = document.createElement('style');
+            style.textContent = `
+                .is-invalid {
+                    border-color: #dc3545 !important;
+                    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+                }
+                
+                .is-invalid:focus {
+                    border-color: #dc3545 !important;
+                    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
+                }
+                
+                .programme-label.is-invalid {
+                    border-color: #dc3545 !important;
+                    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+                    background-color: rgba(220, 53, 69, 0.05) !important;
+                }
+                
+                .validation-message {
+                    color: #dc3545;
+                    font-size: 0.875rem;
+                    margin-top: 0.5rem;
+                    display: block;
+                }
+            `;
+            document.head.appendChild(style);
+            
             // Form validation
             form.addEventListener('submit', function(e) {
+                updateDebugInfo('Form submission started...');
+                
+                // Prevent default to run validation first
+                e.preventDefault();
+                
                 const requiredFields = this.querySelectorAll('[required]');
                 let isValid = true;
                 let firstInvalidField = null;
@@ -1088,13 +1335,57 @@
                 // Clear previous error styles
                 requiredFields.forEach(field => {
                     field.classList.remove('is-invalid');
+                    const errorMsg = field.nextElementSibling;
+                    if (errorMsg && errorMsg.classList.contains('validation-message')) {
+                        errorMsg.remove();
+                    }
+                });
+                
+                // Clear radio button errors
+                document.querySelectorAll('.programme-label').forEach(label => {
+                    label.classList.remove('is-invalid');
                 });
                 
                 // Validate required fields
                 requiredFields.forEach(field => {
-                    if (!field.value.trim()) {
+                    // Special handling for radio buttons
+                    if (field.type === 'radio') {
+                        const radioGroup = this.querySelectorAll(`input[name="${field.name}"]`);
+                        const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+                        if (!isChecked) {
+                            isValid = false;
+                            // Mark all radio buttons in group
+                            radioGroup.forEach(radio => {
+                                const label = document.querySelector(`label[for="${radio.id}"]`);
+                                if (label) {
+                                    label.classList.add('is-invalid');
+                                    // Add error message if not exists
+                                    const container = label.closest('.field-group');
+                                    if (container) {
+                                        let errorMsg = container.querySelector('.validation-message');
+                                        if (!errorMsg) {
+                                            errorMsg = document.createElement('small');
+                                            errorMsg.className = 'validation-message';
+                                            errorMsg.textContent = 'Please select a programme';
+                                            container.appendChild(errorMsg);
+                                        }
+                                    }
+                                }
+                            });
+                            
+                            if (!firstInvalidField) {
+                                firstInvalidField = radioGroup[0];
+                            }
+                        }
+                    } else if (!field.value.trim()) {
                         isValid = false;
                         field.classList.add('is-invalid');
+                        
+                        // Add error message
+                        const errorMsg = document.createElement('small');
+                        errorMsg.className = 'validation-message';
+                        errorMsg.textContent = 'This field is required';
+                        field.parentNode.appendChild(errorMsg);
                         
                         if (!firstInvalidField) {
                             firstInvalidField = field;
@@ -1110,6 +1401,15 @@
                         isValid = false;
                         emailField.classList.add('is-invalid');
                         
+                        // Add error message
+                        let errorMsg = emailField.nextElementSibling;
+                        if (!errorMsg || !errorMsg.classList.contains('validation-message')) {
+                            errorMsg = document.createElement('small');
+                            errorMsg.className = 'validation-message';
+                            errorMsg.textContent = 'Please enter a valid email address';
+                            emailField.parentNode.appendChild(errorMsg);
+                        }
+                        
                         if (!firstInvalidField) {
                             firstInvalidField = emailField;
                         }
@@ -1118,11 +1418,20 @@
                 
                 // Validate SPM Total Credit
                 const spmField = form.querySelector('input[name="spm_total_credit"]');
-                if (spmField) {
+                if (spmField && spmField.value.trim() !== '') {
                     const spmValue = parseInt(spmField.value);
                     if (isNaN(spmValue) || spmValue < 0 || spmValue > 100) {
                         isValid = false;
                         spmField.classList.add('is-invalid');
+                        
+                        // Add error message
+                        let errorMsg = spmField.nextElementSibling;
+                        if (!errorMsg || !errorMsg.classList.contains('validation-message')) {
+                            errorMsg = document.createElement('small');
+                            errorMsg.className = 'validation-message';
+                            errorMsg.textContent = 'Please enter a valid number between 0-100';
+                            spmField.parentNode.appendChild(errorMsg);
+                        }
                         
                         if (!firstInvalidField) {
                             firstInvalidField = spmField;
@@ -1137,19 +1446,39 @@
                 if (fatherDeps && fatherDeps.value.trim() !== '') {
                     const value = parseInt(fatherDeps.value);
                     if (isNaN(value) || value < 0) {
+                        isValid = false;
                         fatherDeps.classList.add('is-invalid');
+                        
+                        // Add error message
+                        let errorMsg = fatherDeps.nextElementSibling;
+                        if (!errorMsg || !errorMsg.classList.contains('validation-message')) {
+                            errorMsg = document.createElement('small');
+                            errorMsg.className = 'validation-message';
+                            errorMsg.textContent = 'Please enter a valid number (0 or higher)';
+                            fatherDeps.parentNode.appendChild(errorMsg);
+                        }
                     }
                 }
                 
                 if (motherDeps && motherDeps.value.trim() !== '') {
                     const value = parseInt(motherDeps.value);
                     if (isNaN(value) || value < 0) {
+                        isValid = false;
                         motherDeps.classList.add('is-invalid');
+                        
+                        // Add error message
+                        let errorMsg = motherDeps.nextElementSibling;
+                        if (!errorMsg || !errorMsg.classList.contains('validation-message')) {
+                            errorMsg = document.createElement('small');
+                            errorMsg.className = 'validation-message';
+                            errorMsg.textContent = 'Please enter a valid number (0 or higher)';
+                            motherDeps.parentNode.appendChild(errorMsg);
+                        }
                     }
                 }
                 
                 if (!isValid) {
-                    e.preventDefault();
+                    updateDebugInfo('Form validation failed');
                     
                     // Scroll to first invalid field
                     if (firstInvalidField) {
@@ -1169,20 +1498,48 @@
                     return false;
                 }
                 
+                updateDebugInfo('Form validation passed, submitting...');
+                
                 // Add loading state
                 submitBtn.classList.add('loading');
                 submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting...';
                 
                 // Prevent double submission
-                let submitted = false;
-                return function(e) {
-                    if (submitted) {
-                        e.preventDefault();
-                        return false;
+                let isSubmitting = false;
+                
+                if (isSubmitting) {
+                    updateDebugInfo('Form is already submitting');
+                    return false;
+                }
+                
+                isSubmitting = true;
+                
+                // Log form data for debugging
+                const formData = new FormData(form);
+                updateDebugInfo(`Form data collected: ${formData.get('full_name')}`);
+                
+                // Submit the form programmatically
+                setTimeout(() => {
+                    try {
+                        updateDebugInfo('Attempting form submission...');
+                        form.submit(); // This will trigger the actual POST request
+                    } catch (error) {
+                        updateDebugInfo(`Submission error: ${error.message}`);
+                        console.error('Form submission error:', error);
+                        
+                        // Reset button state
+                        submitBtn.classList.remove('loading');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Submit Application & Mark Attendance';
+                        isSubmitting = false;
+                        
+                        // Show error alert
+                        alert('There was an error submitting the form. Please try again.');
                     }
-                    submitted = true;
-                    return true;
-                }(e);
+                }, 100);
+                
+                return true;
             });
             
             // Auto-save form data to localStorage
@@ -1192,7 +1549,7 @@
                 
                 // Load saved data
                 const savedValue = localStorage.getItem(`form_${inputName}`);
-                if (savedValue && !input.value) {
+                if (savedValue !== null && !input.value) {
                     input.value = savedValue;
                 }
                 
@@ -1200,6 +1557,21 @@
                 input.addEventListener('input', function() {
                     localStorage.setItem(`form_${inputName}`, this.value);
                 });
+                
+                // Handle radio buttons
+                if (input.type === 'radio') {
+                    input.addEventListener('change', function() {
+                        if (this.checked) {
+                            localStorage.setItem(`form_${this.name}`, this.value);
+                        }
+                    });
+                    
+                    // Load checked radio
+                    const savedRadio = localStorage.getItem(`form_${input.name}`);
+                    if (savedRadio && input.value === savedRadio) {
+                        input.checked = true;
+                    }
+                }
             });
 
             // Clear localStorage on successful submission
@@ -1208,30 +1580,56 @@
                     formInputs.forEach(input => {
                         localStorage.removeItem(`form_${input.name}`);
                     });
+                    updateDebugInfo('Local storage cleared');
                 }, 1000);
             });
             
-            // Add invalid styling
-            const style = document.createElement('style');
-            style.textContent = `
-                .is-invalid {
-                    border-color: #dc3545 !important;
-                    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
-                }
-                
-                .is-invalid:focus {
-                    border-color: #dc3545 !important;
-                    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
-                }
-            `;
-            document.head.appendChild(style);
-            
             // Focus first input on page load
-            const firstInput = form.querySelector('input:not([type="hidden"]), select, textarea');
+            const firstInput = form.querySelector('input:not([type="hidden"]):not([type="radio"]), select, textarea');
             if (firstInput) {
                 setTimeout(() => {
                     firstInput.focus();
                 }, 100);
+            }
+            
+            // Add form data debugging tool
+            window.debugFormData = function() {
+                const formData = new FormData(form);
+                console.log('=== FORM DATA DEBUG ===');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}: ${value}`);
+                }
+                console.log('=======================');
+                
+                // Also show in debug panel
+                let debugHTML = 'Form Data:<br>';
+                for (let [key, value] of formData.entries()) {
+                    debugHTML += `${key}: ${value}<br>`;
+                }
+                updateDebugInfo(debugHTML);
+            };
+            
+            // Enable debug mode with ?debug in URL
+            if (urlParams.has('debug')) {
+                console.log('Debug mode enabled');
+                console.log('Event:', '{{ event.title }}');
+                console.log('URL:', '{% url 'check_in' event.id event.check_in_token %}');
+                
+                // Add debug button
+                const debugBtn = document.createElement('button');
+                debugBtn.textContent = 'Debug Form';
+                debugBtn.style.position = 'fixed';
+                debugBtn.style.bottom = '60px';
+                debugBtn.style.right = '20px';
+                debugBtn.style.zIndex = '10000';
+                debugBtn.style.padding = '5px 10px';
+                debugBtn.style.background = '#000';
+                debugBtn.style.color = '#fff';
+                debugBtn.style.border = 'none';
+                debugBtn.style.borderRadius = '5px';
+                debugBtn.style.cursor = 'pointer';
+                debugBtn.onclick = window.debugFormData;
+                document.body.appendChild(debugBtn);
             }
         });
     </script>

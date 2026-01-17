@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import export_registrations_pdf
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
@@ -20,6 +21,13 @@ urlpatterns = [
 
     # CSV export
     path('event/<int:event_id>/export/', views.export_attendees_csv, name='export_attendees_csv'),
+
+    path('api/attendee/<int:attendee_id>/registration/', views.get_attendee_registration, name='get_attendee_registration'),
+    path('api/registration/save/', views.save_registration, name='save_registration'),
+    path('api/event/<int:event_id>/registration-stats/', views.get_registration_stats, name='get_registration_stats'),
+    path('api/event/<int:event_id>/registration-full-stats/', views.get_full_registration_stats, name='get_full_registration_stats'),
+    path('api/event/<int:event_id>/export-registrations/', views.export_registrations_csv, name='export_registrations_csv'),
+    path('api/event/<int:event_id>/export-registrations-pdf/', views.export_registrations_pdf, name='export_registrations_pdf'),
 
     # Admin staff management
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
