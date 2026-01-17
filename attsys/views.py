@@ -612,20 +612,11 @@ def toggle_event(request, event_id):
         event.is_active = True
         event.check_in_token = uuid.uuid4()  # This will be a UUID object
         event.save()
-        
-        # Debug logging
-        print(f"EVENT STARTED:")
-        print(f"  Event: {event.title}")
-        print(f"  New Token: {event.check_in_token}")
-        print(f"  Token Type: {type(event.check_in_token)}")
-        
-        messages.success(request, f"Event '{event.title}' has been started. QR code is now active.")
     else:
         # Stopping the event: Keep token but mark as inactive
         event.is_active = False
         # DON'T change the token when stopping
         event.save()
-        messages.warning(request, f"Event '{event.title}' has been stopped. QR code is now inactive.")
 
     return redirect('event_detail', event_id=event.id)
 
