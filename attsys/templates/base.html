@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -231,6 +232,10 @@
                 margin: 0.125rem 0;
             }
             
+            .navbar-logo {
+                height: 30px; /* Smaller logo on mobile */
+            }
+            
             .user-info {
                 border-top: 1px solid var(--gray-200);
                 padding-top: 1rem;
@@ -303,7 +308,7 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'dashboard' %}">
                 <!-- SES Logo -->
-                <img src="/media/seslogoo.png" 
+                <img src="{% static 'images/seslogoo.png' %}" 
                      alt="SES Logo" 
                      class="navbar-logo"
                      onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<i class=\'bi bi-clipboard-check-fill me-2\'></i>ATTSYS';">
@@ -469,26 +474,6 @@
                     link.classList.remove('active');
                 }
             });
-        });
-
-        // Adjust logo size for mobile
-        document.addEventListener('DOMContentLoaded', function() {
-            const logo = document.querySelector('.navbar-logo');
-            const navbarToggler = document.querySelector('.navbar-toggler');
-            
-            function adjustLogoSize() {
-                if (window.innerWidth <= 768) {
-                    logo.classList.add('navbar-logo-sm');
-                } else {
-                    logo.classList.remove('navbar-logo-sm');
-                }
-            }
-            
-            // Initial adjustment
-            adjustLogoSize();
-            
-            // Adjust on resize
-            window.addEventListener('resize', adjustLogoSize);
         });
     </script>
     
