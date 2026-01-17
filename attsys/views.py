@@ -39,6 +39,24 @@ from reportlab.pdfgen import canvas
 User = get_user_model()
 
 
+def custom_login(request):
+    # AUTO-CREATE ADMIN IF NO USERS EXIST
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    if not User.objects.exists():
+        print("⚠️ No users found, creating default admin...")
+        admin_user = User.objects.create_user(
+            username='pejaladmin46',
+            email='faizalhussin45@gmail.com',
+            password='canon990',  # SIMPLE PASSWORD - CHANGE AFTER LOGIN!
+            is_staff=True,
+            is_superuser=True,
+            role='ADMIN'
+        )
+        print(f"✅ Created default admin: pejaladmin46 / canon990")
+
+
 def link_callback(uri, rel):
     """
     Convert HTML URIs to absolute system paths so xhtml2pdf can access those resources
