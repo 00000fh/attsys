@@ -34,6 +34,7 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 from django.conf import settings
 from reportlab.pdfgen import canvas
+from django.db import models
 
 
 User = get_user_model()
