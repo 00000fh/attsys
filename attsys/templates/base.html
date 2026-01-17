@@ -15,7 +15,7 @@
     <!-- Base Styles -->
     <style>
         :root {
-            --primary: #21252;
+            --primary: #212529;
             --primary-light: rgba(13, 110, 253, 0.1);
             --secondary: #6c757d;
             --success: #198754;
@@ -54,14 +54,14 @@
         }
 
         .navbar {
-            position: sticky;  /* This is the key property */
+            position: sticky;
             top: 0;
-            z-index: 1030;  /* Ensure it stays above other content */
+            z-index: 1030;
             transition: all 0.3s ease;
             background: white;
             border-bottom: 1px solid var(--gray-200);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            padding: 1rem 0;
+            padding: 0.5rem 0;
         }
 
         .navbar-brand {
@@ -73,14 +73,16 @@
             padding: 0;
         }
 
+        /* Increased Logo Size */
         .navbar-logo {
-            height: 40px;  /* Adjust height as needed */
+            height: 50px;  /* Increased from 40px to 50px */
             width: auto;
             object-fit: contain;
+            transition: height 0.3s ease;
         }
 
         .navbar-logo-sm {
-            height: 30px;  /* Smaller size for mobile */
+            height: 35px;  /* Increased from 30px to 35px */
         }
 
         .nav-link {
@@ -232,8 +234,9 @@
                 margin: 0.125rem 0;
             }
             
+            /* Slightly larger logo on mobile */
             .navbar-logo {
-                height: 30px; /* Smaller logo on mobile */
+                height: 40px; /* Increased from 30px to 40px on mobile */
             }
             
             .user-info {
@@ -307,7 +310,7 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <!-- SES Logo -->
+                <!-- SES Logo - Now Larger -->
                 <img src="{% static 'images/SES_LOGO_RENEW.png' %}" 
                      alt="SES Logo" 
                      class="navbar-logo"
