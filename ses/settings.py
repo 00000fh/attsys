@@ -78,13 +78,35 @@ WSGI_APPLICATION = 'ses.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database
-# ✅ SIMPLE: Use DATABASE_URL if available, otherwise SQLite
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    # Use PostgreSQL with SSL
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+            # Alternative: Explicit SSL settings
+            # engine='django.db.backends.postgresql_psycopg2',
+            # conn_settings={'sslmode': 'require'}
+        )
     }
-}
+    
+    # OPTIONAL: Add database pool settings for better performance
+    DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
+    
+    print(f"✅ Using PostgreSQL database: {DATABASES['default']['HOST']}")
+else:
+    # Fallback to SQLite (for local development)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+    print("⚠️ Using SQLite database (for local development)")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
