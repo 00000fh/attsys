@@ -3982,8 +3982,10 @@
         // Load initial registration statistics
         updateRegistrationStats();
         
-        // REMOVED: Welcome notification on page load
-        // The welcome notification code has been removed as requested
+        // Show welcome notification on page load
+        setTimeout(() => {
+            showNotification('Welcome to Event Management! Use the actions below to manage attendees and registrations.', 'info', 'Event Detail');
+        }, 1000);
     });
 </script>
 {% endblock %}
