@@ -516,6 +516,42 @@
         font-size: 1.1rem;
     }
     
+    /* Debug Section */
+    .debug-section {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .debug-section h6 {
+        color: #856404;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .debug-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .debug-item {
+        padding: 0.25rem 0;
+    }
+    
+    .debug-label {
+        font-weight: 600;
+        color: #856404;
+    }
+    
+    .debug-value {
+        color: #333;
+        word-break: break-all;
+    }
+    
     /* Stats Section */
     .stats-section {
         display: grid;
@@ -943,6 +979,33 @@
         margin-bottom: 0.75rem;
     }
     
+    /* QR Error State */
+    .qr-error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        color: #721c24;
+    }
+    
+    .qr-error-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .qr-error ol {
+        margin-bottom: 0;
+        padding-left: 1.5rem;
+    }
+    
+    .qr-error li {
+        margin-bottom: 0.25rem;
+    }
+    
     /* Responsive Design */
     @media (max-width: 768px) {
         .action-buttons {
@@ -1050,6 +1113,10 @@
         
         .attendee-header {
             display: none;
+        }
+        
+        .debug-info {
+            grid-template-columns: 1fr;
         }
     }
     
@@ -1203,11 +1270,47 @@
         </a>
     </div>
 
+    <!-- DEBUG SECTION - REMOVE AFTER FIXING -->
+    <div class="debug-section">
+        <h6><i class="bi bi-bug me-2"></i>Debug Information</h6>
+        <div class="debug-info">
+            <div class="debug-item">
+                <span class="debug-label">Event Active:</span>
+                <span class="debug-value">{{ event.is_active|yesno:"Yes,No" }}</span>
+            </div>
+            <div class="debug-item">
+                <span class="debug-label">QR Image Exists:</span>
+                <span class="debug-value">{{ qr_image|yesno:"Yes,No" }}</span>
+            </div>
+            <div class="debug-item">
+                <span class="debug-label">Event Token:</span>
+                <span class="debug-value">{{ event.check_in_token|default:"No token" }}</span>
+            </div>
+            <div class="debug-item">
+                <span class="debug-label">QR URL:</span>
+                <span class="debug-value">{{ qr_url|default:"No QR URL"|truncatechars:50 }}</span>
+            </div>
+            <div class="debug-item">
+                <span class="debug-label">View Debug Info:</span>
+                <span class="debug-value">
+                    {% if debug_info %}
+                        Token: {{ debug_info.check_in_token|default:"None" }},
+                        QR Generated: {{ debug_info.qr_generated|yesno:"Yes,No" }},
+                        Active: {{ debug_info.is_active|yesno:"Yes,No" }}
+                    {% else %}
+                        No debug info from view
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
     <!-- QR Code Section - Compact -->
-    {% if event.is_active and qr_image %}
+    {% if event.is_active %}
     <div class="qr-section">
         <h3 class="qr-title">Event Check-in</h3>
         
+        {% if qr_image %}
         <div class="qr-content">
             <div class="qr-image-container">
                 <img src="data:image/png;base64,{{ qr_image }}" 
@@ -1221,28 +1324,50 @@
                 
                 <!-- Compact URL Display -->
                 <div class="compact-url">
-                    {{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token %}
+                    {% if qr_url %}
+                        {{ qr_url }}
+                    {% else %}
+                        Generating QR code...
+                    {% endif %}
                 </div>
                 
                 <!-- Action Buttons -->
                 <div class="qr-actions">
-                    <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token }}" 
+                    <a href="{{ qr_url|default:'#' }}" 
                        target="_blank" 
-                       class="qr-btn qr-btn-primary">
+                       class="qr-btn qr-btn-primary"
+                       {% if not qr_url %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
                         <i class="bi bi-box-arrow-up-right"></i>
                         Open Link
                     </a>
-                    <button class="qr-btn qr-btn-secondary" onclick="copyToClipboard()">
+                    <button class="qr-btn qr-btn-secondary" onclick="copyToClipboard()"
+                            {% if not qr_url %}disabled{% endif %}>
                         <i class="bi bi-clipboard"></i>
                         Copy URL
                     </button>
-                    <button class="qr-btn qr-btn-dark" onclick="openQRModal()">
+                    <button class="qr-btn qr-btn-dark" onclick="openQRModal()"
+                            {% if not qr_image %}disabled{% endif %}>
                         <i class="bi bi-arrows-fullscreen"></i>
                         Show for Projector
                     </button>
                 </div>
             </div>
         </div>
+        {% else %}
+        <div class="qr-error">
+            <div class="qr-error-title">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span>QR Code Generation Failed!</span>
+            </div>
+            <p class="mb-2">Please try these steps:</p>
+            <ol class="mb-0">
+                <li>Click "Stop Event" then "Start Event" again</li>
+                <li>Check browser console for errors (press F12)</li>
+                <li>Refresh the page</li>
+                <li>If problem persists, check Django logs on Render</li>
+            </ol>
+        </div>
+        {% endif %}
         
         <p class="text-muted fs-8 mt-2">
             <i class="bi bi-info-circle me-1"></i>
@@ -1271,6 +1396,7 @@
             </div>
             
             <div class="modal-body">
+                {% if qr_image %}
                 <img src="data:image/png;base64,{{ qr_image }}" 
                      alt="Check-in QR Code" 
                      class="modal-qr-image"
@@ -1280,23 +1406,30 @@
                 <div class="modal-url-section">
                     <div class="modal-url-label">Check-in URL</div>
                     <div class="modal-url">
-                        {{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token %}
+                        {% if qr_url %}
+                            {{ qr_url }}
+                        {% else %}
+                            No URL available
+                        {% endif %}
                     </div>
                 </div>
                 
                 <!-- Action Buttons -->
                 <div class="modal-actions">
-                    <button class="modal-btn modal-btn-primary" onclick="copyToClipboard()">
+                    <button class="modal-btn modal-btn-primary" onclick="copyToClipboard()"
+                            {% if not qr_url %}disabled{% endif %}>
                         <i class="bi bi-clipboard"></i>
                         Copy URL
                     </button>
-                    <button class="modal-btn modal-btn-secondary" onclick="downloadQR()">
+                    <button class="modal-btn modal-btn-secondary" onclick="downloadQR()"
+                            {% if not qr_image %}disabled{% endif %}>
                         <i class="bi bi-download"></i>
                         Download QR
                     </button>
-                    <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token }}" 
+                    <a href="{{ qr_url|default:'#' }}" 
                        target="_blank" 
-                       class="modal-btn modal-btn-dark">
+                       class="modal-btn modal-btn-dark"
+                       {% if not qr_url %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
                         <i class="bi bi-box-arrow-up-right"></i>
                         Open Link
                     </a>
@@ -1306,6 +1439,15 @@
                     <i class="bi bi-keyboard me-1"></i>
                     Keyboard shortcuts: <strong>F</strong> - Fullscreen | <strong>ESC</strong> - Close | <strong>C</strong> - Copy | <strong>D</strong> - Download
                 </div>
+                {% else %}
+                <div class="qr-error">
+                    <div class="qr-error-title">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span>QR Code Not Available</span>
+                    </div>
+                    <p class="mb-0">QR code could not be generated. Please go back and try starting the event again.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -1932,7 +2074,12 @@
     
     // Copy to clipboard function
     window.copyToClipboard = function() {
-        const url = '{{ request.scheme }}://{{ request.get_host }}{% url 'check_in' event.id event.check_in_token %}';
+        const url = '{{ qr_url|default:"" }}';
+        
+        if (!url) {
+            showToast('QR URL is not available. Please refresh the page.', true);
+            return;
+        }
         
         // Try modern clipboard API first
         if (navigator.clipboard && window.isSecureContext) {
@@ -1982,6 +2129,11 @@
     // Download QR Code
     window.downloadQR = function() {
         const qrDataUrl = 'data:image/png;base64,{{ qr_image }}';
+        if (!qrDataUrl || qrDataUrl.includes('data:image/png;base64,')) {
+            showToast('QR code is not available to download', true);
+            return;
+        }
+        
         const link = document.createElement('a');
         link.href = qrDataUrl;
         link.download = 'checkin-qr.png';
@@ -2724,7 +2876,7 @@
                             print-color-adjust: exact;
                         }
                         
-                        /* Hide any browser-added headers/footers */
+                        /* Hide any browser-generated headers/footers */
                         header, footer {
                             display: none !important;
                         }
