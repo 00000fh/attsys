@@ -199,9 +199,41 @@
         margin-bottom: 1rem;
     }
     
-    .compact-url span {
-        color: var(--primary);
-        font-weight: 500;
+    .event-details-display {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: var(--gray-800);
+        text-align: left;
+    }
+    
+    .event-details-display div {
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .event-details-display div:last-child {
+        margin-bottom: 0;
+    }
+    
+    .event-details-display i {
+        margin-right: 0.5rem;
+        color: var(--gray-600);
+        width: 16px;
+        text-align: center;
+    }
+    
+    .event-details-display strong {
+        font-size: 1rem;
+        color: var(--dark);
+        display: block;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid var(--gray-300);
+        padding-bottom: 0.5rem;
     }
     
     .qr-actions {
@@ -221,6 +253,7 @@
         border: 1px solid transparent;
         cursor: pointer;
         transition: all 0.2s ease;
+        text-decoration: none;
     }
     
     .qr-btn-primary {
@@ -231,6 +264,8 @@
     .qr-btn-primary:hover {
         background: #0b5ed7;
         transform: translateY(-2px);
+        text-decoration: none;
+        color: white;
     }
     
     .qr-btn-secondary {
@@ -242,6 +277,8 @@
     .qr-btn-secondary:hover {
         background: var(--gray-50);
         transform: translateY(-2px);
+        text-decoration: none;
+        color: var(--gray-700);
     }
     
     .qr-btn-dark {
@@ -252,6 +289,8 @@
     .qr-btn-dark:hover {
         background: var(--gray-800);
         transform: translateY(-2px);
+        text-decoration: none;
+        color: white;
     }
     
     /* QR Code Modal - UPDATED DESIGN (Like the image) */
@@ -426,11 +465,13 @@
         transition: all 0.2s ease;
         min-width: 140px;
         justify-content: center;
+        text-decoration: none;
     }
     
     .modal-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        text-decoration: none;
     }
     
     .modal-btn-primary {
@@ -441,6 +482,7 @@
     
     .modal-btn-primary:hover {
         background: #0b5ed7;
+        color: white;
     }
     
     .modal-btn-secondary {
@@ -451,6 +493,7 @@
     
     .modal-btn-secondary:hover {
         background: var(--gray-50);
+        color: var(--gray-700);
     }
     
     .modal-btn-dark {
@@ -461,6 +504,7 @@
     
     .modal-btn-dark:hover {
         background: var(--gray-800);
+        color: white;
     }
     
     /* Fullscreen Mode */
@@ -1006,6 +1050,18 @@
         margin-bottom: 0.25rem;
     }
     
+    /* Preview Modal */
+    .preview-modal .modal-dialog {
+        max-width: 600px;
+    }
+    
+    .preview-modal img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+    }
+    
     /* Responsive Design */
     @media (max-width: 768px) {
         .action-buttons {
@@ -1287,13 +1343,17 @@
             <div class="qr-info">
                 <div class="qr-info-title">Scan to check in</div>
                 
-                <!-- Compact URL Display -->
-                <div class="compact-url">
-                    {% if qr_url %}
-                        {{ qr_url }}
-                    {% else %}
-                        Generating QR code...
-                    {% endif %}
+                <!-- Event Details Display -->
+                <div class="event-details-display">
+                    <strong>{{ event.title }}</strong>
+                    <div>
+                        <i class="bi bi-geo-alt"></i>
+                        <span>{{ event.venue }}</span>
+                    </div>
+                    <div>
+                        <i class="bi bi-calendar"></i>
+                        <span>{{ event.date|date:"F d, Y" }}</span>
+                    </div>
                 </div>
                 
                 <!-- Action Buttons -->
@@ -1310,6 +1370,15 @@
                         <i class="bi bi-clipboard"></i>
                         Copy URL
                     </button>
+                    {% if qr_url %}
+                    <a href="{% url 'download_qr' event.id %}" 
+                       class="qr-btn qr-btn-dark"
+                       target="_blank"
+                       onclick="showDownloadToast()">
+                        <i class="bi bi-download"></i>
+                        Download QR
+                    </a>
+                    {% endif %}
                     <button class="qr-btn qr-btn-dark" onclick="openQRModal()"
                             {% if not qr_image %}disabled{% endif %}>
                         <i class="bi bi-arrows-fullscreen"></i>
@@ -1336,13 +1405,13 @@
         
         <p class="text-muted fs-8 mt-2">
             <i class="bi bi-info-circle me-1"></i>
-            Click "Show for Projector" to display a large QR code suitable for projection. 
-            <strong>Use the fullscreen button in the modal for projector mode.</strong>
+            <strong>Download QR</strong> to get a QR code with event details that can be printed or shared with attendees.
+            <strong>Show for Projector</strong> to display a large QR code suitable for projection.
         </p>
     </div>
     {% endif %}
 
-    <!-- QR Code Modal - UPDATED DESIGN (Like the image) -->
+    <!-- QR Code Modal - UPDATED DESIGN -->
     <div class="qr-modal" id="qrModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1381,15 +1450,16 @@
                 
                 <!-- Action Buttons -->
                 <div class="modal-actions">
+                    <a href="{% url 'download_qr' event.id %}" 
+                       class="modal-btn modal-btn-secondary"
+                       target="_blank">
+                        <i class="bi bi-download"></i>
+                        Download QR with Details
+                    </a>
                     <button class="modal-btn modal-btn-primary" onclick="copyToClipboard()"
                             {% if not qr_url %}disabled{% endif %}>
                         <i class="bi bi-clipboard"></i>
                         Copy URL
-                    </button>
-                    <button class="modal-btn modal-btn-secondary" onclick="downloadQR()"
-                            {% if not qr_image %}disabled{% endif %}>
-                        <i class="bi bi-download"></i>
-                        Download QR
                     </button>
                     <a href="{{ qr_url|default:'#' }}" 
                        target="_blank" 
@@ -1413,6 +1483,33 @@
                     <p class="mb-0">QR code could not be generated. Please go back and try starting the event again.</p>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview QR Modal -->
+    <div class="modal fade preview-modal" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-qr-code me-2"></i>
+                        QR Code Preview
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading QR code preview...</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'download_qr' event.id %}" class="btn btn-primary">
+                        <i class="bi bi-download me-2"></i>Download
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1950,52 +2047,6 @@
     const LOGO_URL1 = "/static/images/seslogoo.png";
     const UPKB_LOGO_URL = "/static/images/upkb.png";
 
-    // Add this to your JavaScript section
-    window.exportRegistrationPDF = function() {
-        // Show loading indicator
-        const exportBtn = document.querySelector('[onclick="exportRegistrationPDF()"]');
-        const originalText = exportBtn.innerHTML;
-        exportBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Generating PDF...';
-        exportBtn.disabled = true;
-        
-        // Make the request
-        fetch(`/attsys/api/event/{{ event.id }}/export-registrations-pdf/`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/pdf'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to generate PDF');
-            }
-            return response.blob();
-        })
-        .then(blob => {
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `registration_report_{{ event.title }}_${new Date().toISOString().slice(0,10)}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            // Show success toast
-            showToast('PDF report downloaded successfully!');
-        })
-        .catch(error => {
-            console.error('Error downloading PDF:', error);
-            showToast('Failed to generate PDF report', true);
-        })
-        .finally(() => {
-            // Reset button
-            exportBtn.innerHTML = originalText;
-            exportBtn.disabled = false;
-        });
-    };
-    
     // Form number counter
     let formCounter = 1;
     
@@ -2091,22 +2142,42 @@
         }, 3000);
     }
     
-    // Download QR Code
-    window.downloadQR = function() {
-        const qrDataUrl = 'data:image/png;base64,{{ qr_image }}';
-        if (!qrDataUrl || qrDataUrl.includes('data:image/png;base64,')) {
-            showToast('QR code is not available to download', true);
-            return;
-        }
+    // Show download toast
+    function showDownloadToast() {
+        setTimeout(function() {
+            showToast('QR code with event details is downloading...');
+        }, 500);
+    }
+    
+    // Preview QR function
+    function previewQR(event) {
+        event.preventDefault();
+        const url = event.currentTarget.href;
         
-        const link = document.createElement('a');
-        link.href = qrDataUrl;
-        link.download = 'checkin-qr.png';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToast('QR code downloaded');
-    };
+        // Show modal
+        const modalElement = document.getElementById('previewModal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+        
+        // Load image
+        const modalBody = modalElement.querySelector('.modal-body');
+        const img = new Image();
+        img.onload = function() {
+            modalBody.innerHTML = `
+                <img src="${url}" alt="QR Code" class="img-fluid rounded" style="max-height: 400px;">
+                <p class="mt-3 text-muted">Right-click and select "Save image as..." to download</p>
+            `;
+        };
+        img.onerror = function() {
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Failed to load QR code preview.
+                </div>
+            `;
+        };
+        img.src = url;
+    }
     
     // Show attendee details
     window.showAttendeeDetails = function(attendeeId) {
@@ -3571,7 +3642,10 @@
             // D key to download QR
             if ((e.key === 'd' || e.key === 'D') && qrModal && qrModal.classList.contains('active')) {
                 e.preventDefault();
-                downloadQR();
+                const downloadLink = document.querySelector('[href*="download-qr"]');
+                if (downloadLink) {
+                    downloadLink.click();
+                }
             }
             
             // C key to copy URL
