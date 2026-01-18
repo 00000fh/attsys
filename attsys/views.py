@@ -624,7 +624,7 @@ def check_in(request, event_id, token):
             # Validate required fields
             required_fields = [
                 'registration_officer', 'applied_programme', 'full_name',
-                'address1', 'city', 'postcode', 'state', 'ic_no', 'email',
+                'city', 'postcode', 'state', 'ic_no', 'email',
                 'phone_no', 'marriage_status', 'father_name', 'father_ic',
                 'father_phone', 'mother_name', 'mother_ic', 'mother_phone'
             ]
@@ -660,7 +660,7 @@ def check_in(request, event_id, token):
                 applied_programme=request.POST['applied_programme'],
                 full_name=request.POST['full_name'].strip(),
                 address1=request.POST['address1'].strip(),
-                address2=request.POST.get('address2', '').strip(),
+                address2='',
                 city=request.POST['city'].strip(),
                 postcode=request.POST['postcode'].strip(),
                 state=request.POST['state'].strip(),
