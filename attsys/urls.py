@@ -26,7 +26,7 @@ urlpatterns = [
     
     # QR public page - THIS IS THE KEY ONE
     path('check-in/<int:event_id>/<str:token>/', views.check_in, name='check_in'),  # ← Will be /attsys/check-in/... if included in ses/urls.py
-    path('event/<int:event_id>/download-qr/', views.download_qr_code, name='download_qr'),
+    
     
     # Other API endpoints...
     path('api/attendee/<int:attendee_id>/details/', views.get_attendee_details, name='get_attendee_details'),
