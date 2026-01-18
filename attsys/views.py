@@ -1822,3 +1822,153 @@ def export_comprehensive_report(request, event_id):
         return redirect('event_detail', event_id=event_id)
 
 
+@login_required
+def download_qr_code(request, event_id):
+    """Generate and download a QR code with event details"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and event.created_by != request.user:
+        return HttpResponseForbidden()
+    
+    try:
+        # Create QR code
+        qr_url = f"{request.scheme}://{request.get_host()}/attsys/check-in/{event.id}/{event.check_in_token}/"
+        qr = qrcode.make(qr_url)
+        
+        # Convert PIL Image to use with ImageDraw
+        qr_img = qr.get_image()
+        
+        # Resize QR code for better quality
+        qr_img = qr_img.resize((350, 350), Image.Resampling.LANCZOS)
+        
+        # Create a larger image to add text
+        width, height = qr_img.size
+        margin = 40
+        text_height = 200  # More space for text
+        padding = 30
+        new_width = width + padding * 2
+        new_height = height + text_height + margin * 2 + padding * 2
+        
+        # Create new image with gradient background
+        new_img = Image.new('RGB', (new_width, new_height), '#ffffff')
+        draw = ImageDraw.Draw(new_img)
+        
+        # Add header background
+        draw.rectangle([(0, 0), (new_width, text_height + margin)], fill='#f8f9fa', outline=None)
+        
+        # Add border
+        draw.rectangle([(padding, padding), (new_width - padding, new_height - padding)], 
+                      outline='#dee2e6', width=2)
+        
+        # Try to load fonts
+        try:
+            # Try different font paths
+            font_paths = [
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+                "arial.ttf",
+                "Arial.ttf"
+            ]
+            
+            font_large = None
+            font_medium = None
+            
+            for font_path in font_paths:
+                try:
+                    font_large = ImageFont.truetype(font_path, 24)
+                    font_medium = ImageFont.truetype(font_path, 18)
+                    font_small = ImageFont.truetype(font_path, 16)
+                    break
+                except:
+                    continue
+            
+            if not font_large:
+                # Fallback to default font
+                font_large = ImageFont.load_default()
+                font_medium = ImageFont.load_default()
+                font_small = ImageFont.load_default()
+                
+        except:
+            font_large = ImageFont.load_default()
+            font_medium = ImageFont.load_default()
+            font_small = ImageFont.load_default()
+        
+        # Calculate text positions
+        center_x = new_width // 2
+        
+        # Event Title
+        title = event.title
+        title_bbox = draw.textbbox((0, 0), title, font=font_large)
+        title_width = title_bbox[2] - title_bbox[0]
+        title_x = center_x - (title_width // 2)
+        draw.text((title_x, margin), title, fill="#212529", font=font_large)
+        
+        # Event Venue
+        venue = f"📍 {event.venue}"
+        venue_bbox = draw.textbbox((0, 0), venue, font=font_medium)
+        venue_width = venue_bbox[2] - venue_bbox[0]
+        venue_x = center_x - (venue_width // 2)
+        draw.text((venue_x, margin + 40), venue, fill="#495057", font=font_medium)
+        
+        # Event Date
+        event_date = event.date.strftime("%d %B %Y")
+        date_text = f"📅 {event_date}"
+        date_bbox = draw.textbbox((0, 0), date_text, font=font_medium)
+        date_width = date_bbox[2] - date_bbox[0]
+        date_x = center_x - (date_width // 2)
+        draw.text((date_x, margin + 75), date_text, fill="#495057", font=font_medium)
+        
+        # Paste QR code centered
+        qr_x = center_x - (width // 2)
+        qr_y = text_height + margin + padding
+        new_img.paste(qr_img, (qr_x, qr_y))
+        
+        # Instruction text below QR
+        instruction = "Scan to check in"
+        inst_bbox = draw.textbbox((0, 0), instruction, font=font_small)
+        inst_width = inst_bbox[2] - inst_bbox[0]
+        inst_x = center_x - (inst_width // 2)
+        inst_y = qr_y + height + 15
+        draw.text((inst_x, inst_y), instruction, fill="#6c757d", font=font_small)
+        
+        # Website URL
+        url = "Check-in System"
+        url_bbox = draw.textbbox((0, 0), url, font=font_small)
+        url_width = url_bbox[2] - url_bbox[0]
+        url_x = center_x - (url_width // 2)
+        draw.text((url_x, inst_y + 25), url, fill="#0d6efd", font=font_small)
+        
+        # Footer note
+        footer = f"Event ID: {event.id}"
+        footer_bbox = draw.textbbox((0, 0), footer, font=ImageFont.load_default())
+        footer_width = footer_bbox[2] - footer_bbox[0]
+        footer_x = new_width - footer_width - 15
+        footer_y = new_height - 20
+        draw.text((footer_x, footer_y), footer, fill="#adb5bd", font=ImageFont.load_default())
+        
+        # Save to buffer
+        buffer = BytesIO()
+        new_img.save(buffer, format="PNG", quality=100, optimize=True)
+        buffer.seek(0)
+        
+        # Create HTTP response
+        response = HttpResponse(buffer, content_type='image/png')
+        filename = f"checkin_qr_{event.title.replace(' ', '_')}_{event.date}.png".replace('/', '-')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+        
+    except Exception as e:
+        print(f"Error generating downloadable QR: {e}")
+        # Fallback: Return simple QR code
+        try:
+            qr_url = f"{request.scheme}://{request.get_host()}/attsys/check-in/{event.id}/{event.check_in_token}/"
+            qr = qrcode.make(qr_url)
+            buffer = BytesIO()
+            qr.save(buffer, format="PNG")
+            buffer.seek(0)
+            response = HttpResponse(buffer, content_type='image/png')
+            response['Content-Disposition'] = f'attachment; filename="checkin_qr_{event.id}.png"'
+            return response
+        except:
+            return HttpResponse("Error generating QR code", status=500)
