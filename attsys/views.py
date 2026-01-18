@@ -371,105 +371,51 @@ def event_detail(request, event_id):
     # ✅ DEFINE ATTENDEES FIRST
     attendees = event.attendees.all().order_by('-attended_at')
 
-    # 🔹 Auto stop event if ended (using Malaysia time)
+    # 🔹 Get current Malaysia time for display
     now_malaysia = malaysia_now()
     event_date = event.date
+    
+    # Calculate event end time for display (not for auto-stopping)
     event_end = timezone.make_aware(
         timezone.datetime.combine(event_date, event.end_time)
     )
     event_end = timezone.localtime(event_end, timezone.get_current_timezone())
+    
+    # 🔹 Check if event should be active based on time
+    # This is for display only - NOT for auto-stopping
+    is_event_ended = now_malaysia > event_end
+    should_be_active = event.is_active and not is_event_ended
 
-    if event.is_active and now_malaysia > event_end:
-        event.is_active = False
-        # Don't nullify the token when auto-stopping
-        event.save(update_fields=['is_active'])
-        # Refresh the event object
-        event.refresh_from_db()
-
-    # 🔹 QR generation - FIXED: Use proper URL generation
+    # 🔹 SIMPLIFIED QR GENERATION
     qr_image = None
     qr_url = None
     
-    if event.is_active:
-        # Ensure check_in_token exists and is properly formatted
+    if event.is_active:  # Use the actual is_active status from database
+        # Ensure token exists
         if not event.check_in_token:
             event.check_in_token = uuid.uuid4()
             event.save(update_fields=['check_in_token'])
             event.refresh_from_db()
         
         try:
-            # Get the check-in URL using Django's reverse
-            from django.urls import reverse
-            
-            # IMPORTANT: Convert token to string for URL
+            # Build check-in URL
             token_str = str(event.check_in_token)
+            qr_url = f"{request.scheme}://{request.get_host()}/check-in/{event.id}/{token_str}/"
             
-            # Build the check-in URL
-            try:
-                # Try to get URL using reverse
-                checkin_path = reverse('check_in', args=[event.id, token_str])
-                
-                # Build full URL - IMPORTANT: Use https for production
-                if settings.DEBUG:
-                    qr_url = f"http://{request.get_host()}{checkin_path}"
-                else:
-                    qr_url = f"https://{request.get_host()}{checkin_path}"
-                    
-            except Exception as reverse_error:
-                print(f"Reverse error: {reverse_error}")
-                # Fallback: Build URL manually
-                qr_url = f"{request.scheme}://{request.get_host()}/check-in/{event.id}/{token_str}/"
-            
-            # Debug logging
-            print(f"DEBUG QR GENERATION:")
-            print(f"  Event ID: {event.id}")
-            print(f"  Token: {token_str}")
-            print(f"  Token type: {type(event.check_in_token)}")
-            print(f"  QR URL: {qr_url}")
-            
-            # Generate QR code with better settings
-            qr = qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L,
-                box_size=10,
-                border=4,
-            )
-            qr.add_data(qr_url)
-            qr.make(fit=True)
-            
-            img = qr.make_image(fill_color="black", back_color="white")
+            # Generate QR code
+            qr = qrcode.make(qr_url)
             buffer = BytesIO()
-            img.save(buffer, format="PNG")
-            qr_image = base64.b64encode(buffer.getvalue()).decode()
+            qr.save(buffer, format="PNG")
+            buffer.seek(0)
+            
+            # Encode as base64
+            qr_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
             
         except Exception as e:
-            print(f"Error generating QR code: {e}")
-            import traceback
-            traceback.print_exc()
-            # Generate a simple error QR as fallback
-            try:
-                # Create a fallback URL
-                fallback_url = f"{request.scheme}://{request.get_host()}/check-in/{event.id}/{event.check_in_token}/"
-                print(f"Fallback URL: {fallback_url}")
-                
-                qr = qrcode.QRCode(
-                    version=1,
-                    error_correction=qrcode.constants.ERROR_CORRECT_L,
-                    box_size=10,
-                    border=4,
-                )
-                qr.add_data(fallback_url)
-                qr.make(fit=True)
-                
-                img = qr.make_image(fill_color="black", back_color="white")
-                buffer = BytesIO()
-                img.save(buffer, format="PNG")
-                qr_image = base64.b64encode(buffer.getvalue()).decode()
-                qr_url = fallback_url
-            except Exception as fallback_error:
-                print(f"Fallback QR generation failed: {fallback_error}")
-                qr_image = None
-                qr_url = None
+            # Log error but don't crash the page
+            print(f"QR generation error for event {event.id}: {str(e)}")
+            qr_image = None
+            qr_url = None
 
     # 🔹 Get registration information for each attendee (optimized)
     attendee_list = []
@@ -527,7 +473,6 @@ def event_detail(request, event_id):
                 'count': item['count']
             })
     except Exception as e:
-        print(f"Error calculating attendance by hour: {e}")
         formatted_attendance = []
 
     # 🔹 Feedback analytics
@@ -557,7 +502,6 @@ def event_detail(request, event_id):
         total_revenue = revenue_data['total_revenue'] or Decimal('0.00')
         
     except Exception as e:
-        print(f"Error calculating registration stats: {e}")
         total_registered = 0
         total_paid = 0
         total_pending = 0
@@ -579,10 +523,10 @@ def event_detail(request, event_id):
         'event': event,
         'attendees': attendee_list,
         'qr_image': qr_image,
-        'qr_url': qr_url,  # ADD THIS FOR TESTING
+        'qr_url': qr_url,
         'attendance_by_hour': formatted_attendance,
         'feedbacks': feedbacks,
-        'avg_rating': round(avg_rating, 1),  # Round to 1 decimal
+        'avg_rating': round(avg_rating, 1),
         'total_registered': total_registered,
         'total_paid': total_paid,
         'total_pending': total_pending,
@@ -591,12 +535,9 @@ def event_detail(request, event_id):
         'today_checkins': today_checkins,
         'now_malaysia': now_malaysia,
         'event_end': event_end,
-        'is_event_active': event.is_active and now_malaysia <= event_end,
-        'debug_info': {  # Add for debugging
-            'check_in_token': str(event.check_in_token) if event.check_in_token else 'None',
-            'qr_generated': qr_image is not None,
-            'is_active': event.is_active,
-        }
+        'is_event_active': event.is_active,  # Use actual database value
+        'is_event_ended': is_event_ended,    # For informational display
+        'should_be_active': should_be_active, # For UI logic if needed
     })
 
 
@@ -610,7 +551,7 @@ def toggle_event(request, event_id):
     if not event.is_active:
         # Starting the event: Activate it and generate new token
         event.is_active = True
-        event.check_in_token = uuid.uuid4()  # This will be a UUID object
+        event.check_in_token = uuid.uuid4()
         event.save()
     else:
         # Stopping the event: Keep token but mark as inactive
