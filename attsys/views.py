@@ -400,7 +400,7 @@ def event_detail(request, event_id):
         try:
             # Build check-in URL
             token_str = str(event.check_in_token)
-            qr_url = f"{request.scheme}://{request.get_host()}/check-in/{event.id}/{token_str}/"
+            qr_url = f"{request.scheme}://{request.get_host()}/attsys/check-in/{event.id}/{token_str}/"
             
             # Generate QR code
             qr = qrcode.make(qr_url)
