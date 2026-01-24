@@ -12,7 +12,108 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
-        /* (Your existing CSS remains exactly the same) */
+        /* Mobile-First Header Styles */
+        .mobile-header {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--white);
+        }
+        
+        /* Top row: Event badge and date */
+        .mobile-header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        
+        .mobile-event-badge {
+            background: var(--black);
+            color: var(--white);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .mobile-event-date {
+            color: var(--gray-600);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        /* Logos - Centered with divider */
+        .mobile-logos {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 0.75rem 0 1rem 0;
+        }
+        
+        .mobile-logo {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+        }
+        
+        .mobile-logo-divider {
+            height: 35px;
+            width: 1px;
+            background: var(--gray-300);
+        }
+        
+        /* Main title */
+        .mobile-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--black);
+            margin: 0 0 0.5rem 0;
+            line-height: 1.3;
+            text-align: center;
+        }
+        
+        /* Event name */
+        .mobile-event-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 0 0 0.75rem 0;
+            line-height: 1.4;
+            text-align: center;
+        }
+        
+        /* Event details */
+        .mobile-event-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: var(--gray-50);
+            padding: 0.75rem;
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .mobile-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-700);
+            font-size: 0.9rem;
+        }
+        
+        .mobile-detail-item i {
+            color: var(--black);
+            width: 16px;
+            flex-shrink: 0;
+        }
+        
+        /* Desktop header (hidden on mobile) */
+        .desktop-header {
+            display: none;
+        }
+        
         :root {
             --black: #000000;
             --white: #ffffff;
@@ -51,7 +152,7 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding: 2rem 1rem;
+            padding: 1rem;
         }
         
         .form-card {
@@ -77,65 +178,14 @@
             z-index: 1;
         }
         
-        /* Form Header - Consistent Styling */
-        .form-header {
-            text-align: center;
-            padding: 3rem 2rem 2.5rem;
-            border-bottom: 1px solid var(--gray-200);
-            background: var(--white);
-        }
-        
-        .form-event-badge {
-            display: inline-block;
-            background: var(--black);
-            color: var(--white);
-            padding: 0.5rem 1.5rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--box-shadow);
-        }
-        
-        .form-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--black);
-            margin-bottom: 0.75rem;
-            line-height: 1.3;
-        }
-        
-        .event-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--gray-800);
-            margin-bottom: 1rem;
-            line-height: 1.4;
-        }
-        
-        .event-details {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2rem;
-            color: var(--gray-600);
-            font-size: 0.95rem;
-            flex-wrap: wrap;
-        }
-        
-        .event-details i {
-            color: var(--black);
-            margin-right: 0.5rem;
-        }
-        
-        /* Form Sections - Consistent Container */
+        /* Form Sections */
         .form-content {
-            padding: 2.5rem;
+            padding: 1.5rem;
         }
         
         .form-section {
-            margin-bottom: 2.5rem;
-            padding: 2.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
             border: 1px solid var(--gray-200);
             border-radius: var(--border-radius);
             background: var(--white);
@@ -152,27 +202,27 @@
             box-shadow: var(--box-shadow-hover);
         }
         
-        /* Section Header - Consistent */
+        /* Section Header */
         .section-header {
             display: flex;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
             border-bottom: 1px solid var(--gray-200);
         }
         
         .section-icon {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             background: var(--black);
             color: var(--white);
             border-radius: var(--border-radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 1rem;
+            margin-right: 0.75rem;
             flex-shrink: 0;
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             transition: transform var(--transition-speed) var(--transition-timing);
         }
         
@@ -181,7 +231,7 @@
         }
         
         .section-title {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: var(--black);
             margin-bottom: 0.25rem;
@@ -190,19 +240,19 @@
         
         .section-subtitle {
             color: var(--gray-600);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             margin-bottom: 0;
             line-height: 1.4;
         }
         
-        /* Form Grid - Improved for Desktop */
+        /* Form Grid */
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
         
-        /* Field Group - Consistent Styling */
+        /* Field Group */
         .field-group {
             margin-bottom: 0;
         }
@@ -211,7 +261,7 @@
             display: block;
             font-weight: 600;
             color: var(--gray-800);
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             font-size: 0.95rem;
             line-height: 1.4;
         }
@@ -221,23 +271,18 @@
             color: #dc3545;
         }
         
-        /* Form Controls - Consistent Styling */
+        /* Form Controls */
         .form-control, .form-select {
             width: 100%;
-            padding: 0.875rem 1rem;
+            padding: 0.75rem;
             border: 2px solid var(--gray-300);
             border-radius: var(--border-radius-sm);
-            font-size: 1rem;
+            font-size: 16px;
             background: var(--white);
-            transition: all var(--transition-speed) var(--transition-timing);
             color: var(--gray-900);
             line-height: 1.5;
             font-family: inherit;
-        }
-        
-        .form-control::placeholder, .form-select::placeholder {
-            color: var(--gray-400);
-            opacity: 1;
+            transition: all var(--transition-speed) var(--transition-timing);
         }
         
         .form-control:hover, .form-select:hover {
@@ -251,17 +296,17 @@
         }
         
         textarea.form-control {
-            min-height: 120px;
+            min-height: 100px;
             resize: vertical;
             line-height: 1.6;
         }
         
-        /* Programme Selection Grid - Fixed Desktop Layout */
+        /* Programme Selection Grid */
         .programme-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-top: 1rem;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
         }
         
         .programme-option {
@@ -277,21 +322,18 @@
         
         .programme-label {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 1.5rem 1rem;
+            justify-content: flex-start;
+            padding: 1rem;
             background: var(--white);
             border: 2px solid var(--gray-300);
             border-radius: var(--border-radius-sm);
             cursor: pointer;
-            transition: all var(--transition-speed) var(--transition-timing);
             font-weight: 500;
             color: var(--gray-800);
-            text-align: center;
-            height: 100%;
-            min-height: 100px;
+            text-align: left;
             position: relative;
+            transition: all var(--transition-speed) var(--transition-timing);
         }
         
         .programme-label:hover {
@@ -310,43 +352,40 @@
         .programme-option input[type="radio"]:checked + .programme-label::after {
             content: '✓';
             position: absolute;
-            top: 50%;
             right: 1rem;
-            transform: translateY(-50%);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             line-height: 1;
         }
         
         .programme-label i {
-            font-size: 1.75rem;
-            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
             color: inherit;
+            flex-shrink: 0;
         }
         
         .programme-label span {
-            font-size: 1rem;
+            font-size: 0.95rem;
             line-height: 1.3;
-            max-width: 100%;
-            word-break: break-word;
         }
         
-        /* Programme Interest - Simplified Version */
+        /* Programme Interest */
         .interest-simple-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
         
         .interest-simple-box {
             background: var(--white);
             border: 1px solid var(--gray-200);
             border-radius: var(--border-radius);
-            padding: 1.5rem;
-            transition: all var(--transition-speed) var(--transition-timing);
+            padding: 1.25rem;
             box-shadow: var(--box-shadow);
             display: flex;
             flex-direction: column;
+            transition: all var(--transition-speed) var(--transition-timing);
         }
         
         .interest-simple-box:hover {
@@ -357,13 +396,13 @@
         .interest-simple-header {
             display: flex;
             align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
             border-bottom: 1px solid var(--gray-200);
         }
         
         .interest-simple-title {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: var(--black);
             margin: 0;
@@ -375,28 +414,23 @@
         
         .interest-simple-title i {
             color: var(--gray-600);
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
         
         .interest-simple-textarea {
             width: 100%;
-            min-height: 100px;
+            min-height: 80px;
             border: 2px solid var(--gray-300);
             border-radius: var(--border-radius-sm);
             padding: 0.75rem;
             font-family: inherit;
             font-size: 0.95rem;
             resize: vertical;
-            transition: all var(--transition-speed) var(--transition-timing);
             background: var(--white);
             color: var(--gray-900);
             line-height: 1.5;
             flex-grow: 1;
-        }
-        
-        .interest-simple-textarea::placeholder {
-            color: var(--gray-400);
-            font-style: italic;
+            transition: all var(--transition-speed) var(--transition-timing);
         }
         
         .interest-simple-textarea:hover {
@@ -413,8 +447,8 @@
             display: inline-block;
             background: var(--gray-200);
             color: var(--gray-600);
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
             border-radius: 4px;
             font-weight: 500;
             text-transform: uppercase;
@@ -433,20 +467,19 @@
             flex: 1;
         }
         
-        /* Optional Note - Consistent Styling */
         .optional-note {
             display: block;
             color: var(--gray-500);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             margin-top: 0.5rem;
             font-style: italic;
             line-height: 1.4;
         }
         
-        /* Form Actions - Consistent with Other Sections */
+        /* Form Actions */
         .form-actions {
-            margin-top: 3rem;
-            padding: 2.5rem;
+            margin-top: 2rem;
+            padding: 1.5rem;
             border-radius: var(--border-radius);
             background: var(--white);
             border: 1px solid var(--gray-200);
@@ -459,17 +492,19 @@
             color: var(--white);
             border: none;
             border-radius: var(--border-radius-sm);
-            padding: 1rem 3rem;
-            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            font-size: 1rem;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
             cursor: pointer;
-            transition: all var(--transition-speed) var(--transition-timing);
             box-shadow: var(--box-shadow);
             line-height: 1.5;
             font-family: inherit;
+            width: 100%;
+            justify-content: center;
+            transition: all var(--transition-speed) var(--transition-timing);
         }
         
         .btn-submit:hover {
@@ -483,43 +518,43 @@
         
         .btn-submit:focus {
             outline: none;
-            box-shadow: var(--box-shadow-focus), var(--box-shadow);
+            box-shadow: var(--box-shadow-focus);
         }
         
-        /* Error Alert - Consistent Styling */
+        /* Error Alert */
         .alert-danger {
             background: var(--white);
             border: 1px solid var(--gray-200);
             border-left: 4px solid #dc3545;
             border-radius: var(--border-radius);
-            padding: 1.25rem 1.5rem;
-            margin: 0 2.5rem 2rem;
+            padding: 1rem;
+            margin: 0 1rem 1rem;
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
             box-shadow: var(--box-shadow);
         }
         
         .alert-danger i {
             color: #dc3545;
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             flex-shrink: 0;
         }
         
         .alert-danger span {
             color: var(--gray-800);
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             line-height: 1.4;
         }
         
-        /* Brand Footer - Consistent Styling */
+        /* Brand Footer */
         .brand-footer {
-            margin-top: 3rem;
+            margin-top: 2rem;
             text-align: center;
             color: var(--gray-500);
-            font-size: 0.875rem;
-            padding: 2rem;
+            font-size: 0.8rem;
+            padding: 1rem;
             border-top: 1px solid var(--gray-200);
             background: var(--gray-50);
             line-height: 1.5;
@@ -529,7 +564,7 @@
             margin: 0;
         }
         
-        /* Loading State - Consistent */
+        /* Loading State */
         .btn-submit.loading {
             position: relative;
             color: transparent;
@@ -554,214 +589,324 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Debug Styles */
-        .debug-info {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 12px;
-            z-index: 10000;
-            max-width: 300px;
-            display: none;
+        /* City-State Search Suggestions */
+        .city-search-container {
+            position: relative;
         }
         
-        /* Responsive Design */
-        @media (min-width: 1200px) {
-            .form-grid {
-                grid-template-columns: repeat(3, 1fr);
+        .city-search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--box-shadow-hover);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 2px;
+        }
+        
+        .city-search-suggestions.show {
+            display: block;
+        }
+        
+        .city-suggestion {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--gray-100);
+            transition: all var(--transition-speed) var(--transition-timing);
+        }
+        
+        .city-suggestion:last-child {
+            border-bottom: none;
+        }
+        
+        .city-suggestion:hover {
+            background-color: var(--gray-100);
+        }
+        
+        .city-suggestion.active {
+            background-color: var(--gray-200);
+            font-weight: 600;
+        }
+        
+        .city-suggestion .city-name {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+        
+        .city-suggestion .state-name {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            margin-left: 0.5rem;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            pointer-events: none;
+        }
+        
+        /* Responsive Design - Tablet */
+        @media (min-width: 768px) {
+            .mobile-header {
+                display: none;
             }
             
-            .interest-simple-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            
-            .programme-grid {
-                grid-template-columns: repeat(4, 1fr);
+            .desktop-header {
+                display: flex;
+                align-items: center;
+                padding: 1.5rem 2rem;
+                border-bottom: 1px solid var(--gray-200);
+                background: var(--white);
                 gap: 1.5rem;
             }
             
-            .programme-label {
-                padding: 2rem 1rem;
-                min-height: 120px;
+            .desktop-logos {
+                display: flex;
+                align-items: center;
+                gap: 1.25rem;
+                flex-shrink: 0;
             }
             
-            .programme-label i {
-                font-size: 1.75rem;
-                margin-bottom: 1rem;
+            .desktop-logo {
+                height: 45px;
+                width: auto;
+                object-fit: contain;
             }
             
-            .programme-label span {
-                font-size: 1rem;
-            }
-        }
-        
-        @media (max-width: 1199px) and (min-width: 992px) {
-            .form-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .desktop-logo-divider {
+                height: 35px;
+                width: 1px;
+                background: var(--gray-300);
             }
             
-            .interest-simple-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .desktop-content {
+                flex: 1;
             }
             
-            .programme-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 992px) {
-            .programme-grid {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
+            .desktop-top-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
             }
             
-            .programme-interest-grid,
-            .form-grid {
-                grid-template-columns: 1fr;
+            .desktop-event-badge {
+                background: var(--black);
+                color: var(--white);
+                padding: 0.35rem 1rem;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                box-shadow: var(--box-shadow);
             }
             
-            .interest-simple-grid {
-                grid-template-columns: 1fr;
+            .desktop-event-details {
+                display: flex;
+                align-items: center;
+                gap: 1.25rem;
+                color: var(--gray-600);
+                font-size: 0.85rem;
             }
             
-            .form-content,
-            .form-section,
-            .guardian-section,
-            .form-actions {
-                padding: 2rem;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .application-container {
-                padding: 1rem;
+            .desktop-event-details i {
+                color: var(--black);
+                margin-right: 0.35rem;
             }
             
-            .form-card {
-                max-width: 100%;
-                border-radius: 10px;
+            .desktop-title {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--black);
+                margin: 0 0 0.25rem 0;
+                line-height: 1.3;
             }
             
-            .form-header {
-                padding: 2rem 1.5rem 1.5rem;
-            }
-            
-            .form-title {
-                font-size: 1.75rem;
-            }
-            
-            .event-title {
+            .desktop-event-name {
                 font-size: 1.1rem;
+                font-weight: 600;
+                color: var(--gray-800);
+                margin: 0;
+                line-height: 1.4;
             }
             
-            .event-details {
-                flex-direction: column;
-                gap: 0.75rem;
-                align-items: flex-start;
-                justify-content: flex-start;
-            }
-            
-            .form-content,
-            .form-section,
-            .guardian-section,
-            .form-actions {
+            .application-container {
                 padding: 1.5rem;
             }
             
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-                margin-bottom: 1.5rem;
-            }
-            
-            .section-icon {
-                margin-right: 0;
-                margin-bottom: 1rem;
-            }
-            
-            .btn-submit {
-                width: 100%;
-                padding: 1rem 2rem;
-                justify-content: center;
-            }
-            
-            .alert-danger {
-                margin: 0 1.5rem 1.5rem;
+            .form-content {
+                padding: 2rem;
             }
             
             .form-section {
                 margin-bottom: 2rem;
+                padding: 2rem;
             }
             
-            .programme-label {
-                padding: 1.25rem 1rem;
-                flex-direction: row;
-                justify-content: flex-start;
-                text-align: left;
-                min-height: auto;
-                padding-right: 2.5rem;
+            .section-header {
+                margin-bottom: 1.5rem;
             }
             
-            .programme-label i {
-                font-size: 1.25rem;
-                margin-bottom: 0;
-                margin-right: 1rem;
-                flex-shrink: 0;
-            }
-            
-            .programme-label span {
-                font-size: 0.95rem;
-                text-align: left;
-            }
-            
-            .programme-option input[type="radio"]:checked + .programme-label::after {
-                top: 50%;
-                right: 1rem;
-                transform: translateY(-50%);
-                font-size: 1.1rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .form-content,
-            .form-section,
-            .guardian-section,
-            .form-actions {
-                padding: 1.25rem;
-            }
-            
-            .form-title {
-                font-size: 1.5rem;
+            .section-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2rem;
             }
             
             .section-title {
-                font-size: 1.1rem;
+                font-size: 1.2rem;
             }
             
-            .form-control, 
-            .form-select,
-            .interest-simple-textarea {
-                padding: 0.75rem;
-                font-size: 16px; /* Prevent iOS zoom */
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.25rem;
+            }
+            
+            .programme-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
             }
             
             .programme-label {
-                padding: 1rem 0.75rem;
-                padding-right: 2.25rem;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 1.25rem 0.75rem;
+                min-height: 100px;
             }
             
             .programme-label i {
-                font-size: 1.1rem;
-                margin-right: 0.75rem;
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+                font-size: 1.5rem;
             }
             
-            .programme-label span {
-                font-size: 0.9rem;
+            .interest-simple-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
+            
+            .btn-submit {
+                width: auto;
+                padding: 1rem 2.5rem;
+            }
+        }
+        
+        /* Responsive Design - Desktop */
+        @media (min-width: 992px) {
+            .desktop-header {
+                padding: 1.5rem 2.5rem;
+                gap: 2rem;
+            }
+            
+            .desktop-logos {
+                gap: 1.5rem;
+            }
+            
+            .desktop-logo {
+                height: 50px;
+            }
+            
+            .desktop-logo-divider {
+                height: 40px;
+            }
+            
+            .form-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.5rem;
+            }
+            
+            .programme-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .programme-label {
+                padding: 1.5rem 1rem;
+                min-height: 110px;
+            }
+            
+            .programme-label i {
+                font-size: 1.75rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .interest-simple-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        /* Extra Small Phones */
+        @media (max-width: 360px) {
+            .mobile-logo {
+                height: 45px;
+            }
+            
+            .mobile-logo-divider {
+                height: 30px;
+            }
+            
+            .mobile-title {
+                font-size: 1.35rem;
+            }
+            
+            .mobile-event-name {
+                font-size: 1rem;
+            }
+            
+            .mobile-event-details {
+                padding: 0.6rem;
+            }
+            
+            .mobile-detail-item {
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* Validation error styling */
+        .is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+        }
+        
+        .is-invalid:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
+        }
+        
+        .programme-label.is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+            background-color: rgba(220, 53, 69, 0.05) !important;
+        }
+        
+        .interest-simple-textarea.is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+            background-color: rgba(220, 53, 69, 0.05) !important;
+        }
+        
+        .validation-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: block;
+        }
+        
+        .textarea-error {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(220, 53, 69, 0.05);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            border-radius: 4px;
+            color: #dc3545;
+            font-size: 0.875rem;
         }
         
         /* Print Styles */
@@ -785,6 +930,11 @@
             .optional-tag {
                 background: none;
                 border: 1px solid var(--gray-300);
+            }
+            
+            .mobile-header,
+            .desktop-header {
+                page-break-inside: avoid;
             }
         }
         
@@ -819,31 +969,76 @@
             .programme-label:hover {
                 transform: none;
             }
+            
+            .mobile-logo:hover,
+            .desktop-logo:hover {
+                transform: none;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Debug Info Panel -->
-    <div class="debug-info" id="debugInfo"></div>
-
     <div class="application-container">
         <div class="form-card">
-            <!-- Form Header -->
-            <div class="form-header">
-                <div class="form-event-badge">
-                    {{ event.date|date:"F d, Y" }}
+            <!-- Mobile Header -->
+            <div class="mobile-header">
+                <div class="mobile-header-top">
+                    <div class="mobile-event-badge">
+                        Event
+                    </div>
+                    <div class="mobile-event-date">
+                        {{ event.date|date:"F d, Y" }}
+                    </div>
                 </div>
-                <h1 class="form-title">Programme Application Form</h1>
-                <h3 class="event-title">{{ event.title }}</h3>
-                <div class="event-details">
-                    <span>
+                
+                <div class="mobile-logos">
+                    <img src="/static/images/SES_LOGO_RENEW.png" alt="" class="mobile-logo">
+                    <div class="mobile-logo-divider"></div>
+                    <img src="/static/images/upkb.png" alt="" class="mobile-logo">
+                </div>
+                
+                <h1 class="mobile-title">Programme Application Form</h1>
+                <h3 class="mobile-event-name">{{ event.title }}</h3>
+                
+                <div class="mobile-event-details">
+                    <div class="mobile-detail-item">
                         <i class="bi bi-geo-alt"></i>
-                        {{ event.venue }}
-                    </span>
-                    <span>
+                        <span>{{ event.venue }}</span>
+                    </div>
+                    <div class="mobile-detail-item">
                         <i class="bi bi-clock"></i>
-                        {{ event.start_time|time:"g:i A" }} - {{ event.end_time|time:"g:i A" }}
-                    </span>
+                        <span>{{ event.start_time|time:"g:i A" }} - {{ event.end_time|time:"g:i A" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Desktop Header -->
+            <div class="desktop-header">
+                <div class="desktop-logos">
+                    <img src="/static/images/SES_LOGO_RENEW.png" alt="" class="desktop-logo">
+                    <div class="desktop-logo-divider"></div>
+                    <img src="/static/images/upkb.png" alt="" class="desktop-logo">
+                </div>
+                
+                <div class="desktop-content">
+                    <div class="desktop-top-row">
+                        <div class="desktop-event-badge">
+                            {{ event.date|date:"F d, Y" }}
+                        </div>
+                        <div class="desktop-event-details">
+                            <span>
+                                <i class="bi bi-geo-alt"></i>
+                                {{ event.venue }}
+                            </span>
+                            <span>
+                                <i class="bi bi-clock"></i>
+                                {{ event.start_time|time:"g:i A" }} - {{ event.end_time|time:"g:i A" }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <h1 class="desktop-title">Programme Application Form</h1>
+                    <h3 class="desktop-event-name">{{ event.title }}</h3>
                 </div>
             </div>
 
@@ -872,38 +1067,43 @@
 
                     <div class="form-grid">
                         <div class="field-group">
-                            <label class="form-label required">Registration Officer</label>
+                            <label class="form-label required">Referral Number</label>
                             <input type="text" class="form-control" 
-                                   placeholder="Name of registration officer" 
-                                   name="registration_officer" required>
+                                placeholder="Referral number" 
+                                name="registration_officer" required
+                                value="{% if form_data.registration_officer %}{{ form_data.registration_officer }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">Applied Programme</label>
                             <div class="programme-grid">
                                 <div class="programme-option">
-                                    <input type="radio" id="programme_diploma" name="applied_programme" value="Diploma" required>
+                                    <input type="radio" id="programme_diploma" name="applied_programme" value="Diploma" required
+                                           {% if form_data.applied_programme == 'Diploma' %}checked{% endif %}>
                                     <label for="programme_diploma" class="programme-label">
                                         <i class="bi bi-mortarboard"></i>
                                         <span>Diploma</span>
                                     </label>
                                 </div>
                                 <div class="programme-option">
-                                    <input type="radio" id="programme_pra_diploma" name="applied_programme" value="Pra-Diploma">
+                                    <input type="radio" id="programme_pra_diploma" name="applied_programme" value="Pra-Diploma"
+                                           {% if form_data.applied_programme == 'Pra-Diploma' %}checked{% endif %}>
                                     <label for="programme_pra_diploma" class="programme-label">
                                         <i class="bi bi-book"></i>
                                         <span>Pra-Diploma</span>
                                     </label>
                                 </div>
                                 <div class="programme-option">
-                                    <input type="radio" id="programme_tvet" name="applied_programme" value="TVET">
+                                    <input type="radio" id="programme_tvet" name="applied_programme" value="TVET"
+                                           {% if form_data.applied_programme == 'TVET' %}checked{% endif %}>
                                     <label for="programme_tvet" class="programme-label">
                                         <i class="bi bi-tools"></i>
                                         <span>TVET</span>
                                     </label>
                                 </div>
                                 <div class="programme-option">
-                                    <input type="radio" id="programme_smart_tahfiz" name="applied_programme" value="Smart Tahfiz">
+                                    <input type="radio" id="programme_smart_tahfiz" name="applied_programme" value="Smart Tahfiz"
+                                           {% if form_data.applied_programme == 'Smart Tahfiz' %}checked{% endif %}>
                                     <label for="programme_smart_tahfiz" class="programme-label">
                                         <i class="bi bi-moon-stars"></i>
                                         <span>Smart Tahfiz</span>
@@ -916,7 +1116,8 @@
                             <label class="form-label required">Full Name (as per IC)</label>
                             <input type="text" class="form-control" 
                                    placeholder="Enter full name as per IC" 
-                                   name="full_name" required>
+                                   name="full_name" required
+                                   value="{% if form_data.full_name %}{{ form_data.full_name }}{% endif %}">
                         </div>
 
                         <div class="field-group">
@@ -926,7 +1127,7 @@
                                        placeholder="e.g., 12" 
                                        name="spm_total_credit" 
                                        min="0" max="100" 
-                                       value="0">
+                                       value="{% if form_data.spm_total_credit %}{{ form_data.spm_total_credit }}{% else %}0{% endif %}">
                             </div>
                         </div>
                     </div>
@@ -949,16 +1150,17 @@
                             <label class="form-label required">IC / Passport No.</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 900101-01-1234" 
-                                   name="ic_no" required>
+                                   name="ic_no" required
+                                   value="{% if form_data.ic_no %}{{ form_data.ic_no }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">Marriage Status</label>
                             <select class="form-select" name="marriage_status" required>
                                 <option value="">-- Select Status --</option>
-                                <option value="Single">Single</option>
-                                <option value="Married">Married</option>
-                                <option value="Divorced">Divorced</option>
+                                <option value="Single" {% if form_data.marriage_status == 'Single' %}selected{% endif %}>Single</option>
+                                <option value="Married" {% if form_data.marriage_status == 'Married' %}selected{% endif %}>Married</option>
+                                <option value="Divorced" {% if form_data.marriage_status == 'Divorced' %}selected{% endif %}>Divorced</option>
                             </select>
                         </div>
 
@@ -966,14 +1168,16 @@
                             <label class="form-label required">Email Address</label>
                             <input type="email" class="form-control" 
                                    placeholder="email@example.com" 
-                                   name="email" required>
+                                   name="email" required
+                                   value="{% if form_data.email %}{{ form_data.email }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">Phone Number</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 012-345 6789" 
-                                   name="phone_no" required>
+                                   name="phone_no" required
+                                   value="{% if form_data.phone_no %}{{ form_data.phone_no }}{% endif %}">
                         </div>
                     </div>
                 </div>
@@ -995,28 +1199,55 @@
                             <label class="form-label required">Address</label>
                             <input type="text" class="form-control" 
                                    placeholder="Full address including street, house number, etc." 
-                                   name="address1" required>
+                                   name="address1" required
+                                   value="{% if form_data.address1 %}{{ form_data.address1 }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">City</label>
-                            <input type="text" class="form-control" 
-                                   placeholder="e.g. Kuala Lumpur" 
-                                   name="city" required>
+                            <div class="city-search-container">
+                                <input type="text" 
+                                       class="form-control city-search-input" 
+                                       placeholder="Start typing city name..." 
+                                       name="city" 
+                                       id="cityInput"
+                                       required
+                                       autocomplete="off"
+                                       value="{% if form_data.city %}{{ form_data.city }}{% endif %}">
+                                <i class="bi bi-search search-icon"></i>
+                                <div class="city-search-suggestions" id="citySuggestions"></div>
+                            </div>
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">Postcode</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 50000" 
-                                   name="postcode" required>
+                                   name="postcode" required
+                                   value="{% if form_data.postcode %}{{ form_data.postcode }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">State</label>
-                            <input type="text" class="form-control" 
-                                   placeholder="e.g. Wilayah Persekutuan" 
-                                   name="state" required>
+                            <select class="form-select" name="state" id="stateSelect" required>
+                                <option value="">-- Select State --</option>
+                                <option value="Johor" {% if form_data.state == 'Johor' %}selected{% endif %}>Johor</option>
+                                <option value="Kedah" {% if form_data.state == 'Kedah' %}selected{% endif %}>Kedah</option>
+                                <option value="Kelantan" {% if form_data.state == 'Kelantan' %}selected{% endif %}>Kelantan</option>
+                                <option value="Melaka" {% if form_data.state == 'Melaka' %}selected{% endif %}>Melaka</option>
+                                <option value="Negeri Sembilan" {% if form_data.state == 'Negeri Sembilan' %}selected{% endif %}>Negeri Sembilan</option>
+                                <option value="Pahang" {% if form_data.state == 'Pahang' %}selected{% endif %}>Pahang</option>
+                                <option value="Perak" {% if form_data.state == 'Perak' %}selected{% endif %}>Perak</option>
+                                <option value="Perlis" {% if form_data.state == 'Perlis' %}selected{% endif %}>Perlis</option>
+                                <option value="Pulau Pinang" {% if form_data.state == 'Pulau Pinang' %}selected{% endif %}>Pulau Pinang</option>
+                                <option value="Sabah" {% if form_data.state == 'Sabah' %}selected{% endif %}>Sabah</option>
+                                <option value="Sarawak" {% if form_data.state == 'Sarawak' %}selected{% endif %}>Sarawak</option>
+                                <option value="Selangor" {% if form_data.state == 'Selangor' %}selected{% endif %}>Selangor</option>
+                                <option value="Terengganu" {% if form_data.state == 'Terengganu' %}selected{% endif %}>Terengganu</option>
+                                <option value="Wilayah Persekutuan Kuala Lumpur" {% if form_data.state == 'Wilayah Persekutuan Kuala Lumpur' %}selected{% endif %}>Wilayah Persekutuan Kuala Lumpur</option>
+                                <option value="Wilayah Persekutuan Labuan" {% if form_data.state == 'Wilayah Persekutuan Labuan' %}selected{% endif %}>Wilayah Persekutuan Labuan</option>
+                                <option value="Wilayah Persekutuan Putrajaya" {% if form_data.state == 'Wilayah Persekutuan Putrajaya' %}selected{% endif %}>Wilayah Persekutuan Putrajaya</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -1038,36 +1269,40 @@
                             <label class="form-label required">Full Name</label>
                             <input type="text" class="form-control" 
                                    placeholder="Father's full name" 
-                                   name="father_name" required>
+                                   name="father_name" required
+                                   value="{% if form_data.father_name %}{{ form_data.father_name }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">IC Number</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 700101-01-1234" 
-                                   name="father_ic" required>
+                                   name="father_ic" required
+                                   value="{% if form_data.father_ic %}{{ form_data.father_ic }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">Phone Number</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 012-345 6789" 
-                                   name="father_phone" required>
+                                   name="father_phone" required
+                                   value="{% if form_data.father_phone %}{{ form_data.father_phone }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label">Occupation</label>
+                            <label class="form-label required">Occupation</label>
                             <input type="text" class="form-control" 
                                    placeholder="Current occupation" 
-                                   name="father_occupation">
-                            <span class="optional-note">Optional</span>
+                                   name="father_occupation" required
+                                   value="{% if form_data.father_occupation %}{{ form_data.father_occupation }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label">Estimated Monthly Income (RM)</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 5000.00" 
-                                   name="father_income">
+                                   name="father_income"
+                                   value="{% if form_data.father_income %}{{ form_data.father_income }}{% endif %}">
                             <span class="optional-note">Optional</span>
                         </div>
 
@@ -1075,7 +1310,8 @@
                             <label class="form-label">Number of Dependants</label>
                             <input type="number" class="form-control" 
                                    placeholder="0" min="0" 
-                                   name="father_dependants" value="0">
+                                   name="father_dependants" 
+                                   value="{% if form_data.father_dependants %}{{ form_data.father_dependants }}{% else %}0{% endif %}">
                             <span class="optional-note">Optional</span>
                         </div>
                     </div>
@@ -1098,36 +1334,40 @@
                             <label class="form-label required">Full Name</label>
                             <input type="text" class="form-control" 
                                    placeholder="Mother's full name" 
-                                   name="mother_name" required>
+                                   name="mother_name" required
+                                   value="{% if form_data.mother_name %}{{ form_data.mother_name }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">IC Number</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 700101-02-1234" 
-                                   name="mother_ic" required>
+                                   name="mother_ic" required
+                                   value="{% if form_data.mother_ic %}{{ form_data.mother_ic }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label required">Phone Number</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 012-345 6789" 
-                                   name="mother_phone" required>
+                                   name="mother_phone" required
+                                   value="{% if form_data.mother_phone %}{{ form_data.mother_phone }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label">Occupation</label>
+                            <label class="form-label required">Occupation</label>
                             <input type="text" class="form-control" 
                                    placeholder="Current occupation" 
-                                   name="mother_occupation">
-                            <span class="optional-note">Optional</span>
+                                   name="mother_occupation" required
+                                   value="{% if form_data.mother_occupation %}{{ form_data.mother_occupation }}{% endif %}">
                         </div>
 
                         <div class="field-group">
                             <label class="form-label">Estimated Monthly Income (RM)</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 4000.00" 
-                                   name="mother_income">
+                                   name="mother_income"
+                                   value="{% if form_data.mother_income %}{{ form_data.mother_income }}{% endif %}">
                             <span class="optional-note">Optional</span>
                         </div>
 
@@ -1135,13 +1375,14 @@
                             <label class="form-label">Number of Dependants</label>
                             <input type="number" class="form-control" 
                                    placeholder="0" min="0" 
-                                   name="mother_dependants" value="0">
+                                   name="mother_dependants" 
+                                   value="{% if form_data.mother_dependants %}{{ form_data.mother_dependants }}{% else %}0{% endif %}">
                             <span class="optional-note">Optional</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 6: Programme Interest - Simplified -->
+                <!-- Section 6: Programme Interest - All Optional -->
                 <div class="form-section">
                     <div class="section-header">
                         <div class="section-icon">
@@ -1154,52 +1395,46 @@
                     </div>
 
                     <div class="interest-simple-grid">
-                        <!-- First Choice -->
                         <div class="interest-simple-box">
                             <div class="interest-simple-header">
                                 <h4 class="interest-simple-title">
                                     <i class="bi bi-1-circle"></i>
                                     First Choice
                                 </h4>
-                                <span class="optional-tag">Optional</span>
                             </div>
                             <textarea 
                                 class="interest-simple-textarea"
-                                placeholder="Enter your first choice programme"
+                                placeholder="Enter your first choice programme (optional)"
                                 name="interest_choice1"
-                                rows="4"></textarea>
+                                rows="3">{% if form_data.interest_choice1 %}{{ form_data.interest_choice1 }}{% endif %}</textarea>
                         </div>
 
-                        <!-- Second Choice -->
                         <div class="interest-simple-box">
                             <div class="interest-simple-header">
                                 <h4 class="interest-simple-title">
                                     <i class="bi bi-2-circle"></i>
                                     Second Choice
                                 </h4>
-                                <span class="optional-tag">Optional</span>
                             </div>
                             <textarea 
                                 class="interest-simple-textarea"
-                                placeholder="Enter your second choice programme"
+                                placeholder="Enter your second choice programme (optional)"
                                 name="interest_choice2"
-                                rows="4"></textarea>
+                                rows="3">{% if form_data.interest_choice2 %}{{ form_data.interest_choice2 }}{% endif %}</textarea>
                         </div>
 
-                        <!-- Third Choice -->
                         <div class="interest-simple-box">
                             <div class="interest-simple-header">
                                 <h4 class="interest-simple-title">
                                     <i class="bi bi-3-circle"></i>
                                     Third Choice
                                 </h4>
-                                <span class="optional-tag">Optional</span>
                             </div>
                             <textarea 
                                 class="interest-simple-textarea"
-                                placeholder="Enter your third choice programme"
+                                placeholder="Enter your third choice programme (optional)"
                                 name="interest_choice3"
-                                rows="4"></textarea>
+                                rows="3">{% if form_data.interest_choice3 %}{{ form_data.interest_choice3 }}{% endif %}</textarea>
                         </div>
                     </div>
                 </div>
@@ -1210,7 +1445,7 @@
                         <i class="bi bi-check-circle"></i>
                         Submit Application & Mark Attendance
                     </button>
-                    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--gray-600);">
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--gray-600);">
                         <i class="bi bi-info-circle"></i>
                         Please check all fields before submitting. You cannot edit after submission.
                     </p>
@@ -1228,38 +1463,271 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Malaysia Cities and States Data
+        const malaysiaCities = [
+            { city: "Johor Bahru", state: "Johor" },
+            { city: "Batu Pahat", state: "Johor" },
+            { city: "Muar", state: "Johor" },
+            { city: "Segamat", state: "Johor" },
+            { city: "Kluang", state: "Johor" },
+            { city: "Pontian", state: "Johor" },
+            { city: "Kota Tinggi", state: "Johor" },
+            { city: "Mersing", state: "Johor" },
+            { city: "Alor Setar", state: "Kedah" },
+            { city: "Sungai Petani", state: "Kedah" },
+            { city: "Kulim", state: "Kedah" },
+            { city: "Langkawi", state: "Kedah" },
+            { city: "Jitra", state: "Kedah" },
+            { city: "Pokok Sena", state: "Kedah" },
+            { city: "Kota Bharu", state: "Kelantan" },
+            { city: "Pasir Mas", state: "Kelantan" },
+            { city: "Tumpat", state: "Kelantan" },
+            { city: "Tanah Merah", state: "Kelantan" },
+            { city: "Gua Musang", state: "Kelantan" },
+            { city: "Melaka", state: "Melaka" },
+            { city: "Alor Gajah", state: "Melaka" },
+            { city: "Jasin", state: "Melaka" },
+            { city: "Bandaraya Melaka", state: "Melaka" },
+            { city: "Seremban", state: "Negeri Sembilan" },
+            { city: "Port Dickson", state: "Negeri Sembilan" },
+            { city: "Nilai", state: "Negeri Sembilan" },
+            { city: "Rembau", state: "Negeri Sembilan" },
+            { city: "Jelebu", state: "Negeri Sembilan" },
+            { city: "Kuantan", state: "Pahang" },
+            { city: "Temerloh", state: "Pahang" },
+            { city: "Bentong", state: "Pahang" },
+            { city: "Raub", state: "Pahang" },
+            { city: "Jerantut", state: "Pahang" },
+            { city: "Cameron Highlands", state: "Pahang" },
+            { city: "Ipoh", state: "Perak" },
+            { city: "Taiping", state: "Perak" },
+            { city: "Teluk Intan", state: "Perak" },
+            { city: "Sungai Siput", state: "Perak" },
+            { city: "Kuala Kangsar", state: "Perak" },
+            { city: "Lumut", state: "Perak" },
+            { city: "Kangar", state: "Perlis" },
+            { city: "Arau", state: "Perlis" },
+            { city: "Georgetown", state: "Pulau Pinang" },
+            { city: "Butterworth", state: "Pulau Pinang" },
+            { city: "Bukit Mertajam", state: "Pulau Pinang" },
+            { city: "Bayan Baru", state: "Pulau Pinang" },
+            { city: "Bayan Lepas", state: "Pulau Pinang" },
+            { city: "Kota Kinabalu", state: "Sabah" },
+            { city: "Sandakan", state: "Sabah" },
+            { city: "Tawau", state: "Sabah" },
+            { city: "Lahad Datu", state: "Sabah" },
+            { city: "Keningau", state: "Sabah" },
+            { city: "Semporna", state: "Sabah" },
+            { city: "Kuching", state: "Sarawak" },
+            { city: "Miri", state: "Sarawak" },
+            { city: "Sibu", state: "Sarawak" },
+            { city: "Bintulu", state: "Sarawak" },
+            { city: "Limbang", state: "Sarawak" },
+            { city: "Sri Aman", state: "Sarawak" },
+            { city: "Shah Alam", state: "Selangor" },
+            { city: "Petaling Jaya", state: "Selangor" },
+            { city: "Subang Jaya", state: "Selangor" },
+            { city: "Klang", state: "Selangor" },
+            { city: "Ampang", state: "Selangor" },
+            { city: "Kajang", state: "Selangor" },
+            { city: "Rawang", state: "Selangor" },
+            { city: "Selayang", state: "Selangor" },
+            { city: "Sungai Buloh", state: "Selangor" },
+            { city: "Puchong", state: "Selangor" },
+            { city: "Kuala Terengganu", state: "Terengganu" },
+            { city: "Kemaman", state: "Terengganu" },
+            { city: "Dungun", state: "Terengganu" },
+            { city: "Besut", state: "Terengganu" },
+            { city: "Marang", state: "Terengganu" },
+            { city: "Kuala Lumpur", state: "Wilayah Persekutuan Kuala Lumpur" },
+            { city: "Labuan", state: "Wilayah Persekutuan Labuan" },
+            { city: "Putrajaya", state: "Wilayah Persekutuan Putrajaya" },
+            { city: "Cheras", state: "Wilayah Persekutuan Kuala Lumpur" },
+            { city: "Kepong", state: "Wilayah Persekutuan Kuala Lumpur" },
+            { city: "Setapak", state: "Wilayah Persekutuan Kuala Lumpur" },
+            { city: "Wangsa Maju", state: "Wilayah Persekutuan Kuala Lumpur" }
+        ];
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize variables
             const form = document.getElementById('dataEntryForm');
             const submitBtn = document.getElementById('submitBtn');
-            const debugInfo = document.getElementById('debugInfo');
+            const cityInput = document.getElementById('cityInput');
+            const stateSelect = document.getElementById('stateSelect');
+            const citySuggestions = document.getElementById('citySuggestions');
             
-            // Show debug panel (for troubleshooting)
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('debug')) {
-                debugInfo.style.display = 'block';
-            }
-            
-            // Function to update debug info
-            function updateDebugInfo(message) {
-                if (debugInfo.style.display === 'block') {
-                    debugInfo.innerHTML = message;
-                    console.log('[DEBUG]', message);
+            // ============================================
+            // CITY-STATE AUTOCOMPLETE FUNCTIONALITY
+            // ============================================
+            if (cityInput && citySuggestions) {
+                let selectedCityIndex = -1;
+                let filteredCities = [];
+                
+                // Filter cities based on search query
+                function filterCities(query) {
+                    if (!query || query.trim() === '') {
+                        return [];
+                    }
+                    
+                    const searchTerm = query.toLowerCase().trim();
+                    return malaysiaCities.filter(cityData => 
+                        cityData.city.toLowerCase().includes(searchTerm) ||
+                        cityData.state.toLowerCase().includes(searchTerm)
+                    );
                 }
-            }
-            
-            // Auto-format IC numbers on blur
-            document.querySelectorAll('input[placeholder*="IC"], input[placeholder*="ic"]').forEach(input => {
-                input.addEventListener('blur', function() {
-                    let value = this.value.replace(/\D/g, '');
-                    if (value.length === 12) {
-                        this.value = value.replace(/(\d{6})(\d{2})(\d{4})/, '$1-$2-$3');
+                
+                // Show city suggestions dropdown
+                function showCitySuggestions(cities) {
+                    citySuggestions.innerHTML = '';
+                    
+                    if (cities.length === 0) {
+                        citySuggestions.classList.remove('show');
+                        return;
+                    }
+                    
+                    cities.slice(0, 10).forEach((cityData, index) => {
+                        const suggestion = document.createElement('div');
+                        suggestion.className = 'city-suggestion';
+                        suggestion.setAttribute('data-index', index);
+                        suggestion.innerHTML = `
+                            <span class="city-name">${cityData.city}</span>
+                            <span class="state-name">(${cityData.state})</span>
+                        `;
+                        
+                        suggestion.addEventListener('click', function() {
+                            selectCity(cityData);
+                        });
+                        
+                        suggestion.addEventListener('mouseover', function() {
+                            clearSelectedSuggestion();
+                            suggestion.classList.add('active');
+                            selectedCityIndex = index;
+                        });
+                        
+                        citySuggestions.appendChild(suggestion);
+                    });
+                    
+                    citySuggestions.classList.add('show');
+                }
+                
+                // Select a city from suggestions
+                function selectCity(cityData) {
+                    cityInput.value = cityData.city;
+                    if (stateSelect) {
+                        stateSelect.value = cityData.state;
+                    }
+                    citySuggestions.classList.remove('show');
+                    selectedCityIndex = -1;
+                    
+                    // Trigger validation
+                    cityInput.dispatchEvent(new Event('input'));
+                    if (stateSelect) stateSelect.dispatchEvent(new Event('change'));
+                }
+                
+                // Clear selected suggestion
+                function clearSelectedSuggestion() {
+                    const allSuggestions = citySuggestions.querySelectorAll('.city-suggestion');
+                    allSuggestions.forEach(suggestion => {
+                        suggestion.classList.remove('active');
+                    });
+                }
+                
+                // City input event handler
+                cityInput.addEventListener('input', function() {
+                    const query = this.value.trim();
+                    
+                    if (query.length >= 2) {
+                        filteredCities = filterCities(query);
+                        showCitySuggestions(filteredCities);
+                    } else {
+                        citySuggestions.classList.remove('show');
+                        filteredCities = [];
+                    }
+                    
+                    // Auto-detect state if exact city match
+                    if (query.length >= 3 && stateSelect) {
+                        const exactMatch = malaysiaCities.find(city => 
+                            city.city.toLowerCase() === query.toLowerCase()
+                        );
+                        
+                        if (exactMatch) {
+                            stateSelect.value = exactMatch.state;
+                            stateSelect.dispatchEvent(new Event('change'));
+                        }
                     }
                 });
-            });
+                
+                // Keyboard navigation for suggestions
+                cityInput.addEventListener('keydown', function(e) {
+                    if (!citySuggestions.classList.contains('show')) return;
+                    
+                    const suggestions = citySuggestions.querySelectorAll('.city-suggestion');
+                    
+                    switch(e.key) {
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            if (selectedCityIndex < suggestions.length - 1) {
+                                selectedCityIndex++;
+                            } else {
+                                selectedCityIndex = 0;
+                            }
+                            updateSelectedSuggestion(suggestions);
+                            break;
+                            
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            if (selectedCityIndex > 0) {
+                                selectedCityIndex--;
+                            } else {
+                                selectedCityIndex = suggestions.length - 1;
+                            }
+                            updateSelectedSuggestion(suggestions);
+                            break;
+                            
+                        case 'Enter':
+                            e.preventDefault();
+                            if (selectedCityIndex >= 0 && selectedCityIndex < suggestions.length) {
+                                const cityData = filteredCities[selectedCityIndex];
+                                selectCity(cityData);
+                            }
+                            break;
+                            
+                        case 'Escape':
+                            citySuggestions.classList.remove('show');
+                            selectedCityIndex = -1;
+                            break;
+                    }
+                });
+                
+                // Update selected suggestion highlighting
+                function updateSelectedSuggestion(suggestions) {
+                    suggestions.forEach((suggestion, index) => {
+                        suggestion.classList.toggle('active', index === selectedCityIndex);
+                        
+                        // Scroll into view if needed
+                        if (index === selectedCityIndex) {
+                            suggestion.scrollIntoView({ block: 'nearest' });
+                        }
+                    });
+                }
+                
+                // Close suggestions when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+                        citySuggestions.classList.remove('show');
+                        selectedCityIndex = -1;
+                    }
+                });
+            }
+            
+            // ============================================
+            // FORM VALIDATION & SUBMISSION
+            // ============================================
             
             // Auto-format phone numbers on blur
-            document.querySelectorAll('input[placeholder*="Phone"], input[placeholder*="phone"]').forEach(input => {
-                input.addEventListener('blur', function() {
+            const phoneFields = form.querySelectorAll('input[name="phone_no"], input[name="father_phone"], input[name="mother_phone"]');
+            phoneFields.forEach(field => {
+                field.addEventListener('blur', function() {
                     let value = this.value.replace(/\D/g, '');
                     if (value.length >= 10 && value.length <= 11) {
                         this.value = value.replace(/(\d{3})(\d{3,4})(\d{4})/, '$1-$2 $3');
@@ -1267,9 +1735,21 @@
                 });
             });
             
-            // Format currency input
-            document.querySelectorAll('input[placeholder*="Income"]').forEach(input => {
-                input.addEventListener('blur', function() {
+            // Auto-format IC numbers on blur
+            const icFields = form.querySelectorAll('input[name="ic_no"], input[name="father_ic"], input[name="mother_ic"]');
+            icFields.forEach(field => {
+                field.addEventListener('blur', function() {
+                    let value = this.value.replace(/\D/g, '');
+                    if (value.length === 12) {
+                        this.value = value.replace(/(\d{6})(\d{2})(\d{4})/, '$1-$2-$3');
+                    }
+                });
+            });
+            
+            // Format currency inputs (income fields)
+            const incomeFields = form.querySelectorAll('input[name="father_income"], input[name="mother_income"]');
+            incomeFields.forEach(field => {
+                field.addEventListener('blur', function() {
                     let value = this.value.replace(/[^0-9.]/g, '');
                     if (value && !isNaN(value)) {
                         const num = parseFloat(value);
@@ -1280,198 +1760,241 @@
                     }
                 });
                 
-                input.addEventListener('focus', function() {
+                field.addEventListener('focus', function() {
                     this.value = this.value.replace(/[^0-9.]/g, '');
                 });
             });
             
-            // Validation error styling
-            const style = document.createElement('style');
-            style.textContent = `
-                .is-invalid {
-                    border-color: #dc3545 !important;
-                    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
-                }
-                
-                .is-invalid:focus {
-                    border-color: #dc3545 !important;
-                    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
-                }
-                
-                .programme-label.is-invalid {
-                    border-color: #dc3545 !important;
-                    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
-                    background-color: rgba(220, 53, 69, 0.05) !important;
-                }
-                
-                .validation-message {
-                    color: #dc3545;
-                    font-size: 0.875rem;
-                    margin-top: 0.5rem;
-                    display: block;
-                }
-            `;
-            document.head.appendChild(style);
-            
-            // Form validation
-            form.addEventListener('submit', function(e) {
-                updateDebugInfo('Form submission started...');
-                
-                // Prevent default to run validation first
-                e.preventDefault();
-                
-                const requiredFields = this.querySelectorAll('[required]');
-                let isValid = true;
-                let firstInvalidField = null;
-                
-                // Clear previous error styles
-                requiredFields.forEach(field => {
-                    field.classList.remove('is-invalid');
-                    const errorMsg = field.nextElementSibling;
-                    if (errorMsg && errorMsg.classList.contains('validation-message')) {
-                        errorMsg.remove();
-                    }
-                });
-                
-                // Clear radio button errors
-                document.querySelectorAll('.programme-label').forEach(label => {
-                    label.classList.remove('is-invalid');
-                });
-                
-                // Validate required fields
-                requiredFields.forEach(field => {
-                    // Special handling for radio buttons
-                    if (field.type === 'radio') {
-                        const radioGroup = this.querySelectorAll(`input[name="${field.name}"]`);
-                        const isChecked = Array.from(radioGroup).some(radio => radio.checked);
-                        if (!isChecked) {
-                            isValid = false;
-                            // Mark all radio buttons in group
-                            radioGroup.forEach(radio => {
-                                const label = document.querySelector(`label[for="${radio.id}"]`);
-                                if (label) {
-                                    label.classList.add('is-invalid');
-                                    // Add error message if not exists
-                                    const container = label.closest('.field-group');
-                                    if (container) {
-                                        let errorMsg = container.querySelector('.validation-message');
-                                        if (!errorMsg) {
-                                            errorMsg = document.createElement('small');
-                                            errorMsg.className = 'validation-message';
-                                            errorMsg.textContent = 'Please select a programme';
-                                            container.appendChild(errorMsg);
-                                        }
-                                    }
-                                }
-                            });
-                            
-                            if (!firstInvalidField) {
-                                firstInvalidField = radioGroup[0];
+            // Format inviting officer phone number if it looks like a phone
+            const invitingOfficerField = form.querySelector('input[name="registration_officer"]');
+            if (invitingOfficerField) {
+                invitingOfficerField.addEventListener('blur', function() {
+                    const value = this.value.trim();
+                    const digitsOnly = value.replace(/\D/g, '');
+                    
+                    // Check if it looks like a phone number (10-11 digits)
+                    if (digitsOnly.length >= 10 && digitsOnly.length <= 11) {
+                        const isMalaysianNumber = /^(01|011|012|013|014|015|016|017|018|019)/.test(digitsOnly);
+                        
+                        if (isMalaysianNumber) {
+                            if (digitsOnly.length === 10) {
+                                this.value = digitsOnly.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2 $3');
+                            } else if (digitsOnly.length === 11) {
+                                this.value = digitsOnly.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2 $3');
                             }
                         }
-                    } else if (!field.value.trim()) {
-                        isValid = false;
-                        field.classList.add('is-invalid');
-                        
-                        // Add error message
-                        const errorMsg = document.createElement('small');
-                        errorMsg.className = 'validation-message';
-                        errorMsg.textContent = 'This field is required';
-                        field.parentNode.appendChild(errorMsg);
-                        
-                        if (!firstInvalidField) {
-                            firstInvalidField = field;
+                    }
+                });
+            }
+            
+            // Real-time validation for required fields
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                // Skip radio buttons for now
+                if (field.type === 'radio') return;
+                
+                field.addEventListener('blur', function() {
+                    validateField(this);
+                });
+                
+                field.addEventListener('input', function() {
+                    // Remove error when user starts typing
+                    if (this.classList.contains('is-invalid')) {
+                        this.classList.remove('is-invalid');
+                        const errorMsg = this.nextElementSibling;
+                        if (errorMsg && errorMsg.classList.contains('validation-message')) {
+                            errorMsg.remove();
                         }
                     }
                 });
+            });
+            
+            // Validate individual field
+            function validateField(field) {
+                const value = field.value.trim();
+                let isValid = true;
+                let errorMessage = '';
                 
-                // Validate email format
-                const emailField = this.querySelector('input[type="email"]');
-                if (emailField && emailField.value.trim()) {
+                // Clear existing error
+                field.classList.remove('is-invalid');
+                const existingError = field.nextElementSibling;
+                if (existingError && existingError.classList.contains('validation-message')) {
+                    existingError.remove();
+                }
+                
+                // Check if field is empty
+                if (field.hasAttribute('required') && !value) {
+                    isValid = false;
+                    errorMessage = 'This field is required';
+                }
+                
+                // Email validation
+                else if (field.type === 'email' && value) {
                     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailPattern.test(emailField.value.trim())) {
+                    if (!emailPattern.test(value)) {
                         isValid = false;
-                        emailField.classList.add('is-invalid');
-                        
-                        // Add error message
-                        let errorMsg = emailField.nextElementSibling;
-                        if (!errorMsg || !errorMsg.classList.contains('validation-message')) {
-                            errorMsg = document.createElement('small');
-                            errorMsg.className = 'validation-message';
-                            errorMsg.textContent = 'Please enter a valid email address';
-                            emailField.parentNode.appendChild(errorMsg);
-                        }
-                        
-                        if (!firstInvalidField) {
-                            firstInvalidField = emailField;
-                        }
+                        errorMessage = 'Please enter a valid email address';
                     }
                 }
                 
-                // Validate SPM Total Credit
-                const spmField = form.querySelector('input[name="spm_total_credit"]');
-                if (spmField && spmField.value.trim() !== '') {
-                    const spmValue = parseInt(spmField.value);
+                // SPM Credit validation
+                else if (field.name === 'spm_total_credit' && value !== '') {
+                    const spmValue = parseInt(value);
                     if (isNaN(spmValue) || spmValue < 0 || spmValue > 100) {
                         isValid = false;
-                        spmField.classList.add('is-invalid');
-                        
-                        // Add error message
-                        let errorMsg = spmField.nextElementSibling;
-                        if (!errorMsg || !errorMsg.classList.contains('validation-message')) {
-                            errorMsg = document.createElement('small');
-                            errorMsg.className = 'validation-message';
-                            errorMsg.textContent = 'Please enter a valid number between 0-100';
-                            spmField.parentNode.appendChild(errorMsg);
-                        }
-                        
-                        if (!firstInvalidField) {
-                            firstInvalidField = spmField;
-                        }
+                        errorMessage = 'Please enter a valid number between 0-100';
                     }
                 }
                 
-                // Validate father/mother dependants
-                const fatherDeps = form.querySelector('input[name="father_dependants"]');
-                const motherDeps = form.querySelector('input[name="mother_dependants"]');
-                
-                if (fatherDeps && fatherDeps.value.trim() !== '') {
-                    const value = parseInt(fatherDeps.value);
-                    if (isNaN(value) || value < 0) {
+                // Dependants validation
+                else if ((field.name === 'father_dependants' || field.name === 'mother_dependants') && value !== '') {
+                    const depsValue = parseInt(value);
+                    if (isNaN(depsValue) || depsValue < 0) {
                         isValid = false;
-                        fatherDeps.classList.add('is-invalid');
-                        
-                        // Add error message
-                        let errorMsg = fatherDeps.nextElementSibling;
-                        if (!errorMsg || !errorMsg.classList.contains('validation-message')) {
-                            errorMsg = document.createElement('small');
-                            errorMsg.className = 'validation-message';
-                            errorMsg.textContent = 'Please enter a valid number (0 or higher)';
-                            fatherDeps.parentNode.appendChild(errorMsg);
-                        }
-                    }
-                }
-                
-                if (motherDeps && motherDeps.value.trim() !== '') {
-                    const value = parseInt(motherDeps.value);
-                    if (isNaN(value) || value < 0) {
-                        isValid = false;
-                        motherDeps.classList.add('is-invalid');
-                        
-                        // Add error message
-                        let errorMsg = motherDeps.nextElementSibling;
-                        if (!errorMsg || !errorMsg.classList.contains('validation-message')) {
-                            errorMsg = document.createElement('small');
-                            errorMsg.className = 'validation-message';
-                            errorMsg.textContent = 'Please enter a valid number (0 or higher)';
-                            motherDeps.parentNode.appendChild(errorMsg);
-                        }
+                        errorMessage = 'Please enter a valid number (0 or higher)';
                     }
                 }
                 
                 if (!isValid) {
-                    updateDebugInfo('Form validation failed');
+                    field.classList.add('is-invalid');
+                    const errorElement = document.createElement('small');
+                    errorElement.className = 'validation-message';
+                    errorElement.textContent = errorMessage;
+                    errorElement.style.display = 'block';
+                    errorElement.style.marginTop = '0.5rem';
+                    errorElement.style.color = '#dc3545';
+                    field.parentNode.appendChild(errorElement);
+                }
+                
+                return isValid;
+            }
+            
+            // Validate radio button group
+            function validateRadioGroup(groupName) {
+                const radioButtons = form.querySelectorAll(`input[name="${groupName}"]`);
+                const isChecked = Array.from(radioButtons).some(radio => radio.checked);
+                
+                // Clear existing errors
+                radioButtons.forEach(radio => {
+                    const label = document.querySelector(`label[for="${radio.id}"]`);
+                    if (label) label.classList.remove('is-invalid');
+                });
+                
+                const container = radioButtons[0]?.closest('.field-group');
+                if (container) {
+                    const existingError = container.querySelector('.validation-message');
+                    if (existingError) existingError.remove();
+                }
+                
+                if (!isChecked) {
+                    radioButtons.forEach(radio => {
+                        const label = document.querySelector(`label[for="${radio.id}"]`);
+                        if (label) label.classList.add('is-invalid');
+                    });
                     
+                    if (container) {
+                        const errorElement = document.createElement('small');
+                        errorElement.className = 'validation-message';
+                        errorElement.textContent = 'Please select an option';
+                        errorElement.style.display = 'block';
+                        errorElement.style.marginTop = '0.5rem';
+                        errorElement.style.color = '#dc3545';
+                        container.appendChild(errorElement);
+                    }
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // Main form submission handler
+            form.addEventListener('submit', function(e) {
+                // Prevent default to run validation first
+                e.preventDefault();
+                
+                let isValid = true;
+                let firstInvalidField = null;
+                
+                // Clear all previous error styles
+                form.querySelectorAll('.is-invalid').forEach(el => {
+                    el.classList.remove('is-invalid');
+                });
+                
+                form.querySelectorAll('.validation-message').forEach(el => {
+                    el.remove();
+                });
+                
+                // Validate required fields (excluding optional interest fields)
+                requiredFields.forEach(field => {
+                    // Skip optional interest textareas
+                    if (field.name.startsWith('interest_')) return;
+                    
+                    if (field.type === 'radio') {
+                        // Radio buttons are handled separately
+                        return;
+                    }
+                    
+                    if (!validateField(field)) {
+                        isValid = false;
+                        if (!firstInvalidField) firstInvalidField = field;
+                    }
+                });
+                
+                // Validate radio button groups
+                const programmeSelected = validateRadioGroup('applied_programme');
+                if (!programmeSelected) {
+                    isValid = false;
+                    if (!firstInvalidField) {
+                        const radioGroup = form.querySelectorAll('input[name="applied_programme"]');
+                        firstInvalidField = radioGroup[0];
+                    }
+                }
+                
+                // Validate required occupation fields
+                const fatherOccupation = form.querySelector('input[name="father_occupation"]');
+                const motherOccupation = form.querySelector('input[name="mother_occupation"]');
+                
+                if (fatherOccupation && !fatherOccupation.value.trim()) {
+                    fatherOccupation.classList.add('is-invalid');
+                    const errorElement = document.createElement('small');
+                    errorElement.className = 'validation-message';
+                    errorElement.textContent = 'Father occupation is required';
+                    fatherOccupation.parentNode.appendChild(errorElement);
+                    isValid = false;
+                    if (!firstInvalidField) firstInvalidField = fatherOccupation;
+                }
+                
+                if (motherOccupation && !motherOccupation.value.trim()) {
+                    motherOccupation.classList.add('is-invalid');
+                    const errorElement = document.createElement('small');
+                    errorElement.className = 'validation-message';
+                    errorElement.textContent = 'Mother occupation is required';
+                    motherOccupation.parentNode.appendChild(errorElement);
+                    isValid = false;
+                    if (!firstInvalidField && fatherOccupation !== firstInvalidField) {
+                        firstInvalidField = motherOccupation;
+                    }
+                }
+                
+                // Set empty optional interest fields to dash
+                const interestFields = ['interest_choice1', 'interest_choice2', 'interest_choice3'];
+                interestFields.forEach(fieldName => {
+                    const field = form.querySelector(`[name="${fieldName}"]`);
+                    if (field && !field.value.trim()) {
+                        field.value = '-';
+                    }
+                });
+                
+                // Set empty optional income fields to dash
+                const optionalIncomeFields = ['father_income', 'mother_income'];
+                optionalIncomeFields.forEach(fieldName => {
+                    const field = form.querySelector(`[name="${fieldName}"]`);
+                    if (field && !field.value.trim()) {
+                        field.value = '-';
+                    }
+                });
+                
+                if (!isValid) {
                     // Scroll to first invalid field
                     if (firstInvalidField) {
                         const fieldSection = firstInvalidField.closest('.form-section');
@@ -1480,149 +2003,179 @@
                                 behavior: 'smooth', 
                                 block: 'center' 
                             });
+                            
+                            setTimeout(() => {
+                                firstInvalidField.focus();
+                                if (firstInvalidField.type === 'radio') {
+                                    const label = document.querySelector(`label[for="${firstInvalidField.id}"]`);
+                                    if (label) label.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }, 300);
                         }
-                        
-                        setTimeout(() => {
-                            firstInvalidField.focus();
-                        }, 300);
                     }
                     
                     return false;
                 }
                 
-                updateDebugInfo('Form validation passed, submitting...');
-                
-                // Add loading state
+                // Add loading state to submit button
                 submitBtn.classList.add('loading');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting...';
                 
                 // Prevent double submission
-                let isSubmitting = false;
-                
-                if (isSubmitting) {
-                    updateDebugInfo('Form is already submitting');
+                if (form.dataset.submitting === 'true') {
                     return false;
                 }
+                form.dataset.submitting = 'true';
                 
-                isSubmitting = true;
-                
-                // Log form data for debugging
-                const formData = new FormData(form);
-                updateDebugInfo(`Form data collected: ${formData.get('full_name')}`);
-                
-                // Submit the form programmatically
+                // Submit the form after a short delay
                 setTimeout(() => {
+                    // Submit the form programmatically
                     try {
-                        updateDebugInfo('Attempting form submission...');
-                        form.submit(); // This will trigger the actual POST request
-                    } catch (error) {
-                        updateDebugInfo(`Submission error: ${error.message}`);
-                        console.error('Form submission error:', error);
+                        const formData = new FormData(form);
                         
-                        // Reset button state
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => {
+                            if (response.redirected) {
+                                // If redirected, follow the redirect
+                                window.location.href = response.url;
+                            } else if (response.ok) {
+                                // If response is OK, submit the form normally
+                                form.submit();
+                            } else {
+                                // Handle error response
+                                return response.text().then(text => {
+                                    throw new Error(`Server responded with ${response.status}: ${text}`);
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Fetch error:', error);
+                            // Fallback: submit the form normally
+                            form.submit();
+                        });
+                        
+                    } catch (error) {
+                        console.error('Submission error:', error);
+                        
+                        // Final fallback: remove loading state and allow retry
                         submitBtn.classList.remove('loading');
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Submit Application & Mark Attendance';
-                        isSubmitting = false;
+                        form.dataset.submitting = 'false';
                         
-                        // Show error alert
-                        alert('There was an error submitting the form. Please try again.');
+                        // Show error message
+                        alert('There was an error submitting the form. Please check your connection and try again.');
                     }
-                }, 100);
+                }, 500);
                 
-                return true;
+                return false;
             });
+            
+            // ============================================
+            // AUTO-SAVE FUNCTIONALITY
+            // ============================================
             
             // Auto-save form data to localStorage
             const formInputs = form.querySelectorAll('input, select, textarea');
             formInputs.forEach(input => {
                 const inputName = input.name;
+                if (!inputName) return;
                 
-                // Load saved data
+                // Load saved data on page load
                 const savedValue = localStorage.getItem(`form_${inputName}`);
                 if (savedValue !== null && !input.value) {
                     input.value = savedValue;
-                }
-                
-                // Save on input
-                input.addEventListener('input', function() {
-                    localStorage.setItem(`form_${inputName}`, this.value);
-                });
-                
-                // Handle radio buttons
-                if (input.type === 'radio') {
-                    input.addEventListener('change', function() {
-                        if (this.checked) {
-                            localStorage.setItem(`form_${this.name}`, this.value);
-                        }
-                    });
                     
-                    // Load checked radio
-                    const savedRadio = localStorage.getItem(`form_${input.name}`);
-                    if (savedRadio && input.value === savedRadio) {
+                    // Trigger change event for radio buttons
+                    if (input.type === 'radio' && input.value === savedValue) {
                         input.checked = true;
+                        input.dispatchEvent(new Event('change'));
                     }
                 }
+                
+                // Save on input/change
+                const saveHandler = function() {
+                    if (input.type === 'radio') {
+                        if (input.checked) {
+                            localStorage.setItem(`form_${inputName}`, input.value);
+                        }
+                    } else {
+                        localStorage.setItem(`form_${inputName}`, input.value);
+                    }
+                };
+                
+                if (input.type === 'radio' || input.type === 'checkbox') {
+                    input.addEventListener('change', saveHandler);
+                } else {
+                    input.addEventListener('input', saveHandler);
+                }
             });
-
-            // Clear localStorage on successful submission
+            
+            // Clear localStorage on successful form submission
             form.addEventListener('submit', function() {
+                // Set a timeout to clear localStorage after successful submission
                 setTimeout(() => {
                     formInputs.forEach(input => {
-                        localStorage.removeItem(`form_${input.name}`);
+                        const inputName = input.name;
+                        if (inputName) {
+                            localStorage.removeItem(`form_${inputName}`);
+                        }
                     });
-                    updateDebugInfo('Local storage cleared');
                 }, 1000);
             });
             
+            // ============================================
+            // ACCESSIBILITY & UX ENHANCEMENTS
+            // ============================================
+            
+            // Add keyboard navigation for form
+            form.addEventListener('keydown', function(e) {
+                // Enter key on non-textarea, non-button elements
+                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.type !== 'submit') {
+                    e.preventDefault();
+                    
+                    // Find next focusable element
+                    const focusableElements = form.querySelectorAll('input, select, textarea, button');
+                    const currentIndex = Array.from(focusableElements).indexOf(e.target);
+                    
+                    if (currentIndex < focusableElements.length - 1) {
+                        focusableElements[currentIndex + 1].focus();
+                    }
+                }
+            });
+            
             // Focus first input on page load
-            const firstInput = form.querySelector('input:not([type="hidden"]):not([type="radio"]), select, textarea');
-            if (firstInput) {
-                setTimeout(() => {
+            setTimeout(() => {
+                const firstInput = form.querySelector('input:not([type="hidden"]):not([type="radio"]), select, textarea');
+                if (firstInput) {
                     firstInput.focus();
-                }, 100);
-            }
-            
-            // Add form data debugging tool
-            window.debugFormData = function() {
-                const formData = new FormData(form);
-                console.log('=== FORM DATA DEBUG ===');
-                for (let [key, value] of formData.entries()) {
-                    console.log(`${key}: ${value}`);
                 }
-                console.log('=======================');
-                
-                // Also show in debug panel
-                let debugHTML = 'Form Data:<br>';
-                for (let [key, value] of formData.entries()) {
-                    debugHTML += `${key}: ${value}<br>`;
-                }
-                updateDebugInfo(debugHTML);
-            };
+            }, 100);
             
-            // Enable debug mode with ?debug in URL
-            if (urlParams.has('debug')) {
-                console.log('Debug mode enabled');
-                console.log('Event:', '{{ event.title }}');
-                console.log('URL:', '{% url 'check_in' event.id event.check_in_token %}');
+            // Handle logo loading errors
+            document.querySelectorAll('.mobile-logo, .desktop-logo').forEach(logo => {
+                logo.addEventListener('error', function() {
+                    this.style.opacity = '0.3';
+                    
+                    // Add alt text as fallback
+                    if (!this.alt) {
+                        const logoType = this.src.includes('SES') ? 'SES Logo' : 'UPKB Logo';
+                        this.parentNode.innerHTML += `<div style="color: #666; font-size: 0.8rem;">${logoType}</div>`;
+                    }
+                });
                 
-                // Add debug button
-                const debugBtn = document.createElement('button');
-                debugBtn.textContent = 'Debug Form';
-                debugBtn.style.position = 'fixed';
-                debugBtn.style.bottom = '60px';
-                debugBtn.style.right = '20px';
-                debugBtn.style.zIndex = '10000';
-                debugBtn.style.padding = '5px 10px';
-                debugBtn.style.background = '#000';
-                debugBtn.style.color = '#fff';
-                debugBtn.style.border = 'none';
-                debugBtn.style.borderRadius = '5px';
-                debugBtn.style.cursor = 'pointer';
-                debugBtn.onclick = window.debugFormData;
-                document.body.appendChild(debugBtn);
-            }
+                // Force load check
+                if (logo.complete && logo.naturalHeight === 0) {
+                    logo.dispatchEvent(new Event('error'));
+                }
+            });
         });
     </script>
 </body>

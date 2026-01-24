@@ -55,6 +55,31 @@ class Event(models.Model):
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        # Generate form number if not exists
+        if not self.form_number:
+            # Extract state from venue
+            state = self.extract_state_from_venue()
+            
+            # Get month from event date or current month
+            month_num = self.date.month if self.date else timezone.now().month
+            
+            # Generate form number
+            self.form_number = self.generate_form_number(state, month_num)
+        
+        super().save(*args, **kwargs)
+    
+    def extract_state_from_venue(self):
+        """Extract state abbreviation from venue"""
+        # Same logic as extract_state_from_venue function above
+        # You can move the logic here
+        pass
+    
+    def generate_form_number(self, state_abbr, month_num):
+        """Generate form number"""
+        # Same logic as generate_form_number function above
+        pass
+
     def __str__(self):
         return self.title
 
@@ -105,7 +130,11 @@ class Application(models.Model):
         related_name='applications'
     )
 
-    registration_officer = models.CharField(max_length=150)
+    registration_officer = models.CharField(
+        max_length=150,
+        verbose_name="Inviting Officer"
+    )
+
     applied_programme = models.CharField(
         max_length=20,
         choices=PROGRAMME_CHOICES
@@ -114,7 +143,6 @@ class Application(models.Model):
     full_name = models.CharField(max_length=150)
 
     address1 = models.TextField()
-    address2 = models.TextField(blank=True)
     city = models.CharField(max_length=100)
     postcode = models.CharField(max_length=10)
     state = models.CharField(max_length=100)

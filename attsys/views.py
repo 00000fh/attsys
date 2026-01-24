@@ -35,6 +35,7 @@ from xhtml2pdf import pisa
 from django.conf import settings
 from reportlab.pdfgen import canvas
 from django.db import models
+from PIL import Image, ImageDraw, ImageFont
 
 
 User = get_user_model()
@@ -345,17 +346,100 @@ def create_event(request):
         return HttpResponseForbidden()
 
     if request.method == 'POST':
-        Event.objects.create(
-            title=request.POST['title'],
-            venue=request.POST['venue'],
-            date=request.POST['date'],
+        # Get form data
+        title = request.POST['title']
+        venue = request.POST['venue']
+        event_date = request.POST['date']
+        
+        # Extract state from venue (assuming format like "Kuala Lumpur, Selangor" or "Selangor")
+        state = extract_state_from_venue(venue)
+        
+        # Get current month from event date
+        try:
+            month_num = datetime.strptime(event_date, '%Y-%m-%d').month
+        except:
+            month_num = timezone.now().month
+        
+        # Generate form number
+        form_number = generate_form_number(state, month_num)
+        
+        # Create the event
+        event = Event.objects.create(
+            title=title,
+            venue=venue,
+            date=event_date,
             start_time=request.POST['start_time'],
             end_time=request.POST['end_time'],
+            form_number=form_number,  # Use generated form number
             created_by=request.user
         )
+        
+        # Show success message with form number
+        messages.success(request, f"Event created successfully! Form Number: {event.form_number}")
         return redirect('dashboard')
 
     return render(request, 'create_event.html')
+
+
+# Helper function to extract state abbreviation from venue
+def extract_state_from_venue(venue):
+    """
+    Extract state abbreviation from venue string
+    Common Malaysian states mapping
+    """
+    state_mapping = {
+        'johor': 'JHR',
+        'kedah': 'KDH',
+        'kelantan': 'KTN',
+        'melaka': 'MLK',
+        'negeri sembilan': 'NSN',
+        'pahang': 'PHG',
+        'perak': 'PRK',
+        'perlis': 'PLS',
+        'pulau pinang': 'PNG',
+        'penang': 'PNG',
+        'sabah': 'SBH',
+        'sarawak': 'SRW',
+        'selangor': 'SGR',
+        'terengganu': 'TRG',
+        'kuala lumpur': 'KUL',
+        'labuan': 'LBN',
+        'putrajaya': 'PJY'
+    }
+    
+    venue_lower = venue.lower()
+    
+    # Check for state names in the venue
+    for state_name, abbreviation in state_mapping.items():
+        if state_name in venue_lower:
+            return abbreviation
+    
+    # Default to KUL if no state found
+    return 'KUL'
+
+
+# Function to generate form number
+def generate_form_number(state_abbr, month_num):
+    """
+    Generate form number in format: SES.STATE.MM.NNNN
+    Example: SES.JHR.01.0001
+    """
+    # Get count of events in this state and month for the running number
+    current_year = timezone.now().year
+    
+    # Count events with the same state and month in current year
+    events_count = Event.objects.filter(
+        created_at__year=current_year,
+        form_number__startswith=f"SES.{state_abbr}.{month_num:02d}."
+    ).count()
+    
+    # Running number starts from 0001
+    running_number = events_count + 1
+    
+    # Format: SES.STATE.MM.NNNN
+    form_number = f"SES.{state_abbr}.{month_num:02d}.{running_number:04d}"
+    
+    return form_number
 
 
 @login_required
@@ -370,6 +454,16 @@ def event_detail(request, event_id):
 
     # ✅ DEFINE ATTENDEES FIRST
     attendees = event.attendees.all().order_by('-attended_at')
+    
+    # 🔹 Calculate total attendees count
+    total_attendees_count = attendees.count()
+    
+    # 🔹 Get last check-in info
+    last_checkin = None
+    last_checkin_time = None
+    if attendees.exists():
+        last_checkin = attendees.first()  # Already ordered by -attended_at
+        last_checkin_time = timezone.localtime(last_checkin.attended_at)
 
     # 🔹 Get current Malaysia time for display
     now_malaysia = malaysia_now()
@@ -519,9 +613,21 @@ def event_detail(request, event_id):
         attended_at__gte=today_start
     ).count()
 
+    # 🔹 Format last check-in time for display
+    last_checkin_display = None
+    last_checkin_date_display = None
+    if last_checkin_time:
+        last_checkin_display = last_checkin_time.strftime('%I:%M %p')
+        last_checkin_date_display = last_checkin_time.strftime('%b %d')
+
     return render(request, 'event_detail.html', {
         'event': event,
-        'attendees': attendee_list,
+        'attendees': attendee_list,  # List of attendees with extra data
+        'total_attendees_count': total_attendees_count,  # Total count for stats
+        'last_checkin': last_checkin,  # Last attendee object
+        'last_checkin_time': last_checkin_time,  # Last check-in time as datetime
+        'last_checkin_display': last_checkin_display,  # Formatted time "03:45 PM"
+        'last_checkin_date_display': last_checkin_date_display,  # Formatted date "Jan 22"
         'qr_image': qr_image,
         'qr_url': qr_url,
         'attendance_by_hour': formatted_attendance,
@@ -621,12 +727,13 @@ def check_in(request, event_id, token):
 
     if request.method == 'POST':
         try:
-            # Validate required fields
+            # UPDATED: Added father_occupation, mother_occupation, and interest_choice1 to required fields
             required_fields = [
                 'registration_officer', 'applied_programme', 'full_name',
                 'city', 'postcode', 'state', 'ic_no', 'email',
                 'phone_no', 'marriage_status', 'father_name', 'father_ic',
-                'father_phone', 'mother_name', 'mother_ic', 'mother_phone'
+                'father_phone', 'father_occupation', 'mother_name', 'mother_ic',
+                'mother_phone', 'mother_occupation'
             ]
             
             for field in required_fields:
@@ -647,20 +754,34 @@ def check_in(request, event_id, token):
             
             mother_dependants_str = request.POST.get('mother_dependants', '0').strip()
             mother_dependants = int(mother_dependants_str) if mother_dependants_str.isdigit() else 0
-
-            # Get interest choices
-            interest_choice1 = request.POST.get('interest_choice1', '').strip()
-            interest_choice2 = request.POST.get('interest_choice2', '').strip()
-            interest_choice3 = request.POST.get('interest_choice3', '').strip()
             
-            # Create Application record with all fields
+            # UPDATED: Format empty values as dash for optional fields
+            def format_optional_value(value):
+                """Return dash if value is empty, otherwise return stripped value"""
+                if not value or not str(value).strip():
+                    return '-'
+                return str(value).strip()
+
+            # Get interest choices - first choice is required, others optional
+            interest_choice1 = format_optional_value(request.POST.get('interest_choice1', ''))
+            interest_choice2 = format_optional_value(request.POST.get('interest_choice2', ''))
+            interest_choice3 = format_optional_value(request.POST.get('interest_choice3', ''))
+            
+            # UPDATED: Get father and mother occupation (now required)
+            father_occupation = request.POST.get('father_occupation', '').strip()
+            mother_occupation = request.POST.get('mother_occupation', '').strip()
+            
+            # Format other optional fields with dash if empty
+            father_income = format_optional_value(request.POST.get('father_income', ''))
+            mother_income = format_optional_value(request.POST.get('mother_income', ''))
+            
+            # UPDATED: Create Application record with all fields
             application = Application.objects.create(
                 event=event,
                 registration_officer=request.POST['registration_officer'].strip(),
                 applied_programme=request.POST['applied_programme'],
                 full_name=request.POST['full_name'].strip(),
                 address1=request.POST['address1'].strip(),
-                address2='',
                 city=request.POST['city'].strip(),
                 postcode=request.POST['postcode'].strip(),
                 state=request.POST['state'].strip(),
@@ -672,18 +793,18 @@ def check_in(request, event_id, token):
                 father_name=request.POST['father_name'].strip(),
                 father_ic=request.POST['father_ic'].strip(),
                 father_phone=request.POST['father_phone'].strip(),
-                father_occupation=request.POST.get('father_occupation', '').strip(),
-                father_income=request.POST.get('father_income', '').strip(),
+                father_occupation=father_occupation,  # Now required
+                father_income=father_income,  # Optional, formatted
                 father_dependants=father_dependants,
                 mother_name=request.POST['mother_name'].strip(),
                 mother_ic=request.POST['mother_ic'].strip(),
                 mother_phone=request.POST['mother_phone'].strip(),
-                mother_occupation=request.POST.get('mother_occupation', '').strip(),
-                mother_income=request.POST.get('mother_income', '').strip(),
+                mother_occupation=mother_occupation,  # Now required
+                mother_income=mother_income,  # Optional, formatted
                 mother_dependants=mother_dependants,
-                interest_choice1=interest_choice1,
-                interest_choice2=interest_choice2,
-                interest_choice3=interest_choice3,
+                interest_choice1=interest_choice1,  # Required
+                interest_choice2=interest_choice2,  # Optional, formatted
+                interest_choice3=interest_choice3,  # Optional, formatted
                 interested_programme=(
                     f"1. {interest_choice1}\n"
                     f"2. {interest_choice2}\n"
@@ -713,6 +834,9 @@ def check_in(request, event_id, token):
             print(f"  Attendee: {attendee.name}")
             print(f"  Email: {attendee.email}")
             print(f"  Application ID: {application.id}")
+            print(f"  Father Occupation: {father_occupation}")
+            print(f"  Mother Occupation: {mother_occupation}")
+            print(f"  First Choice: {interest_choice1}")
             
             # Show success message
             return render(request, 'success.html', {
@@ -774,20 +898,111 @@ def export_attendees_csv(request, event_id):
         return HttpResponseForbidden()
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{event.title}.csv"'
+    response['Content-Disposition'] = f'attachment; filename="{event.title}_attendees_{date.today()}.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['Name', 'Email', 'Phone', 'Checked In At (Malaysia Time)'])
+    
+    # Updated headers with Inviting Officer
+    writer.writerow([
+        'Name', 
+        'Email', 
+        'Phone', 
+        'Inviting Officer', 
+        'Checked In At (Malaysia Time)',
+        'Applied Programme',
+        'SPM Total Credit',
+        'IC Number',
+        'Address',
+        'City',
+        'Postcode',
+        'State',
+        'Marriage Status',
+        'Father Name',
+        'Father IC',
+        'Father Phone',
+        'Father Occupation',
+        'Father Income',
+        'Father Dependants',
+        'Mother Name',
+        'Mother IC',
+        'Mother Phone',
+        'Mother Occupation',
+        'Mother Income',
+        'Mother Dependants',
+        'First Choice Programme',
+        'Second Choice Programme',
+        'Third Choice Programme'
+    ])
 
-    for attendee in event.attendees.all():
+    # FIX: Remove select_related() or specify related fields
+    attendees = event.attendees.all()  # Remove select_related()
+    
+    # Get all applications for this event in one query
+    applications = Application.objects.filter(
+        event=event
+    ).values('email', 'registration_officer', 'applied_programme', 
+             'spm_total_credit', 'ic_no', 'address1', 'city', 
+             'postcode', 'state', 'marriage_status', 'father_name',
+             'father_ic', 'father_phone', 'father_occupation',
+             'father_income', 'father_dependants', 'mother_name',
+             'mother_ic', 'mother_phone', 'mother_occupation',
+             'mother_income', 'mother_dependants', 'interest_choice1',
+             'interest_choice2', 'interest_choice3')
+    
+    # Create a dictionary for quick lookup of applications by email
+    applications_dict = {app['email'].lower(): app for app in applications}
+
+    for attendee in attendees:
         # Convert to Malaysia time for display
         malaysia_time = timezone.localtime(attendee.attended_at)
-        writer.writerow([
-            attendee.name,
-            attendee.email,
-            attendee.phone_number,
-            malaysia_time.strftime('%Y-%m-%d %H:%M:%S')
-        ])
+        
+        # Get application data for this attendee
+        app_data = applications_dict.get(attendee.email.lower())
+        
+        if app_data:
+            # Attendee has an application
+            writer.writerow([
+                attendee.name,
+                attendee.email,
+                attendee.phone_number,
+                app_data['registration_officer'],  # Inviting Officer
+                malaysia_time.strftime('%Y-%m-%d %H:%M:%S'),
+                app_data['applied_programme'],
+                app_data['spm_total_credit'],
+                app_data['ic_no'],
+                app_data['address1'],
+                app_data['city'],
+                app_data['postcode'],
+                app_data['state'],
+                app_data['marriage_status'],
+                app_data['father_name'],
+                app_data['father_ic'],
+                app_data['father_phone'],
+                app_data['father_occupation'],
+                app_data['father_income'] or '',
+                app_data['father_dependants'],
+                app_data['mother_name'],
+                app_data['mother_ic'],
+                app_data['mother_phone'],
+                app_data['mother_occupation'],
+                app_data['mother_income'] or '',
+                app_data['mother_dependants'],
+                app_data['interest_choice1'],
+                app_data['interest_choice2'] or '',
+                app_data['interest_choice3'] or ''
+            ])
+        else:
+            # Attendee checked in but didn't submit application form
+            writer.writerow([
+                attendee.name,
+                attendee.email,
+                attendee.phone_number or '',
+                'N/A',  # No inviting officer data
+                malaysia_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'N/A', '0', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A',
+                'N/A', 'N/A', 'N/A', 'N/A', 'N/A', '', 'N/A',
+                'N/A', 'N/A', 'N/A', 'N/A', '', 'N/A', 'N/A', '', ''
+            ])
 
     return response
 
@@ -809,6 +1024,44 @@ def get_attendee_details(request, attendee_id):
             email__iexact=attendee.email
         )
         
+        # Helper function to format empty values as dash
+        def format_value(value):
+            if value is None or str(value).strip() == '':
+                return '-'
+            return str(value).strip()
+        
+        # Build application data
+        app_data = {
+            'registration_officer': format_value(application.registration_officer),
+            'applied_programme': format_value(application.applied_programme),
+            'full_name': format_value(application.full_name),
+            'address1': format_value(application.address1),
+            'city': format_value(application.city),
+            'postcode': format_value(application.postcode),
+            'state': format_value(application.state),
+            'ic_no': format_value(application.ic_no),
+            'email': format_value(application.email),
+            'phone_no': format_value(application.phone_no),
+            'marriage_status': format_value(application.marriage_status),
+            'spm_total_credit': format_value(application.spm_total_credit),
+            'father_name': format_value(application.father_name),
+            'father_ic': format_value(application.father_ic),
+            'father_phone': format_value(application.father_phone),
+            'father_occupation': format_value(application.father_occupation),
+            'father_income': format_value(application.father_income),
+            'father_dependants': format_value(application.father_dependants),
+            'mother_name': format_value(application.mother_name),
+            'mother_ic': format_value(application.mother_ic),
+            'mother_phone': format_value(application.mother_phone),
+            'mother_occupation': format_value(application.mother_occupation),
+            'mother_income': format_value(application.mother_income),
+            'mother_dependants': format_value(application.mother_dependants),
+            'interest_choice1': format_value(application.interest_choice1),
+            'interest_choice2': format_value(application.interest_choice2),
+            'interest_choice3': format_value(application.interest_choice3),
+            'submitted_at': timezone.localtime(application.submitted_at).strftime('%Y-%m-%d %H:%M:%S'),
+        }
+        
         data = {
             'attendee': {
                 'id': attendee.id,
@@ -819,38 +1072,7 @@ def get_attendee_details(request, attendee_id):
                 'attended_at_display': timezone.localtime(attendee.attended_at).strftime('%I:%M %p'),
                 'attended_date_display': timezone.localtime(attendee.attended_at).strftime('%b %d'),
             },
-            'application': {
-                'registration_officer': application.registration_officer,
-                'applied_programme': application.applied_programme,
-                'full_name': application.full_name,
-                'address1': application.address1,
-                'address2': application.address2,
-                'city': application.city,
-                'postcode': application.postcode,
-                'state': application.state,
-                'ic_no': application.ic_no,
-                'email': application.email,
-                'phone_no': application.phone_no,
-                'marriage_status': application.marriage_status,
-                'spm_total_credit': application.spm_total_credit,
-                'father_name': application.father_name,
-                'father_ic': application.father_ic,
-                'father_phone': application.father_phone,
-                'father_occupation': application.father_occupation,
-                'father_income': application.father_income,
-                'father_dependants': application.father_dependants,
-                'mother_name': application.mother_name,
-                'mother_ic': application.mother_ic,
-                'mother_phone': application.mother_phone,
-                'mother_occupation': application.mother_occupation,
-                'mother_income': application.mother_income,
-                'mother_dependants': application.mother_dependants,
-                'interest_choice1': application.interest_choice1,
-                'interest_choice2': application.interest_choice2,
-                'interest_choice3': application.interest_choice3,
-                'interested_programme': application.interested_programme,
-                'submitted_at': timezone.localtime(application.submitted_at).strftime('%Y-%m-%d %H:%M:%S'),
-            }
+            'application': app_data
         }
         
         return JsonResponse(data)
@@ -1410,239 +1632,1035 @@ def export_registrations_csv(request, event_id):
 
 @login_required
 def export_registrations_pdf(request, event_id):
-    """Enhanced PDF export with better formatting"""
+    """Modern dashboard-style PDF report with black/gray theme"""
     event = get_object_or_404(Event, id=event_id)
     
     # Check permissions
     if request.user.role == 'STAFF' and event.created_by != request.user:
         return HttpResponseForbidden()
     
-    # Get all registrations
-    registrations = Registration.objects.filter(attendee__event=event).select_related('attendee')
-    
-    # Calculate statistics
-    total_registered = registrations.count()
-    total_paid = registrations.filter(payment_status='DONE').count()
-    total_pending = registrations.filter(payment_status='PENDING').count()
-    
-    # Calculate revenue
-    total_revenue = Decimal('0.00')
-    for reg in registrations:
-        total_revenue += (reg.pre_registration_fee or Decimal('0.00')) + (reg.registration_fee or Decimal('0.00'))
-    
-    # Get top courses
-    from django.db.models import Count
-    top_courses = registrations.values('course').annotate(
-        count=Count('id')
-    ).order_by('-count')[:5]
-    
-    # Create PDF in memory using SimpleDocTemplate for better tables
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buffer, 
-        pagesize=letter,
-        rightMargin=inch/2,
-        leftMargin=inch/2,
-        topMargin=inch/2,
-        bottomMargin=inch/2
-    )
-    
-    styles = getSampleStyleSheet()
-    
-    # Create custom styles
-    title_style = ParagraphStyle(
-        'CustomTitle',
-        parent=styles['Heading1'],
-        fontSize=16,
-        spaceAfter=12,
-        alignment=1  # Center
-    )
-    
-    subtitle_style = ParagraphStyle(
-        'CustomSubtitle',
-        parent=styles['Heading2'],
-        fontSize=12,
-        spaceAfter=6,
-        textColor=colors.grey
-    )
-    
-    header_style = ParagraphStyle(
-        'HeaderStyle',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=colors.white,
-        alignment=1
-    )
-    
-    normal_style = styles['Normal']
-    
-    # Build story (content)
-    story = []
-    
-    # Title
-    story.append(Paragraph(f"<b>REGISTRATION REPORT</b>", title_style))
-    story.append(Paragraph(f"Event: {event.title}", subtitle_style))
-    story.append(Paragraph(f"Venue: {event.venue} | Date: {event.date}", styles['Normal']))
-    story.append(Paragraph(f"Generated: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')} by {request.user.get_full_name() or request.user.username}", styles['Italic']))
-    story.append(Spacer(1, 20))
-    
-    # Summary Statistics
-    summary_data = [
-        ['Total Registrations', 'Payment Done', 'Payment Pending', 'Total Revenue'],
-        [str(total_registered), str(total_paid), str(total_pending), f"RM {total_revenue:.2f}"]
-    ]
-    
-    summary_table = Table(summary_data, colWidths=[1.5*inch, 1.5*inch, 1.5*inch, 2*inch])
-    summary_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#f8f9fa')),
-        ('TEXTCOLOR', (0, 1), (-1, 1), colors.black),
-        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 1), (-1, 1), 12),
-        ('GRID', (0, 0), (-1, -1), 1, colors.grey)
-    ]))
-    
-    story.append(summary_table)
-    story.append(Spacer(1, 20))
-    
-    # Top Courses
-    if top_courses:
-        story.append(Paragraph("<b>Top 5 Courses by Registration</b>", styles['Heading3']))
-        story.append(Spacer(1, 5))
+    try:
+        # Get all registrations with related data
+        registrations = Registration.objects.filter(
+            attendee__event=event
+        ).select_related('attendee')
         
-        course_data = [['Rank', 'Course', 'Registrations', 'Percentage']]
-        for i, course in enumerate(top_courses, 1):
-            percentage = (course['count'] / total_registered * 100) if total_registered > 0 else 0
-            course_data.append([
-                str(i),
-                course['course'] or 'Unknown',
-                str(course['count']),
-                f"{percentage:.1f}%"
-            ])
+        # Calculate statistics
+        total_registered = registrations.count()
+        total_paid = registrations.filter(payment_status='DONE').count()
+        total_pending = registrations.filter(payment_status='PENDING').count()
         
-        course_table = Table(course_data, colWidths=[0.5*inch, 3*inch, 1.5*inch, 1.5*inch])
-        course_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498db')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
-            ('ALIGN', (1, 1), (1, -1), 'LEFT'),  # Left align course names
-        ]))
+        # Calculate revenue
+        total_revenue = Decimal('0.00')
+        paid_revenue = Decimal('0.00')
+        pending_revenue = Decimal('0.00')
         
-        story.append(course_table)
-        story.append(Spacer(1, 20))
-    
-    # Detailed Registration Table
-    story.append(Paragraph("<b>Detailed Registration Records</b>", styles['Heading3']))
-    story.append(Spacer(1, 5))
-    
-    # Create table data
-    table_data = [['No.', 'Attendee', 'Course', 'College', 'Reg Date', 'Total Fee', 'Payment', 'Closer']]
-    
-    for i, reg in enumerate(registrations, 1):
-        table_data.append([
-            str(i),
-            reg.attendee.name[:30] if reg.attendee.name else 'N/A',
-            reg.course[:20] if reg.course else 'N/A',
-            reg.college[:15] if reg.college else 'N/A',
-            reg.register_date.strftime('%d/%m/%Y') if reg.register_date else 'N/A',
-            f"RM {reg.total_fee():.2f}",
-            reg.get_payment_status_display(),
-            reg.closer[:15] if reg.closer else 'N/A'
-        ])
-    
-    # Add total row
-    if registrations:
-        table_data.append([
-            '', '', '', '', 'TOTAL:',
-            f"RM {total_revenue:.2f}",
-            '', ''
-        ])
-    
-    # Create table
-    col_widths = [0.4*inch, 1.8*inch, 1.5*inch, 1.2*inch, 1*inch, 1*inch, 1*inch, 1.2*inch]
-    table = Table(table_data, colWidths=col_widths, repeatRows=1)
-    
-    # Style the table
-    table.setStyle(TableStyle([
-        # Header style
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 9),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-        ('TOPPADDING', (0, 0), (-1, 0), 6),
+        for reg in registrations:
+            reg_total = (reg.pre_registration_fee or Decimal('0.00')) + (reg.registration_fee or Decimal('0.00'))
+            total_revenue += reg_total
+            if reg.payment_status == 'DONE':
+                paid_revenue += reg_total
+            else:
+                pending_revenue += reg_total
         
-        # Row colors alternating
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('GRID', (0, 0), (-1, -2), 0.5, colors.grey),  # Exclude total row from grid
-        ('FONTSIZE', (0, 1), (-1, -1), 8),
-        ('TOPPADDING', (0, 1), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
+        # Get applications data for inviting officers
+        email_to_inviting_officer = {}
+        applications = Application.objects.filter(event=event)
+        for app in applications:
+            email_to_inviting_officer[app.email.lower()] = app.registration_officer
         
-        # Align columns
-        ('ALIGN', (0, 1), (0, -1), 'CENTER'),  # No. column
-        ('ALIGN', (4, 1), (4, -1), 'CENTER'),  # Date column
-        ('ALIGN', (5, 1), (5, -1), 'RIGHT'),   # Fee column
-        ('ALIGN', (6, 1), (6, -1), 'CENTER'),  # Payment column
+        # Get top performers
+        top_courses = registrations.values('course').annotate(
+            count=Count('id'),
+            revenue=Sum(F('pre_registration_fee') + F('registration_fee'))
+        ).order_by('-count')[:5]
         
-        # Total row style
-        ('BACKGROUND', (4, -1), (5, -1), colors.HexColor('#f8f9fa')),
-        ('TEXTCOLOR', (4, -1), (5, -1), colors.black),
-        ('FONTNAME', (4, -1), (5, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (4, -1), (5, -1), 9),
-        ('BOX', (4, -1), (5, -1), 0.5, colors.grey),
-    ]))
-    
-    story.append(table)
-    story.append(Spacer(1, 20))
-    
-    # Payment Status Summary
-    if total_registered > 0:
-        paid_percentage = (total_paid / total_registered * 100)
-        pending_percentage = (total_pending / total_registered * 100)
+        top_closers = registrations.values('closer').annotate(
+            count=Count('id'),
+            revenue=Sum(F('pre_registration_fee') + F('registration_fee'))
+        ).order_by('-count')[:5]
         
-        status_data = [
-            ['Payment Status', 'Count', 'Percentage'],
-            ['Done', str(total_paid), f"{paid_percentage:.1f}%"],
-            ['Pending', str(total_pending), f"{pending_percentage:.1f}%"]
+        # ============================
+        # PDF GENERATION SETUP
+        # ============================
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        from reportlab.lib.pagesizes import landscape, A4
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib import colors
+        from reportlab.lib.units import cm
+        import io
+        import tempfile
+        import os
+        
+        # Create PDF buffer
+        buffer = io.BytesIO()
+        
+        # ============================
+        # COLOR PALETTE (Black/Gray Theme - Matching HTML)
+        # ============================
+        COLORS = {
+            'black': '#000000',
+            'white': '#ffffff',
+            'gray_50': '#fafafa',
+            'gray_100': '#f5f5f5',
+            'gray_200': '#e5e5e5',
+            'gray_300': '#d4d4d4',
+            'gray_400': '#a3a3a3',
+            'gray_500': '#737373',
+            'gray_600': '#525252',
+            'gray_700': '#404040',
+            'gray_800': '#262626',
+            'gray_900': '#171717',
+            'success': '#27ae60',
+            'warning': '#e67e22',
+            'danger': '#e74c3c',
+            'info': '#3498db',
+            'border': '#d4d4d4',
+        }
+        
+        # ============================
+        # TYPOGRAPHY SYSTEM
+        # ============================
+        styles = getSampleStyleSheet()
+        
+        # Title style
+        title_style = ParagraphStyle(
+            'Title',
+            parent=styles['Heading1'],
+            fontSize=20,
+            spaceAfter=0.3*cm,
+            alignment=1,
+            textColor=colors.HexColor(COLORS['black']),
+            fontName='Helvetica-Bold'
+        )
+        
+        # Subtitle style
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=0.4*cm,
+            textColor=colors.HexColor(COLORS['gray_600']),
+            alignment=1
+        )
+        
+        # Section header style
+        section_style = ParagraphStyle(
+            'Section',
+            parent=styles['Heading2'],
+            fontSize=13,
+            spaceBefore=0.3*cm,
+            spaceAfter=0.15*cm,
+            textColor=colors.HexColor(COLORS['black']),
+            fontName='Helvetica-Bold',
+            leftIndent=0.2*cm
+        )
+        
+        # ============================
+        # REDUCED METRIC STYLES FOR SMALLER CARDS
+        # ============================
+        
+        # Metric value style - SMALLER
+        metric_value_style = ParagraphStyle(
+            'MetricValue',
+            parent=styles['Normal'],
+            fontSize=15,  # Reduced from 22
+            textColor=colors.HexColor(COLORS['black']),
+            fontName='Helvetica-Bold',
+            alignment=1,
+            spaceAfter=0
+        )
+        
+        # Metric label style - SMALLER
+        metric_label_style = ParagraphStyle(
+            'MetricLabel',
+            parent=styles['Normal'],
+            fontSize=8,  # Reduced from 9
+            textColor=colors.HexColor(COLORS['gray_600']),
+            alignment=1,
+            spaceAfter=0
+        )
+        
+        # Metric subtext style - SMALLER
+        metric_subtext_style = ParagraphStyle(
+            'MetricSubtext',
+            parent=styles['Normal'],
+            fontSize=7,  # Reduced from 8
+            textColor=colors.HexColor(COLORS['gray_500']),
+            alignment=1,
+            spaceAfter=0
+        )
+        
+        # Table header style
+        table_header_style = ParagraphStyle(
+            'TableHeader',
+            parent=styles['Normal'],
+            fontSize=9,
+            textColor=colors.white,
+            fontName='Helvetica-Bold',
+            alignment=1,
+            spaceBefore=2,
+            spaceAfter=2,
+            leading=10
+        )
+        
+        # Table cell style
+        table_cell_style = ParagraphStyle(
+            'TableCell',
+            parent=styles['Normal'],
+            fontSize=8,
+            textColor=colors.HexColor(COLORS['gray_800']),
+            fontName='Helvetica',
+            alignment=0,
+            leading=9
+        )
+        
+        # Table cell center style
+        table_cell_center = ParagraphStyle(
+            'TableCellCenter',
+            parent=table_cell_style,
+            alignment=1
+        )
+        
+        # Table cell right style
+        table_cell_right = ParagraphStyle(
+            'TableCellRight',
+            parent=table_cell_style,
+            alignment=2
+        )
+        
+        # Status cell style
+        status_cell_style = ParagraphStyle(
+            'StatusCell',
+            parent=table_cell_style,
+            alignment=1,
+            fontSize=8,
+            wordWrap=None,
+            spaceBefore=2,
+            spaceAfter=2,
+            leading=9,
+            fontName='Helvetica-Bold'
+        )
+        
+        # Status Paid style
+        status_paid_style = ParagraphStyle(
+            'StatusPaid',
+            parent=status_cell_style,
+            textColor=colors.green
+        )
+        
+        # Status Pending style
+        status_pending_style = ParagraphStyle(
+            'StatusPending',
+            parent=status_cell_style,
+            textColor=colors.red
+        )
+        
+        # Total amount style
+        total_amount_style = ParagraphStyle(
+            'TotalAmount',
+            parent=table_cell_right,
+            fontSize=9,
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor(COLORS['black']),
+            spaceBefore=0,
+            spaceAfter=0,
+            leading=11,
+            alignment=2,
+            valign='MIDDLE'
+        )
+        
+        # Total label style
+        total_label_style = ParagraphStyle(
+            'TotalLabel',
+            parent=table_cell_style,
+            fontSize=9,
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor(COLORS['black']),
+            spaceBefore=0,
+            spaceAfter=0,
+            leading=11,
+            alignment=0,
+            valign='MIDDLE'
+        )
+        
+        # Insight style
+        insight_style = ParagraphStyle(
+            'Insight',
+            parent=styles['Normal'],
+            fontSize=9,  # Original size
+            textColor=colors.HexColor(COLORS['gray_800']),
+            leftIndent=0.5*cm,
+            spaceAfter=2
+        )
+        
+        # Footer style
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=styles['Normal'],
+            fontSize=8,
+            textColor=colors.HexColor(COLORS['gray_500']),
+            alignment=1
+        )
+        
+        # ============================
+        # SMALLER TABLE STYLES FOR TOP PERFORMERS
+        # ============================
+        
+        # Professional table header for top performers (SMALLER)
+        performer_header_style = ParagraphStyle(
+            'PerformerHeader',
+            parent=styles['Normal'],
+            fontSize=8,  # Reduced from 9
+            textColor=colors.white,
+            fontName='Helvetica-Bold',
+            alignment=1,
+            spaceBefore=2,  # Reduced
+            spaceAfter=2,   # Reduced
+            leading=10      # Reduced
+        )
+        
+        # Performer cell style with gradient background support (SMALLER)
+        performer_cell_style = ParagraphStyle(
+            'PerformerCell',
+            parent=styles['Normal'],
+            fontSize=8,  # Reduced from 9
+            textColor=colors.HexColor(COLORS['gray_800']),
+            fontName='Helvetica',
+            alignment=0,
+            leading=9     # Reduced
+        )
+        
+        # Performer highlight style for top row
+        performer_highlight_style = ParagraphStyle(
+            'PerformerHighlight',
+            parent=performer_cell_style,
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor(COLORS['black'])
+        )
+        
+        # Rank cell style with medal colors (SMALLER)
+        rank_style_gold = ParagraphStyle(
+            'RankGold',
+            parent=table_cell_center,
+            fontSize=8,  # Reduced from 9
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor('#D4AF37')  # Gold
+        )
+        
+        rank_style_silver = ParagraphStyle(
+            'RankSilver',
+            parent=table_cell_center,
+            fontSize=8,  # Reduced from 9
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor('#C0C0C0')  # Silver
+        )
+        
+        rank_style_bronze = ParagraphStyle(
+            'RankBronze',
+            parent=table_cell_center,
+            fontSize=8,  # Reduced from 9
+            fontName='Helvetica-Bold',
+            textColor=colors.HexColor('#CD7F32')  # Bronze
+        )
+        
+        rank_style_regular = ParagraphStyle(
+            'RankRegular',
+            parent=table_cell_center,
+            fontSize=8,  # Reduced from 9
+            textColor=colors.HexColor(COLORS['gray_500'])
+        )
+        
+        # Revenue cell with currency styling (SMALLER)
+        revenue_cell_style = ParagraphStyle(
+            'RevenueCell',
+            parent=table_cell_right,
+            fontSize=8,  # Reduced from 9
+            fontName='Helvetica',
+            textColor=colors.HexColor(COLORS['success']),
+            spaceBefore=1,  # Reduced
+            spaceAfter=1    # Reduced
+        )
+        
+        # ============================
+        # GENERATE REVENUE ANALYSIS CHART (PAID & PENDING ONLY)
+        # ============================
+        chart_files = []
+        
+        try:
+            # Revenue Analysis Bar Chart (Paid & Pending only)
+            if float(paid_revenue) > 0 or float(pending_revenue) > 0:
+                plt.figure(figsize=(3, 2.5))  # Smaller figure
+                categories = ['Paid', 'Pending']
+                values = [float(paid_revenue), float(pending_revenue)]
+                bar_colors = [COLORS['success'], COLORS['warning']]
+                
+                bars = plt.bar(categories, values, color=bar_colors, width=0.4)  # Narrower bars
+                plt.ylabel('Amount (RM)', fontsize=8, color=COLORS['gray_600'])
+                plt.title('Revenue Analysis', fontsize=10, fontweight='bold',
+                         color=COLORS['black'], pad=8)
+                
+                # Value labels on bars (formatted with K for thousands if large)
+                for bar in bars:
+                    height = bar.get_height()
+                    if height > 0:
+                        # Format value
+                        if height >= 1000:
+                            formatted_val = f'RM {height/1000:.1f}K'
+                        else:
+                            formatted_val = f'RM {height:,.0f}'
+                        
+                        plt.text(bar.get_x() + bar.get_width()/2., height + (max(values)*0.01),
+                                formatted_val, ha='center', va='bottom', 
+                                fontsize=7, fontweight='bold')
+                
+                plt.grid(axis='y', alpha=0.3, color=COLORS['gray_300'])
+                plt.tight_layout(pad=1.5)
+                
+                temp_revenue = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+                plt.savefig(temp_revenue.name, dpi=150, bbox_inches='tight', facecolor='white')
+                chart_files.append(temp_revenue.name)
+                plt.close()
+            
+        except Exception as e:
+            print(f"Chart generation error: {e}")
+            # Continue without charts
+        
+        # ============================
+        # BUILD PDF STORY
+        # ============================
+        story = []
+        
+        # Header Section with black accent line
+        story.append(Spacer(1, 0.2*cm))
+        story.append(Paragraph("REGISTRATION DASHBOARD REPORT", title_style))
+        story.append(Paragraph(f"{event.title}", subtitle_style))
+        story.append(Paragraph(f"Event Date: {event.date.strftime('%d %B %Y')} | Generated: {malaysia_now().strftime('%d/%m/%Y %H:%M')}", 
+                             ParagraphStyle('ReportInfo', parent=subtitle_style, fontSize=9)))
+        story.append(Spacer(1, 0.3*cm))  # Less spacing
+        
+        # ============================
+        # ROW 1: SMALLER KEY METRIC CARDS (4 cards - reduced size)
+        # ============================
+        
+        def create_metric_card(label, value, subtext=""):
+            """Create a SMALLER dashboard metric card with black/gray theme"""
+            # Create a table with value on top, label below
+            card_data = [
+                [Paragraph(str(value), metric_value_style)],
+                [Paragraph(label, metric_label_style)],
+            ]
+            
+            if subtext:
+                card_data.append([Paragraph(subtext, metric_subtext_style)])
+            
+            # SMALLER card width
+            card_table = Table(card_data, colWidths=[4.2*cm])  # Reduced
+            
+            # Style to match black/gray theme - clean boxes with black border
+            card_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor(COLORS['black'])),  # Black border
+                ('PADDING', (0, 0), (-1, -1), 5),  # Less padding
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('TOPPADDING', (0, 0), (-1, 0), 6),   # Less padding
+                ('BOTTOMPADDING', (0, -1), (-1, -1), 6),  # Less padding
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_100'])),  # Light gray top
+            ]))
+            
+            return card_table
+        
+        # Calculate metrics
+        payment_rate = (total_paid/total_registered*100) if total_registered > 0 else 0
+        avg_fee = total_revenue/total_registered if total_registered > 0 else 0
+        avg_paid_fee = paid_revenue/total_paid if total_paid > 0 else 0
+        
+        # Create 4 SMALLER metric cards
+        metric_cards = [
+            create_metric_card(
+                "Total Registrations",
+                total_registered,
+                f"{total_paid} paid, {total_pending} pending"
+            ),
+            create_metric_card(
+                "Payment Rate",
+                f"{payment_rate:.2f}%",
+                f"{total_paid} completed"
+            ),
+            create_metric_card(
+                "Total Revenue",
+                f"RM {total_revenue:,.2f}",
+                f"Avg: RM {avg_fee:,.2f}"
+            ),
+            create_metric_card(
+                "Avg Paid Fee",
+                f"RM {avg_paid_fee:,.2f}" if total_paid > 0 else "RM 0.00",
+                "Per successful registration"
+            )
         ]
         
-        status_table = Table(status_data, colWidths=[2*inch, 1.5*inch, 1.5*inch])
-        status_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#27ae60')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (0, 1), colors.HexColor('#d4edda')),
-            ('BACKGROUND', (0, 2), (0, 2), colors.HexColor('#fff3cd')),
-            ('GRID', (0, 0), (-1, -1), 1, colors.grey)
+        # Arrange cards in a single row with SMALLER widths
+        metrics_row = Table([metric_cards], colWidths=[4.2*cm, 4.2*cm, 4.2*cm, 4.2*cm])
+        metrics_row.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('PADDING', (0, 0), (-1, -1), 2),
         ]))
         
-        story.append(status_table)
-        story.append(Spacer(1, 20))
-    
-    # Build PDF
-    doc.build(story)
-    buffer.seek(0)
-    
-    # Create response
-    response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="registration_report_{event.id}_{datetime.now().strftime("%Y%m%d")}.pdf"'
-    
-    return response
+        story.append(metrics_row)
+        story.append(Spacer(1, 0.3*cm))
+        
+        # ============================
+        # COMBINED SECTION: REVENUE ANALYSIS & KEY INSIGHTS (CENTERED)
+        # ============================
+        
+        # Create a combined container for both sections
+        combined_sections = []
+        
+        # Revenue Chart Section
+        revenue_content = []
+        if len(chart_files) > 0:
+            revenue_content.append([Paragraph("REVENUE ANALYSIS", 
+                                 ParagraphStyle('SectionCenter', parent=section_style, alignment=1))])
+            revenue_content.append([Spacer(1, 0.1*cm)])
+            revenue_content.append([Image(chart_files[0], width=8*cm, height=4*cm)])  # Smaller image
+        else:
+            revenue_content.append([Paragraph("REVENUE ANALYSIS", 
+                                 ParagraphStyle('SectionCenter', parent=section_style, alignment=1))])
+            revenue_content.append([Paragraph("No revenue data available", 
+                                 ParagraphStyle('Center', parent=table_cell_center, alignment=1))])
+        
+        # Key Insights Section
+        insights_content = []
+        insights_content.append([Paragraph("KEY INSIGHTS", 
+                              ParagraphStyle('SectionCenter', parent=section_style, alignment=1))])
+        insights_content.append([Spacer(1, 0.1*cm)])
+        
+        # Generate insights list
+        insights_data = []
+        if total_registered > 0:
+            insights_data.append([Paragraph(f"• <b>{total_registered}</b> total registrations", insight_style)])
+            insights_data.append([Paragraph(f"• <b>{payment_rate:.2f}%</b> payment completion rate", insight_style)])
+            insights_data.append([Paragraph(f"• <b>RM {total_revenue:,.2f}</b> total revenue generated", insight_style)])
+            
+            if total_paid > 0:
+                insights_data.append([Paragraph(f"• <b>RM {paid_revenue:,.2f}</b> confirmed revenue", insight_style)])
+            
+            if total_pending > 0:
+                insights_data.append([Paragraph(f"• <b>RM {pending_revenue:,.2f}</b> pending revenue", insight_style)])
+            
+            if top_courses and top_courses[0]['count'] > 0:
+                top_course_name = top_courses[0]['course'] or 'Unknown'
+                if len(top_course_name) > 20:
+                    top_course_name = top_course_name[:18] + "..."
+                insights_data.append([Paragraph(f"• <b>{top_course_name}</b> is the most popular course", insight_style)])
+            
+            if top_closers and top_closers[0]['count'] > 0:
+                top_closer_name = top_closers[0]['closer'] or 'Unknown'
+                if len(top_closer_name) > 20:
+                    top_closer_name = top_closer_name[:18] + "..."
+                insights_data.append([Paragraph(f"• <b>{top_closer_name}</b> is the top performing closer", insight_style)])
+        else:
+            insights_data.append([Paragraph("• No registrations yet for this event", insight_style)])
+        
+        insights_table = Table(insights_data, colWidths=[12*cm])
+        insights_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(COLORS['white'])),
+            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor(COLORS['gray_200'])),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('PADDING', (0, 0), (-1, -1), 2),
+        ]))
+        
+        insights_content.append([insights_table])
+        
+        # Create combined table with both sections side by side
+        combined_table = Table([
+            [Table(revenue_content), Table(insights_content)]
+        ], colWidths=[10*cm, 15*cm])
+        
+        combined_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('PADDING', (0, 0), (-1, -1), 5),
+            ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+            ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+        ]))
+        
+        story.append(combined_table)
+        story.append(Spacer(1, 0.3*cm))
+        
+        # ============================
+        # ROW 3: TOP PERFORMERS ANALYSIS (PROPERLY CENTERED LIKE REGISTRATION TABLE)
+        # ============================
+        
+        # Create centered header
+        story.append(Paragraph("TOP PERFORMERS ANALYSIS", 
+                    ParagraphStyle('SectionCenter', parent=section_style, fontSize=12, alignment=1)))
+        story.append(Spacer(1, 0.2*cm))
+        
+        # Create compact tables side by side
+        performers_tables = []
+        
+        # 1. COMPACT TOP COURSES TABLE
+        if top_courses:
+            courses_data = []
+            
+            # Compact headers
+            courses_data.append([
+                Paragraph('<b>#</b>', performer_header_style),
+                Paragraph('<b>COURSE</b>', performer_header_style),
+                Paragraph('<b>COUNT</b>', performer_header_style),
+                Paragraph('<b>%</b>', performer_header_style),
+                Paragraph('<b>REVENUE</b>', performer_header_style),
+            ])
+            
+            # Data rows
+            for i, course in enumerate(top_courses, 1):
+                course_name = course['course'] or 'Unknown'
+                if len(course_name) > 15:
+                    course_name = course_name[:13] + "..."
+                
+                course_percentage = (course['count'] / total_registered * 100) if total_registered > 0 else 0
+                course_revenue = course['revenue'] or 0
+                
+                # Choose rank style
+                if i == 1:
+                    rank_style = rank_style_gold
+                elif i == 2:
+                    rank_style = rank_style_silver
+                elif i == 3:
+                    rank_style = rank_style_bronze
+                else:
+                    rank_style = rank_style_regular
+                
+                # Apply highlight to top row
+                if i == 1:
+                    name_style = performer_highlight_style
+                else:
+                    name_style = performer_cell_style
+                
+                courses_data.append([
+                    Paragraph(str(i), rank_style),
+                    Paragraph(course_name, name_style),
+                    Paragraph(str(course['count']), table_cell_center),
+                    Paragraph(f"{course_percentage:.1f}%", table_cell_center),
+                    Paragraph(f"RM {course_revenue:,.0f}" if course_revenue == int(course_revenue) else f"RM {course_revenue:,.2f}", revenue_cell_style),
+                ])
+            
+            # Compact column widths
+            courses_col_widths = [1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm]
+            
+            courses_table = Table(courses_data, colWidths=courses_col_widths, repeatRows=1)
+            
+            # Compact table styling - Black/Gray theme
+            courses_table.setStyle(TableStyle([
+                # Header - Black background
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 8),
+                ('PADDING', (0, 0), (-1, 0), 5),
+                ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+                # Body
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('PADDING', (0, 1), (-1, -1), 4),
+                ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
+                
+                # Thin horizontal lines - Gray
+                ('LINEBELOW', (0, 0), (-1, 0), 1, colors.white),
+                ('LINEBELOW', (0, 1), (-1, -1), 0.2, colors.HexColor(COLORS['gray_300'])),
+                
+                # Column alignments
+                ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+                ('ALIGN', (2, 1), (3, -1), 'CENTER'),
+                ('ALIGN', (4, 1), (4, -1), 'RIGHT'),
+                
+                # Top row highlight - Light gray
+                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor(COLORS['gray_100'])),
+            ]))
+            
+            performers_tables.append(courses_table)
+        
+        # 2. COMPACT TOP CLOSERS TABLE
+        if top_closers:
+            closers_data = []
+            
+            # Compact headers
+            closers_data.append([
+                Paragraph('<b>#</b>', performer_header_style),
+                Paragraph('<b>CLOSER</b>', performer_header_style),
+                Paragraph('<b>COUNT</b>', performer_header_style),
+                Paragraph('<b>%</b>', performer_header_style),
+                Paragraph('<b>REVENUE</b>', performer_header_style),
+            ])
+            
+            # Data rows
+            for i, closer in enumerate(top_closers, 1):
+                closer_name = closer['closer'] or 'Unknown'
+                if len(closer_name) > 15:
+                    closer_name = closer_name[:13] + "..."
+                
+                closer_percentage = (closer['count'] / total_registered * 100) if total_registered > 0 else 0
+                closer_revenue = closer['revenue'] or 0
+                
+                # Choose rank style
+                if i == 1:
+                    rank_style = rank_style_gold
+                elif i == 2:
+                    rank_style = rank_style_silver
+                elif i == 3:
+                    rank_style = rank_style_bronze
+                else:
+                    rank_style = rank_style_regular
+                
+                # Apply highlight to top row
+                if i == 1:
+                    name_style = performer_highlight_style
+                else:
+                    name_style = performer_cell_style
+                
+                closers_data.append([
+                    Paragraph(str(i), rank_style),
+                    Paragraph(closer_name, name_style),
+                    Paragraph(str(closer['count']), table_cell_center),
+                    Paragraph(f"{closer_percentage:.1f}%", table_cell_center),
+                    Paragraph(f"RM {closer_revenue:,.0f}" if closer_revenue == int(closer_revenue) else f"RM {closer_revenue:,.2f}", revenue_cell_style),
+                ])
+            
+            # Compact column widths
+            closers_col_widths = [1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm]
+            
+            closers_table = Table(closers_data, colWidths=closers_col_widths, repeatRows=1)
+            
+            # Compact table styling - Black/Gray theme
+            closers_table.setStyle(TableStyle([
+                # Header - Black background
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 8),
+                ('PADDING', (0, 0), (-1, 0), 5),
+                ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+                # Body
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('PADDING', (0, 1), (-1, -1), 4),
+                ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
+                
+                # Thin horizontal lines - Gray
+                ('LINEBELOW', (0, 0), (-1, 0), 1, colors.white),
+                ('LINEBELOW', (0, 1), (-1, -1), 0.2, colors.HexColor(COLORS['gray_300'])),
+                
+                # Column alignments
+                ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+                ('ALIGN', (2, 1), (3, -1), 'CENTER'),
+                ('ALIGN', (4, 1), (4, -1), 'RIGHT'),
+                
+                # Top row highlight - Light gray
+                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor(COLORS['gray_100'])),
+            ]))
+            
+            performers_tables.append(closers_table)
+        
+        # Create a container to center the tables properly
+        if len(performers_tables) > 0:
+            # Calculate available width on page (landscape A4 minus margins)
+            page_width = landscape(A4)[0]
+            left_margin = 2.5*cm
+            right_margin = 2.5*cm
+            available_width = page_width - left_margin - right_margin
+            
+            # Determine how many tables we have and calculate their total width
+            if len(performers_tables) == 2:
+                # Two tables side by side
+                table1_width = sum([1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm])  # 12.5cm
+                table2_width = sum([1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm])  # 12.5cm
+                total_tables_width = table1_width + table2_width + 2*cm  # Add spacing
+                
+                # Create centered container
+                center_table = Table([
+                    performers_tables
+                ], colWidths=[table1_width, table2_width])
+                
+                center_table.setStyle(TableStyle([
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('PADDING', (0, 0), (-1, -1), 3),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ]))
+                
+                story.append(center_table)
+                
+            elif len(performers_tables) == 1:
+                # Single table - center it
+                single_table_width = sum([1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm])  # 12.5cm
+                
+                # Create centered container for single table
+                center_table = Table([
+                    [performers_tables[0]]
+                ], colWidths=[single_table_width])
+                
+                center_table.setStyle(TableStyle([
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('PADDING', (0, 0), (-1, -1), 3),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ]))
+                
+                story.append(center_table)
+        
+        story.append(Spacer(1, 0.3*cm))
+        
+        # ============================
+        # PAGE BREAK
+        # ============================
+        story.append(PageBreak())
+        
+        # ============================
+        # PAGE 2: DETAILED REGISTRATIONS
+        # ============================
+        
+        # Header
+        story.append(Paragraph("REGISTRATION DETAILS", title_style))
+        story.append(Paragraph(
+            f"Event: {event.title} | Total: {total_registered} registration(s)", 
+            subtitle_style
+        ))
+        story.append(Spacer(1, 0.3*cm))  # Less spacing
+        
+        # ============================
+        # ADJUSTED TABLE STRUCTURE - FIXED COLUMN HEADERS
+        # ============================
+        
+        # Updated headers with adjusted widths
+        headers = [
+            ('ID', 0.8*cm),  # Smaller
+            ('ATTENDEE', 5.5*cm),  # Smaller
+            ('EMAIL',3.0*cm),  # Smaller
+            ('REFERRAL<br/>CODE', 2.2*cm),  # Smaller
+            ('COURSE', 2.2*cm),  # Smaller
+            ('COLLEGE', 2.0*cm),  # Smaller
+            ('REG.<br/>DATE', 1.5*cm),  # Smaller
+            ('PRE-<br/>REG', 1.4*cm),  # Smaller
+            ('REG<br/>FEE', 1.4*cm),  # Smaller
+            ('TOTAL', 2.2*cm),  # Smaller
+            ('STATUS', 1.8*cm),  # Smaller
+            ('CLOSER', 2.0*cm),  # Smaller
+        ]
+        
+        # Create table data
+        table_data = []
+        
+        # Headers with multiline text - Black background
+        header_row = []
+        for header_text, width in headers:
+            header_row.append(Paragraph(f'<b>{header_text}</b>', table_header_style))
+        table_data.append(header_row)
+        
+        # Registration rows
+        sorted_registrations = registrations.order_by('-register_date', 'attendee__name')
+        for i, reg in enumerate(sorted_registrations, 1):
+            # Get inviting officer
+            inviting_officer = email_to_inviting_officer.get(
+                reg.attendee.email.lower(), 'N/A'
+            )
+            
+            # Truncate long text
+            attendee_name = reg.attendee.name
+            if len(attendee_name) > 18:
+                attendee_name = attendee_name[:16] + "..."
+            
+            email = reg.attendee.email
+            if len(email) > 18:
+                email = email[:16] + "..."
+            
+            officer = inviting_officer
+            if len(officer) > 12:
+                officer = officer[:10] + "..."
+            
+            course = reg.course or 'N/A'
+            if len(course) > 12:
+                course = course[:10] + "..."
+            
+            college = reg.college or 'N/A'
+            if len(college) > 12:
+                college = college[:10] + "..."
+            
+            closer = reg.closer or 'N/A'
+            if len(closer) > 12:
+                closer = closer[:10] + "..."
+            
+            # Status with color coding
+            if reg.payment_status == 'DONE':
+                status_cell = Paragraph('PAID', status_paid_style)
+            else:
+                status_cell = Paragraph('PENDING', status_pending_style)
+            
+            # Format fees
+            pre_reg_fee = f"{reg.pre_registration_fee:,.0f}" if reg.pre_registration_fee == int(reg.pre_registration_fee) else f"{reg.pre_registration_fee:,.2f}"
+            reg_fee = f"{reg.registration_fee:,.0f}" if reg.registration_fee == int(reg.registration_fee) else f"{reg.registration_fee:,.2f}"
+            total_fee = f"{reg.total_fee():,.0f}" if reg.total_fee() == int(reg.total_fee()) else f"{reg.total_fee():,.2f}"
+            
+            # Build row
+            row = [
+                Paragraph(str(i), table_cell_center),
+                Paragraph(attendee_name, table_cell_style),
+                Paragraph(email, table_cell_style),
+                Paragraph(officer, table_cell_style),
+                Paragraph(course, table_cell_style),
+                Paragraph(college, table_cell_style),
+                Paragraph(
+                    reg.register_date.strftime('%d/%m/%y') if reg.register_date else 'N/A',
+                    table_cell_center
+                ),
+                Paragraph(f"RM {pre_reg_fee}", table_cell_right),
+                Paragraph(f"RM {reg_fee}", table_cell_right),
+                Paragraph(f"RM {total_fee}", table_cell_right),
+                status_cell,
+                Paragraph(closer, table_cell_style),
+            ]
+            
+            table_data.append(row)
+        
+        # Add summary row
+        total_row = [
+            Paragraph(f'<b>SUMMARY: {total_registered} Registrations</b>', total_label_style),
+            '', '', '', '', '', '',
+            Paragraph('', table_cell_center),
+            Paragraph('', table_cell_center),
+            Paragraph(f'<b>RM {total_revenue:,.2f}</b>', total_amount_style),
+            '', ''
+        ]
+        
+        table_data.append(total_row)
+        
+        # Extract column widths
+        col_widths = [width for _, width in headers]
+        
+        # Create table
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        
+        # Apply styling - Black/Gray theme
+        table.setStyle(TableStyle([
+            # Header - Black background
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('PADDING', (0, 0), (-1, 0), 6),
+            ('LEFTPADDING', (0, 0), (-1, 0), 4),
+            ('RIGHTPADDING', (0, 0), (-1, 0), 4),
+            ('TOPPADDING', (0, 0), (-1, 0), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 5),
+            ('LINEBELOW', (0, 0), (-1, 0), 1, colors.white),
+            ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            
+            # Body
+            ('FONTSIZE', (0, 1), (-1, -2), 7),
+            ('PADDING', (0, 1), (-1, -2), 6),
+            ('LEFTPADDING', (0, 1), (-1, -2), 4),
+            ('RIGHTPADDING', (0, 1), (-1, -2), 4),
+            ('TOPPADDING', (0, 1), (-1, -2), 5),
+            ('BOTTOMPADDING', (0, 1), (-1, -2), 5),
+            ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -2), 0.25, colors.HexColor(COLORS['gray_300'])),
+            
+            # STATUS column
+            ('LEFTPADDING', (10, 1), (10, -2), 4),
+            ('RIGHTPADDING', (10, 1), (10, -2), 4),
+            ('TOPPADDING', (10, 1), (10, -2), 6),
+            ('BOTTOMPADDING', (10, 1), (10, -2), 6),
+            
+            # Alternating rows - using gray tones
+            ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
+             [colors.white, colors.HexColor(COLORS['gray_50'])]),
+            
+            # Column alignments
+            ('ALIGN', (0, 1), (0, -2), 'CENTER'),
+            ('ALIGN', (6, 1), (6, -2), 'CENTER'),
+            ('ALIGN', (7, 1), (9, -2), 'RIGHT'),
+            ('ALIGN', (10, 1), (10, -2), 'CENTER'),
+            
+            # TOTAL ROW - Gray background with black text
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_200'])),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, -1), (-1, -1), 8),
+            ('PADDING', (0, -1), (-1, -1), 5),
+            ('LEFTPADDING', (0, -1), (-1, -1), 4),
+            ('RIGHTPADDING', (0, -1), (-1, -1), 4),
+            ('TOPPADDING', (0, -1), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, -1), (-1, -1), 4),
+            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.HexColor(COLORS['black'])),
+            ('VALIGN', (0, -1), (-1, -1), 'MIDDLE'),
+            
+            # Total amount cell
+            ('TOPPADDING', (9, -1), (9, -1), 3),
+            ('BOTTOMPADDING', (9, -1), (9, -1), 3),
+            ('VALIGN', (9, -1), (9, -1), 'MIDDLE'),
+            
+            # Span cells for summary row
+            ('SPAN', (0, -1), (8, -1)),
+            ('SPAN', (9, -1), (9, -1)),
+            
+            # Remove grid for total row
+            ('GRID', (0, -1), (-1, -1), 0, colors.white),
+        ]))
+        
+        story.append(table)
+        story.append(Spacer(1, 0.3*cm))
+        
+        # Page 2 footer
+        story.append(Paragraph(
+            f"Report ID: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')} | © ATTSYS Dashboard",
+            footer_style
+        ))
+        
+        # ============================
+        # BUILD PDF DOCUMENT
+        # ============================
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=landscape(A4),
+            rightMargin=2.5*cm,
+            leftMargin=2.5*cm,
+            topMargin=1.5*cm,  # Reduced
+            bottomMargin=1.5*cm,  # Reduced
+        )
+        
+        # Build the story
+        doc.build(story)
+        buffer.seek(0)
+        
+        # Clean up temporary chart files
+        for chart_file in chart_files:
+            try:
+                os.unlink(chart_file)
+            except:
+                pass
+        
+        # Create response
+        response = HttpResponse(buffer, content_type='application/pdf')
+        filename = f"Dashboard_Report_{event.title.replace(' ', '_')[:30]}_{malaysia_now().strftime('%Y%m%d_%H%M')}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"PDF generation error: {str(e)}")
+        print(f"Error details: {error_details}")
+        
+        # Simple error response
+        return HttpResponse(
+            f"Error generating PDF: {str(e)[:200]}",
+            status=500,
+            content_type='text/plain'
+        )
 
 
 @login_required
@@ -1972,3 +2990,341 @@ def download_qr_code(request, event_id):
             return response
         except:
             return HttpResponse("Error generating QR code", status=500)
+
+@login_required
+@require_GET
+def get_printable_attendee_details(request, attendee_id):
+    """Get attendee details formatted specifically for printing"""
+    attendee = get_object_or_404(Attendee, id=attendee_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and attendee.event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        application = Application.objects.get(
+            event=attendee.event,
+            email__iexact=attendee.email
+        )
+        
+        # Format all data for printing (dash for empty values)
+        def format_print_value(value, field_type='text'):
+            if value is None:
+                return '-'
+            
+            str_value = str(value).strip()
+            
+            if not str_value:
+                return '-'
+            
+            # Special formatting for specific fields
+            if field_type == 'ic' and len(str_value) == 12:
+                return f'{str_value[:6]}-{str_value[6:8]}-{str_value[8:]}'
+            elif field_type == 'phone' and len(str_value) >= 10:
+                return f'{str_value[:3]}-{str_value[3:7]} {str_value[7:]}'
+            elif field_type == 'money' and str_value.replace('.', '').isdigit():
+                try:
+                    return f'RM {float(str_value):,.2f}'
+                except:
+                    return str_value
+            else:
+                return str_value
+        
+        data = {
+            'print_data': {
+                'personal_info': {
+                    'full_name': format_print_value(application.full_name),
+                    'ic_no': format_print_value(application.ic_no, 'ic'),
+                    'email': format_print_value(application.email),
+                    'phone_no': format_print_value(application.phone_no, 'phone'),
+                    'marriage_status': format_print_value(application.marriage_status),
+                },
+                'address': {
+                    'address1': format_print_value(application.address1),
+                    'address2': format_print_value(application.address2),
+                    'city': format_print_value(application.city),
+                    'postcode': format_print_value(application.postcode),
+                    'state': format_print_value(application.state),
+                },
+                'father_info': {
+                    'name': format_print_value(application.father_name),
+                    'ic': format_print_value(application.father_ic, 'ic'),
+                    'phone': format_print_value(application.father_phone, 'phone'),
+                    'occupation': format_print_value(application.father_occupation),
+                    'income': format_print_value(application.father_income, 'money'),
+                    'dependants': format_print_value(application.father_dependants),
+                },
+                'mother_info': {
+                    'name': format_print_value(application.mother_name),
+                    'ic': format_print_value(application.mother_ic, 'ic'),
+                    'phone': format_print_value(application.mother_phone, 'phone'),
+                    'occupation': format_print_value(application.mother_occupation),
+                    'income': format_print_value(application.mother_income, 'money'),
+                    'dependants': format_print_value(application.mother_dependants),
+                },
+                'application_info': {
+                    'inviting_officer': format_print_value(application.registration_officer),
+                    'applied_programme': format_print_value(application.applied_programme),
+                    'spm_total_credit': format_print_value(application.spm_total_credit),
+                    'interest_choice1': format_print_value(application.interest_choice1),
+                    'interest_choice2': format_print_value(application.interest_choice2),
+                    'interest_choice3': format_print_value(application.interest_choice3),
+                }
+            }
+        }
+        
+        return JsonResponse(data)
+        
+    except Application.DoesNotExist:
+        return JsonResponse({'error': 'No application found'}, status=404)
+
+
+@login_required
+@require_GET
+def get_live_stats(request, event_id):
+    """Get live statistics for dashboard"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        # Get current date in Malaysia timezone
+        today_malaysia = malaysia_now().date()
+        
+        # Get all data efficiently
+        attendees = event.attendees.all()
+        applications = Application.objects.filter(event=event)
+        registrations = Registration.objects.filter(attendee__event=event)
+        
+        # Calculate statistics
+        total_attendees = attendees.count()
+        total_applications = applications.count()
+        total_registered = registrations.count()
+        
+        # Payment status breakdown
+        payment_status_counts = registrations.aggregate(
+            total_paid=Count('id', filter=Q(payment_status='DONE')),
+            total_pending=Count('id', filter=Q(payment_status='PENDING'))
+        )
+        
+        total_paid = payment_status_counts['total_paid'] or 0
+        total_pending = payment_status_counts['total_pending'] or 0
+        
+        # Calculate total revenue
+        revenue_sum = registrations.aggregate(
+            total=Sum(
+                models.F('pre_registration_fee') + models.F('registration_fee')
+            )
+        )
+        total_revenue = revenue_sum['total'] or Decimal('0.00')
+        
+        # Today's check-ins (using Malaysia time)
+        today_start = timezone.localtime(
+            timezone.now().replace(hour=0, minute=0, second=0, microsecond=0),
+            timezone.get_current_timezone()
+        )
+        today_checkins = attendees.filter(
+            attended_at__gte=today_start
+        ).count()
+        
+        # Get last check-in time
+        last_checkin = attendees.order_by('-attended_at').first()
+        last_checkin_time = None
+        if last_checkin:
+            last_checkin_time = timezone.localtime(last_checkin.attended_at).strftime('%I:%M %p')
+        
+        # Get feedback statistics
+        feedbacks = event.feedbacks.all()
+        feedback_count = feedbacks.count()
+        avg_rating = feedbacks.aggregate(Avg('rating'))['rating__avg'] or 0
+        
+        response_data = {
+            'success': True,
+            'statistics': {
+                'attendees': {
+                    'total': total_attendees,
+                    'today': today_checkins,
+                    'last_checkin': last_checkin_time
+                },
+                'applications': {
+                    'total': total_applications,
+                    'percentage': round((total_applications / total_attendees * 100) if total_attendees > 0 else 0, 1)
+                },
+                'registrations': {
+                    'total': total_registered,
+                    'paid': total_paid,
+                    'pending': total_pending,
+                    'percentage_paid': round((total_paid / total_registered * 100) if total_registered > 0 else 0, 1),
+                    'revenue': float(total_revenue),
+                    'avg_revenue': float(total_revenue / total_registered) if total_registered > 0 else 0
+                },
+                'feedback': {
+                    'count': feedback_count,
+                    'avg_rating': round(float(avg_rating), 1)
+                }
+            },
+            'summary': {
+                'total_revenue': f"RM {total_revenue:,.2f}",
+                'total_attendees': total_attendees,
+                'completion_rate': f"{round((total_registered / total_attendees * 100) if total_attendees > 0 else 0, 1)}%",
+                'current_time': malaysia_now().strftime('%I:%M %p')
+            }
+        }
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        print(f"Error getting live stats: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+@require_GET
+def get_daily_stats(request, event_id):
+    """Get daily statistics breakdown"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        # Get date range (last 30 days)
+        end_date = malaysia_now().date()
+        start_date = end_date - timedelta(days=29)
+        
+        daily_stats = []
+        
+        # Loop through each day
+        current_date = start_date
+        while current_date <= end_date:
+            date_start = timezone.make_aware(
+                datetime.combine(current_date, datetime.min.time())
+            )
+            date_end = timezone.make_aware(
+                datetime.combine(current_date, datetime.max.time())
+            )
+            
+            # Adjust for Malaysia timezone
+            date_start = timezone.localtime(date_start, timezone.get_current_timezone())
+            date_end = timezone.localtime(date_end, timezone.get_current_timezone())
+            
+            # Get statistics for this day
+            day_attendees = event.attendees.filter(
+                attended_at__gte=date_start,
+                attended_at__lt=date_end
+            ).count()
+            
+            day_registrations = Registration.objects.filter(
+                attendee__event=event,
+                created_at__gte=date_start,
+                created_at__lt=date_end
+            ).count()
+            
+            day_revenue = Registration.objects.filter(
+                attendee__event=event,
+                created_at__gte=date_start,
+                created_at__lt=date_end
+            ).aggregate(
+                total=Sum(
+                    models.F('pre_registration_fee') + models.F('registration_fee')
+                )
+            )['total'] or Decimal('0.00')
+            
+            daily_stats.append({
+                'date': current_date.strftime('%Y-%m-%d'),
+                'display': current_date.strftime('%b %d'),
+                'attendees': day_attendees,
+                'registrations': day_registrations,
+                'revenue': float(day_revenue)
+            })
+            
+            current_date += timedelta(days=1)
+        
+        return JsonResponse({
+            'success': True,
+            'daily_stats': daily_stats,
+            'date_range': {
+                'start': start_date.strftime('%Y-%m-%d'),
+                'end': end_date.strftime('%Y-%m-%d')
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error getting daily stats: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+@require_GET
+def get_realtime_updates(request, event_id):
+    """WebSocket-like endpoint for real-time updates"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    # Get last update timestamp
+    last_update_str = request.GET.get('last_update')
+    last_update = None
+    if last_update_str:
+        try:
+            last_update = timezone.datetime.fromisoformat(
+                last_update_str.replace('Z', '+00:00')
+            )
+        except:
+            pass
+    
+    # Check for new attendees
+    new_attendees = event.attendees.all()
+    if last_update:
+        new_attendees = new_attendees.filter(attended_at__gt=last_update)
+    
+    # Check for new registrations
+    new_registrations = Registration.objects.filter(attendee__event=event)
+    if last_update:
+        new_registrations = new_registrations.filter(created_at__gt=last_update)
+    
+    # Check for new feedback
+    new_feedback = event.feedbacks.all()
+    if last_update:
+        new_feedback = new_feedback.filter(submitted_at__gt=last_update)
+    
+    # Get latest timestamp
+    latest_timestamp = None
+    timestamps = []
+    
+    if new_attendees.exists():
+        timestamps.append(new_attendees.latest('attended_at').attended_at)
+    if new_registrations.exists():
+        timestamps.append(new_registrations.latest('created_at').created_at)
+    if new_feedback.exists():
+        timestamps.append(new_feedback.latest('submitted_at').submitted_at)
+    
+    if timestamps:
+        latest_timestamp = max(timestamps)
+    
+    return JsonResponse({
+        'success': True,
+        'has_updates': any([
+            new_attendees.exists(),
+            new_registrations.exists(),
+            new_feedback.exists()
+        ]),
+        'counts': {
+            'new_attendees': new_attendees.count(),
+            'new_registrations': new_registrations.count(),
+            'new_feedback': new_feedback.count()
+        },
+        'latest_timestamp': latest_timestamp.isoformat() if latest_timestamp else None,
+        'current_time': timezone.now().isoformat()
+    })

@@ -23,6 +23,8 @@ urlpatterns = [
     # Real-time API endpoints
     path('api/event/<int:event_id>/realtime-attendees/', views.get_realtime_attendees, name='realtime_attendees'),
     path('api/event/<int:event_id>/realtime-stats/', views.get_realtime_stats, name='realtime_stats'),
+    path('event/<int:event_id>/live-stats/', views.get_live_stats, name='live_stats'),
+    path('api/attendee/<int:attendee_id>/printable-details/', views.get_printable_attendee_details, name='printable_attendee_details'),
     
     # QR public page - THIS IS THE KEY ONE
     path('check-in/<int:event_id>/<str:token>/', views.check_in, name='check_in'),  # ← Will be /attsys/check-in/... if included in ses/urls.py

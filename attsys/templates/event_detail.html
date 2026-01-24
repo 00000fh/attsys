@@ -1,3 +1,4 @@
+<!-- event_detail.html -->
 {% extends 'base.html' %}
 
 {% block title %}{{ event.title }} | ATTSYS{% endblock %}
@@ -596,7 +597,7 @@
         word-break: break-all;
     }
     
-    /* Stats Section */
+    /* Stats Section - FIXED */
     .stats-section {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -1777,11 +1778,11 @@
         <span id="toastMessage">Copied to clipboard!</span>
     </div>
 
-    <!-- Stats Overview -->
+    <!-- Stats Overview - FIXED VERSION -->
     <div class="stats-section">
         <div class="stat-card">
             <div class="stat-title">Total Attendees</div>
-            <div class="stat-value" id="totalAttendees">{{ attendees.count }}</div>
+            <div class="stat-value" id="totalAttendees">{{ total_attendees_count }}</div>
             <div class="stat-subtitle">Checked in to this event</div>
         </div>
         
@@ -1802,17 +1803,17 @@
         <div class="stat-card">
             <div class="stat-title">Last Check-in</div>
             <div class="stat-value" id="lastCheckinTime">
-                {% if attendees.first %}
-                {{ attendees.first.attended_at|date:"g:i A" }}
+                {% if last_checkin_display %}
+                    {{ last_checkin_display }}
                 {% else %}
-                —
+                    —
                 {% endif %}
             </div>
             <div class="stat-subtitle" id="lastCheckinInfo">
-                {% if attendees.first %}
-                {{ attendees.first.attended_at|date:"M d" }}
+                {% if last_checkin_date_display %}
+                    {{ last_checkin_date_display }}
                 {% else %}
-                No check-ins yet
+                    No check-ins yet
                 {% endif %}
             </div>
         </div>
@@ -1835,7 +1836,7 @@
                     <div class="d-flex justify-content-between align-items-center w-100">
                         <h3 class="section-title mb-0">
                             <i class="bi bi-people me-2"></i>
-                            Attendees (<span id="attendeesCount">{{ attendees.count }}</span>)
+                            Attendees (<span id="attendeesCount">{{ total_attendees_count }}</span>)
                         </h3>
                         <button class="btn btn-sm btn-outline-primary" onclick="showAllRegistrationStats()">
                             <i class="bi bi-graph-up me-1"></i>
@@ -1916,10 +1917,10 @@
                                 </div>
                             </div>
                             
-                            <!-- Application Status -->
+                            <!-- Application Status - UPDATED: Yes/No instead of Has Application/No Application -->
                             <div class="col-md-2 col-12 mb-2 mb-md-0">
                                 <span class="badge {% if attendee.has_application %}bg-success{% else %}bg-secondary{% endif %}">
-                                    {% if attendee.has_application %}Has Application{% else %}No Application{% endif %}
+                                    {% if attendee.has_application %}Yes{% else %}No{% endif %}
                                 </span>
                             </div>
                             
@@ -2266,12 +2267,6 @@
                             <div class="detail-label">Address Line 1:</div>
                             <div class="detail-value">${escapeHtml(app.address1)}</div>
                         </div>
-                        ${app.address2 ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Address Line 2:</div>
-                            <div class="detail-value">${escapeHtml(app.address2)}</div>
-                        </div>
-                        ` : ''}
                         <div class="detail-row">
                             <div class="detail-label">City:</div>
                             <div class="detail-value">${escapeHtml(app.city)}</div>
@@ -2360,7 +2355,7 @@
                     <div class="attendee-details-section">
                         <h6><i class="bi bi-book me-2"></i>Application Details</h6>
                         <div class="detail-row">
-                            <div class="detail-label">Registration Officer:</div>
+                            <div class="detail-label">Inviting Officer:</div>
                             <div class="detail-value">${escapeHtml(app.registration_officer)}</div>
                         </div>
                         <div class="detail-row">
@@ -2453,7 +2448,30 @@
         }
         
         const app = currentAttendeeData.application;
-        const currentFormNumber = formCounter++;
+        
+        // Get event form number from the page
+        const eventFormNumber = '{{ event.form_number|default:"SES.KUL.01.0001" }}'; // Default if not available
+        
+        // Parse the event form number to get base parts
+        const formNumberParts = eventFormNumber.split('.');
+        const prefix = formNumberParts.length >= 1 ? formNumberParts[0] : 'SES';
+        const stateCode = formNumberParts.length >= 2 ? formNumberParts[1] : 'KUL';
+        const monthNum = formNumberParts.length >= 3 ? formNumberParts[2] : '01';
+        const baseRunningNum = formNumberParts.length >= 4 ? parseInt(formNumberParts[3]) : 1;
+        
+        // Get or initialize form counter for this session
+        let formCounter = localStorage.getItem('formCounter');
+        if (!formCounter || parseInt(formCounter) > 9999) {
+            formCounter = 1;
+        } else {
+            formCounter = parseInt(formCounter);
+        }
+        
+        // Format the display form number: SES.STATE.MM.NNNN
+        const displayFormNumber = `${prefix}.${stateCode}.${monthNum}.${formCounter.toString().padStart(4, '0')}`;
+        
+        // Increment for next form
+        localStorage.setItem('formCounter', (formCounter + 1).toString());
         
         function toUpperCase(value) {
             if (!value) return '';
@@ -2547,6 +2565,17 @@
                         break-inside: avoid !important;
                     }
                     
+                    /* REVERTED: Original Form Number styling - but with SES.STATE.MM.NNNN format */
+                    .form-number {
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        font-size: 8.5pt !important;
+                        color: #666;
+                        margin-bottom: 3px !important;
+                        text-align: right;
+                    }
+                    
                     .print-title {
                         font-size: 16pt !important;
                         font-weight: bold;
@@ -2562,16 +2591,6 @@
                         margin-bottom: 0 !important;
                         color: #000;
                         line-height: 1.1;
-                    }
-                    
-                    .form-number {
-                        position: absolute;
-                        top: 0;
-                        right: 0;
-                        font-size: 8.5pt !important;
-                        color: #666;
-                        margin-bottom: 3px !important;
-                        text-align: right;
                     }
                     
                     .print-section {
@@ -2921,8 +2940,8 @@
             </head>
             <body>
                 <div class="print-form">
-                    <!-- Form Number starting from 1 -->
-                    <div class="form-number">Form No.: ${currentFormNumber.toString().padStart(3, '0')}</div>
+                    <!-- REVERTED: Original Form Number styling with SES.STATE.MM.NNNN format -->
+                    <div class="form-number">Form No.: ${displayFormNumber}</div>
                     
                     <div class="print-header">
                         <!-- DUAL LOGOS -->
@@ -2942,7 +2961,7 @@
                         <div class="print-section-title">1. MAKLUMAT PEMOHON / APPLICANT INFORMATION</div>
                         
                         <div class="print-field-row">
-                            <div class="print-label">Pegawai Pendaftaran / Registration Officer:</div>
+                            <div class="print-label">Nombor Rujukan / Referral Number:</div>
                             <div class="print-value">${toUpperCase(escapeHtml(app.registration_officer))}</div>
                         </div>
                         
@@ -2990,16 +3009,9 @@
                         <div class="print-section-title">2. MAKLUMAT ALAMAT / ADDRESS DETAILS</div>
                         
                         <div class="print-field-row">
-                            <div class="print-label">Alamat Baris 1 / Address Line 1:</div>
+                            <div class="print-label">Alamat Baris / Address Line :</div>
                             <div class="print-value">${toUpperCase(escapeHtml(app.address1))}</div>
                         </div>
-                        
-                        ${app.address2 ? `
-                        <div class="print-field-row">
-                            <div class="print-label">Alamat Baris 2 / Address Line 2:</div>
-                            <div class="print-value">${toUpperCase(escapeHtml(app.address2))}</div>
-                        </div>
-                        ` : ''}
                         
                         <div class="print-grid-3col">
                             <div class="print-field-row">
@@ -3099,43 +3111,43 @@
                         
                         <div class="print-field-row">
                             <div class="print-label">Nama Penuh / Full Name:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_name))}</div>
-                            </div>
-                            
-                            <div class="print-grid-2col">
-                                <div class="print-field-row">
-                                    <div class="print-label">No. Kad Pengenalan / IC No.:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_ic))}</div>
-                                </div>
-                                
-                                <div class="print-field-row">
-                                    <div class="print-label">No. Telefon / Phone Number:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_phone))}</div>
-                                </div>
-                            </div>
-                            
-                            ${app.mother_occupation ? `
+                            <div class="print-value">${toUpperCase(escapeHtml(app.mother_name))}</div>
+                        </div>
+                        
+                        <div class="print-grid-2col">
                             <div class="print-field-row">
-                                <div class="print-label">Pekerjaan / Occupation:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_occupation))}</div>
+                                <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_ic))}</div>
                             </div>
-                            ` : ''}
                             
-                            <div class="print-grid-2col">
-                                ${app.mother_income ? `
-                                <div class="print-field-row">
-                                    <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_income))}</div>
-                                </div>
-                                ` : '<div></div>'}
-                                
-                                ${app.mother_dependants ? `
-                                <div class="print-field-row">
-                                    <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_dependants))}</div>
-                                </div>
-                                ` : '<div></div>'}
+                            <div class="print-field-row">
+                                <div class="print-label">No. Telefon / Phone Number:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_phone))}</div>
                             </div>
+                        </div>
+                        
+                        ${app.mother_occupation ? `
+                        <div class="print-field-row">
+                            <div class="print-label">Pekerjaan / Occupation:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.mother_occupation))}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="print-grid-2col">
+                            ${app.mother_income ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_income))}</div>
+                            </div>
+                            ` : '<div></div>'}
+                            
+                            ${app.mother_dependants ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_dependants))}</div>
+                            </div>
+                            ` : '<div></div>'}
+                        </div>
                     </div>
 
                     <!-- Section 6: Programme Interest - 3 separate boxes -->
@@ -3260,6 +3272,11 @@
         const printWindow = window.open('', '_blank');
         printWindow.document.write(printHtml);
         printWindow.document.close();
+        
+        // Show success message
+        setTimeout(() => {
+            showToast(`Form printed with number: ${displayFormNumber}`);
+        }, 1000);
     };
     
     // Helper: Escape HTML
@@ -3411,6 +3428,31 @@
             btnText.textContent = document.getElementById('modalTitle').textContent === 'Registration Form' ? 
                 'Save Registration' : 'Update Registration';
         });
+    };
+
+    // Export Registration PDF
+    window.exportRegistrationPDF = function() {
+        const eventId = {{ event.id }};
+        const url = `/attsys/api/event/${eventId}/export-registrations-pdf/`;
+        
+        // Show loading toast
+        showToast('Generating PDF report... Please wait.');
+        
+        // Open in new window
+        const newWindow = window.open(url, '_blank');
+        
+        // If popup blocked, show alternative
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            // Popup blocked, create download link
+            const link = document.createElement('a');
+            link.href = url;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('PDF download started. Check your downloads folder.');
+        }
     };
     
     // Update attendee row with registration info
@@ -3591,6 +3633,56 @@
         });
     }
     
+    // Real-time stats update function
+    function updateLiveStats() {
+        const eventId = {{ event.id }};  // Get event ID from template
+        
+        fetch(`/attsys/event/${eventId}/live-stats/`)  // This should now work
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update total attendees
+                    document.getElementById('totalAttendees').textContent = 
+                        data.statistics.attendees.total;
+                    
+                    // Update last check-in
+                    const lastCheckinTime = document.getElementById('lastCheckinTime');
+                    const lastCheckinInfo = document.getElementById('lastCheckinInfo');
+                    
+                    if (data.statistics.attendees.last_checkin) {
+                        lastCheckinTime.textContent = data.statistics.attendees.last_checkin;
+                        lastCheckinInfo.textContent = 'Last check-in';
+                    } else {
+                        lastCheckinTime.textContent = '—';
+                        lastCheckinInfo.textContent = 'No check-ins yet';
+                    }
+                    
+                    // Update attendees count in header
+                    document.getElementById('attendeesCount').textContent = 
+                        data.statistics.attendees.total;
+                    
+                    // Update registration stats
+                    document.getElementById('totalRegistered').textContent = 
+                        data.statistics.registrations.total;
+                    document.getElementById('totalPaid').textContent = 
+                        data.statistics.registrations.paid;
+                    document.getElementById('totalPending').textContent = 
+                        data.statistics.registrations.pending;
+                    document.getElementById('totalRevenue').textContent = 
+                        `RM ${data.statistics.registrations.revenue.toFixed(2)}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error updating live stats:', error);
+                // Don't show error to user, just fail silently
+            });
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
         // QR Code Modal Setup
         if (qrImage) {
@@ -3730,6 +3822,10 @@
         
         // Load initial registration statistics
         updateRegistrationStats();
+        
+        // Start real-time stats updates (every 30 seconds)
+        updateLiveStats();
+        setInterval(updateLiveStats, 30000);
     });
 </script>
 {% endblock %}
