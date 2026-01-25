@@ -2568,7 +2568,11 @@ def export_registrations_pdf(request, event_id):
                 # Format fees
                 pre_reg_fee = f"{reg.pre_registration_fee:,.0f}" if reg.pre_registration_fee == int(reg.pre_registration_fee) else f"{reg.pre_registration_fee:,.2f}"
                 reg_fee = f"{reg.registration_fee:,.0f}" if reg.registration_fee == int(reg.registration_fee) else f"{reg.registration_fee:,.2f}"
-                total_fee = f"{reg.total_fee():,.0f}" if reg.total_fee() == int(reg.total_fee()) else f"{reg.total_fee():,.2f}"
+                total_fee_val = reg.total_fee  # Access property without parentheses
+                if total_fee_val == int(total_fee_val):
+                    total_fee = f"{total_fee_val:,.0f}"
+                else:
+                    total_fee = f"{total_fee_val:,.2f}"
                 
                 # Build row
                 row = [
