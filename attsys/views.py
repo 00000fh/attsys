@@ -2549,13 +2549,6 @@ def export_registrations_pdf(request, event_id):
                 
                 story.append(courses_table)
             
-            # Page 2 footer
-            story.append(Spacer(1, 0.3*cm))
-            story.append(Paragraph(
-                f"Performance Analysis | Generated: {malaysia_now().strftime('%d/%m/%Y %H:%M')}",
-                footer_style
-            ))
-            
             # ============================
             # PAGE 3: DETAILED REGISTRATIONS
             # ============================
