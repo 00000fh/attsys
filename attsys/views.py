@@ -2775,7 +2775,7 @@ def export_registrations_pdf(request, event_id):
             
             # Create response
             response = HttpResponse(buffer, content_type='application/pdf')
-            filename = f"Dashboard_Report_{event.title.replace(' ', '_')[:30]}_{malaysia_now().strftime('%Y%m%d_%H%M')}.pdf"
+            filename = f"Daily Report {event.title.replace(' ', '_')[:30]} {malaysia_now().strftime('%Y%m%d_%H%M')}.pdf"
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
             
             return response
