@@ -1729,996 +1729,1023 @@ def export_registrations_pdf(request, event_id):
             else:
                 pending_revenue += reg_total
         
-        # Get applications data for inviting officers
+        # Get applications data for inviting officers - FIXED QUERY
         email_to_inviting_officer = {}
-        applications = Application.objects.filter(event=event)
-        for app in applications:
-            email_to_inviting_officer[app.email.lower()] = app.registration_officer
+        try:
+            applications = Application.objects.filter(event=event)
+            for app in applications:
+                email_to_inviting_officer[app.email.lower()] = app.registration_officer
+        except Exception as e:
+            print(f"Error getting applications: {e}")
+            # Continue without inviting officer data
         
         # Get top performers
-        top_courses = registrations.values('course').annotate(
-            count=Count('id'),
-            revenue=Sum(F('pre_registration_fee') + F('registration_fee'))
-        ).order_by('-count')[:5]
+        try:
+            top_courses = registrations.values('course').annotate(
+                count=Count('id'),
+                revenue=Sum(F('pre_registration_fee') + F('registration_fee'))
+            ).order_by('-count')[:5]
+        except Exception as e:
+            print(f"Error getting top courses: {e}")
+            top_courses = []
         
-        top_closers = registrations.values('closer').annotate(
-            count=Count('id'),
-            revenue=Sum(F('pre_registration_fee') + F('registration_fee'))
-        ).order_by('-count')[:5]
+        try:
+            top_closers = registrations.values('closer').annotate(
+                count=Count('id'),
+                revenue=Sum(F('pre_registration_fee') + F('registration_fee'))
+            ).order_by('-count')[:5]
+        except Exception as e:
+            print(f"Error getting top closers: {e}")
+            top_closers = []
         
         # ============================
         # PDF GENERATION SETUP
         # ============================
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        from reportlab.lib.pagesizes import landscape, A4
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib import colors
-        from reportlab.lib.units import cm
-        import io
-        import tempfile
-        import os
-        
-        # Create PDF buffer
-        buffer = io.BytesIO()
-        
-        # ============================
-        # COLOR PALETTE (Black/Gray Theme - Matching HTML)
-        # ============================
-        COLORS = {
-            'black': '#000000',
-            'white': '#ffffff',
-            'gray_50': '#fafafa',
-            'gray_100': '#f5f5f5',
-            'gray_200': '#e5e5e5',
-            'gray_300': '#d4d4d4',
-            'gray_400': '#a3a3a3',
-            'gray_500': '#737373',
-            'gray_600': '#525252',
-            'gray_700': '#404040',
-            'gray_800': '#262626',
-            'gray_900': '#171717',
-            'success': '#27ae60',
-            'warning': '#e67e22',
-            'danger': '#e74c3c',
-            'info': '#3498db',
-            'border': '#d4d4d4',
-        }
-        
-        # ============================
-        # TYPOGRAPHY SYSTEM
-        # ============================
-        styles = getSampleStyleSheet()
-        
-        # Title style
-        title_style = ParagraphStyle(
-            'Title',
-            parent=styles['Heading1'],
-            fontSize=20,
-            spaceAfter=0.3*cm,
-            alignment=1,
-            textColor=colors.HexColor(COLORS['black']),
-            fontName='Helvetica-Bold'
-        )
-        
-        # Subtitle style
-        subtitle_style = ParagraphStyle(
-            'Subtitle',
-            parent=styles['Normal'],
-            fontSize=11,
-            spaceAfter=0.4*cm,
-            textColor=colors.HexColor(COLORS['gray_600']),
-            alignment=1
-        )
-        
-        # Section header style
-        section_style = ParagraphStyle(
-            'Section',
-            parent=styles['Heading2'],
-            fontSize=13,
-            spaceBefore=0.3*cm,
-            spaceAfter=0.15*cm,
-            textColor=colors.HexColor(COLORS['black']),
-            fontName='Helvetica-Bold',
-            leftIndent=0.2*cm
-        )
-        
-        # ============================
-        # REDUCED METRIC STYLES FOR SMALLER CARDS
-        # ============================
-        
-        # Metric value style - SMALLER
-        metric_value_style = ParagraphStyle(
-            'MetricValue',
-            parent=styles['Normal'],
-            fontSize=15,  # Reduced from 22
-            textColor=colors.HexColor(COLORS['black']),
-            fontName='Helvetica-Bold',
-            alignment=1,
-            spaceAfter=0
-        )
-        
-        # Metric label style - SMALLER
-        metric_label_style = ParagraphStyle(
-            'MetricLabel',
-            parent=styles['Normal'],
-            fontSize=8,  # Reduced from 9
-            textColor=colors.HexColor(COLORS['gray_600']),
-            alignment=1,
-            spaceAfter=0
-        )
-        
-        # Metric subtext style - SMALLER
-        metric_subtext_style = ParagraphStyle(
-            'MetricSubtext',
-            parent=styles['Normal'],
-            fontSize=7,  # Reduced from 8
-            textColor=colors.HexColor(COLORS['gray_500']),
-            alignment=1,
-            spaceAfter=0
-        )
-        
-        # Table header style
-        table_header_style = ParagraphStyle(
-            'TableHeader',
-            parent=styles['Normal'],
-            fontSize=9,
-            textColor=colors.white,
-            fontName='Helvetica-Bold',
-            alignment=1,
-            spaceBefore=2,
-            spaceAfter=2,
-            leading=10
-        )
-        
-        # Table cell style
-        table_cell_style = ParagraphStyle(
-            'TableCell',
-            parent=styles['Normal'],
-            fontSize=8,
-            textColor=colors.HexColor(COLORS['gray_800']),
-            fontName='Helvetica',
-            alignment=0,
-            leading=9
-        )
-        
-        # Table cell center style
-        table_cell_center = ParagraphStyle(
-            'TableCellCenter',
-            parent=table_cell_style,
-            alignment=1
-        )
-        
-        # Table cell right style
-        table_cell_right = ParagraphStyle(
-            'TableCellRight',
-            parent=table_cell_style,
-            alignment=2
-        )
-        
-        # Status cell style
-        status_cell_style = ParagraphStyle(
-            'StatusCell',
-            parent=table_cell_style,
-            alignment=1,
-            fontSize=8,
-            wordWrap=None,
-            spaceBefore=2,
-            spaceAfter=2,
-            leading=9,
-            fontName='Helvetica-Bold'
-        )
-        
-        # Status Paid style
-        status_paid_style = ParagraphStyle(
-            'StatusPaid',
-            parent=status_cell_style,
-            textColor=colors.green
-        )
-        
-        # Status Pending style
-        status_pending_style = ParagraphStyle(
-            'StatusPending',
-            parent=status_cell_style,
-            textColor=colors.red
-        )
-        
-        # Total amount style
-        total_amount_style = ParagraphStyle(
-            'TotalAmount',
-            parent=table_cell_right,
-            fontSize=9,
-            fontName='Helvetica-Bold',
-            textColor=colors.HexColor(COLORS['black']),
-            spaceBefore=0,
-            spaceAfter=0,
-            leading=11,
-            alignment=2,
-            valign='MIDDLE'
-        )
-        
-        # Total label style
-        total_label_style = ParagraphStyle(
-            'TotalLabel',
-            parent=table_cell_style,
-            fontSize=9,
-            fontName='Helvetica-Bold',
-            textColor=colors.HexColor(COLORS['black']),
-            spaceBefore=0,
-            spaceAfter=0,
-            leading=11,
-            alignment=0,
-            valign='MIDDLE'
-        )
-        
-        # Insight style
-        insight_style = ParagraphStyle(
-            'Insight',
-            parent=styles['Normal'],
-            fontSize=9,  # Original size
-            textColor=colors.HexColor(COLORS['gray_800']),
-            leftIndent=0.5*cm,
-            spaceAfter=2
-        )
-        
-        # Footer style
-        footer_style = ParagraphStyle(
-            'Footer',
-            parent=styles['Normal'],
-            fontSize=8,
-            textColor=colors.HexColor(COLORS['gray_500']),
-            alignment=1
-        )
-        
-        # ============================
-        # SMALLER TABLE STYLES FOR TOP PERFORMERS
-        # ============================
-        
-        # Professional table header for top performers (SMALLER)
-        performer_header_style = ParagraphStyle(
-            'PerformerHeader',
-            parent=styles['Normal'],
-            fontSize=8,  # Reduced from 9
-            textColor=colors.white,
-            fontName='Helvetica-Bold',
-            alignment=1,
-            spaceBefore=2,  # Reduced
-            spaceAfter=2,   # Reduced
-            leading=10      # Reduced
-        )
-        
-        # Performer cell style with gradient background support (SMALLER)
-        performer_cell_style = ParagraphStyle(
-            'PerformerCell',
-            parent=styles['Normal'],
-            fontSize=8,  # Reduced from 9
-            textColor=colors.HexColor(COLORS['gray_800']),
-            fontName='Helvetica',
-            alignment=0,
-            leading=9     # Reduced
-        )
-        
-        # Performer highlight style for top row
-        performer_highlight_style = ParagraphStyle(
-            'PerformerHighlight',
-            parent=performer_cell_style,
-            fontName='Helvetica-Bold',
-            textColor=colors.HexColor(COLORS['black'])
-        )
-        
-        # Rank cell style with medal colors (SMALLER)
-        rank_style_gold = ParagraphStyle(
-            'RankGold',
-            parent=table_cell_center,
-            fontSize=8,  # Reduced from 9
-            fontName='Helvetica-Bold',
-            textColor=colors.HexColor('#D4AF37')  # Gold
-        )
-        
-        rank_style_silver = ParagraphStyle(
-            'RankSilver',
-            parent=table_cell_center,
-            fontSize=8,  # Reduced from 9
-            fontName='Helvetica-Bold',
-            textColor=colors.HexColor('#C0C0C0')  # Silver
-        )
-        
-        rank_style_bronze = ParagraphStyle(
-            'RankBronze',
-            parent=table_cell_center,
-            fontSize=8,  # Reduced from 9
-            fontName='Helvetica-Bold',
-            textColor=colors.HexColor('#CD7F32')  # Bronze
-        )
-        
-        rank_style_regular = ParagraphStyle(
-            'RankRegular',
-            parent=table_cell_center,
-            fontSize=8,  # Reduced from 9
-            textColor=colors.HexColor(COLORS['gray_500'])
-        )
-        
-        # Revenue cell with currency styling (SMALLER)
-        revenue_cell_style = ParagraphStyle(
-            'RevenueCell',
-            parent=table_cell_right,
-            fontSize=8,  # Reduced from 9
-            fontName='Helvetica',
-            textColor=colors.HexColor(COLORS['success']),
-            spaceBefore=1,  # Reduced
-            spaceAfter=1    # Reduced
-        )
-        
-        # ============================
-        # GENERATE REVENUE ANALYSIS CHART (PAID & PENDING ONLY)
-        # ============================
-        chart_files = []
-        
         try:
-            # Revenue Analysis Bar Chart (Paid & Pending only)
-            if float(paid_revenue) > 0 or float(pending_revenue) > 0:
-                plt.figure(figsize=(3, 2.5))  # Smaller figure
-                categories = ['Paid', 'Pending']
-                values = [float(paid_revenue), float(pending_revenue)]
-                bar_colors = [COLORS['success'], COLORS['warning']]
+            import matplotlib
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+            from reportlab.lib.pagesizes import landscape, A4
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            from reportlab.lib.units import cm
+            import io
+            import tempfile
+            import os
+            
+            # Create PDF buffer
+            buffer = io.BytesIO()
+            
+            # ============================
+            # COLOR PALETTE (Black/Gray Theme - Matching HTML)
+            # ============================
+            COLORS = {
+                'black': '#000000',
+                'white': '#ffffff',
+                'gray_50': '#fafafa',
+                'gray_100': '#f5f5f5',
+                'gray_200': '#e5e5e5',
+                'gray_300': '#d4d4d4',
+                'gray_400': '#a3a3a3',
+                'gray_500': '#737373',
+                'gray_600': '#525252',
+                'gray_700': '#404040',
+                'gray_800': '#262626',
+                'gray_900': '#171717',
+                'success': '#27ae60',
+                'warning': '#e67e22',
+                'danger': '#e74c3c',
+                'info': '#3498db',
+                'border': '#d4d4d4',
+            }
+            
+            # ============================
+            # TYPOGRAPHY SYSTEM
+            # ============================
+            styles = getSampleStyleSheet()
+            
+            # Title style
+            title_style = ParagraphStyle(
+                'Title',
+                parent=styles['Heading1'],
+                fontSize=20,
+                spaceAfter=0.3*cm,
+                alignment=1,
+                textColor=colors.HexColor(COLORS['black']),
+                fontName='Helvetica-Bold'
+            )
+            
+            # Subtitle style
+            subtitle_style = ParagraphStyle(
+                'Subtitle',
+                parent=styles['Normal'],
+                fontSize=11,
+                spaceAfter=0.4*cm,
+                textColor=colors.HexColor(COLORS['gray_600']),
+                alignment=1
+            )
+            
+            # Section header style
+            section_style = ParagraphStyle(
+                'Section',
+                parent=styles['Heading2'],
+                fontSize=13,
+                spaceBefore=0.3*cm,
+                spaceAfter=0.15*cm,
+                textColor=colors.HexColor(COLORS['black']),
+                fontName='Helvetica-Bold',
+                leftIndent=0.2*cm
+            )
+            
+            # Metric value style - SMALLER
+            metric_value_style = ParagraphStyle(
+                'MetricValue',
+                parent=styles['Normal'],
+                fontSize=15,  # Reduced from 22
+                textColor=colors.HexColor(COLORS['black']),
+                fontName='Helvetica-Bold',
+                alignment=1,
+                spaceAfter=0
+            )
+            
+            # Metric label style - SMALLER
+            metric_label_style = ParagraphStyle(
+                'MetricLabel',
+                parent=styles['Normal'],
+                fontSize=8,  # Reduced from 9
+                textColor=colors.HexColor(COLORS['gray_600']),
+                alignment=1,
+                spaceAfter=0
+            )
+            
+            # Metric subtext style - SMALLER
+            metric_subtext_style = ParagraphStyle(
+                'MetricSubtext',
+                parent=styles['Normal'],
+                fontSize=7,  # Reduced from 8
+                textColor=colors.HexColor(COLORS['gray_500']),
+                alignment=1,
+                spaceAfter=0
+            )
+            
+            # Table header style
+            table_header_style = ParagraphStyle(
+                'TableHeader',
+                parent=styles['Normal'],
+                fontSize=9,
+                textColor=colors.white,
+                fontName='Helvetica-Bold',
+                alignment=1,
+                spaceBefore=2,
+                spaceAfter=2,
+                leading=10
+            )
+            
+            # Table cell style
+            table_cell_style = ParagraphStyle(
+                'TableCell',
+                parent=styles['Normal'],
+                fontSize=8,
+                textColor=colors.HexColor(COLORS['gray_800']),
+                fontName='Helvetica',
+                alignment=0,
+                leading=9
+            )
+            
+            # Table cell center style
+            table_cell_center = ParagraphStyle(
+                'TableCellCenter',
+                parent=table_cell_style,
+                alignment=1
+            )
+            
+            # Table cell right style
+            table_cell_right = ParagraphStyle(
+                'TableCellRight',
+                parent=table_cell_style,
+                alignment=2
+            )
+            
+            # Status cell style
+            status_cell_style = ParagraphStyle(
+                'StatusCell',
+                parent=table_cell_style,
+                alignment=1,
+                fontSize=8,
+                wordWrap=None,
+                spaceBefore=2,
+                spaceAfter=2,
+                leading=9,
+                fontName='Helvetica-Bold'
+            )
+            
+            # Status Paid style
+            status_paid_style = ParagraphStyle(
+                'StatusPaid',
+                parent=status_cell_style,
+                textColor=colors.green
+            )
+            
+            # Status Pending style
+            status_pending_style = ParagraphStyle(
+                'StatusPending',
+                parent=status_cell_style,
+                textColor=colors.red
+            )
+            
+            # Total amount style
+            total_amount_style = ParagraphStyle(
+                'TotalAmount',
+                parent=table_cell_right,
+                fontSize=9,
+                fontName='Helvetica-Bold',
+                textColor=colors.HexColor(COLORS['black']),
+                spaceBefore=0,
+                spaceAfter=0,
+                leading=11,
+                alignment=2,
+                valign='MIDDLE'
+            )
+            
+            # Total label style
+            total_label_style = ParagraphStyle(
+                'TotalLabel',
+                parent=table_cell_style,
+                fontSize=9,
+                fontName='Helvetica-Bold',
+                textColor=colors.HexColor(COLORS['black']),
+                spaceBefore=0,
+                spaceAfter=0,
+                leading=11,
+                alignment=0,
+                valign='MIDDLE'
+            )
+            
+            # Insight style
+            insight_style = ParagraphStyle(
+                'Insight',
+                parent=styles['Normal'],
+                fontSize=9,
+                textColor=colors.HexColor(COLORS['gray_800']),
+                leftIndent=0.5*cm,
+                spaceAfter=2
+            )
+            
+            # Footer style
+            footer_style = ParagraphStyle(
+                'Footer',
+                parent=styles['Normal'],
+                fontSize=8,
+                textColor=colors.HexColor(COLORS['gray_500']),
+                alignment=1
+            )
+            
+            # ============================
+            # SMALLER TABLE STYLES FOR TOP PERFORMERS
+            # ============================
+            
+            # Professional table header for top performers (SMALLER)
+            performer_header_style = ParagraphStyle(
+                'PerformerHeader',
+                parent=styles['Normal'],
+                fontSize=8,
+                textColor=colors.white,
+                fontName='Helvetica-Bold',
+                alignment=1,
+                spaceBefore=2,
+                spaceAfter=2,
+                leading=10
+            )
+            
+            # Performer cell style with gradient background support (SMALLER)
+            performer_cell_style = ParagraphStyle(
+                'PerformerCell',
+                parent=styles['Normal'],
+                fontSize=8,
+                textColor=colors.HexColor(COLORS['gray_800']),
+                fontName='Helvetica',
+                alignment=0,
+                leading=9
+            )
+            
+            # Performer highlight style for top row
+            performer_highlight_style = ParagraphStyle(
+                'PerformerHighlight',
+                parent=performer_cell_style,
+                fontName='Helvetica-Bold',
+                textColor=colors.HexColor(COLORS['black'])
+            )
+            
+            # Rank cell style with medal colors (SMALLER)
+            rank_style_gold = ParagraphStyle(
+                'RankGold',
+                parent=table_cell_center,
+                fontSize=8,
+                fontName='Helvetica-Bold',
+                textColor=colors.HexColor('#D4AF37')  # Gold
+            )
+            
+            rank_style_silver = ParagraphStyle(
+                'RankSilver',
+                parent=table_cell_center,
+                fontSize=8,
+                fontName='Helvetica-Bold',
+                textColor=colors.HexColor('#C0C0C0')  # Silver
+            )
+            
+            rank_style_bronze = ParagraphStyle(
+                'RankBronze',
+                parent=table_cell_center,
+                fontSize=8,
+                fontName='Helvetica-Bold',
+                textColor=colors.HexColor('#CD7F32')  # Bronze
+            )
+            
+            rank_style_regular = ParagraphStyle(
+                'RankRegular',
+                parent=table_cell_center,
+                fontSize=8,
+                textColor=colors.HexColor(COLORS['gray_500'])
+            )
+            
+            # Revenue cell with currency styling (SMALLER)
+            revenue_cell_style = ParagraphStyle(
+                'RevenueCell',
+                parent=table_cell_right,
+                fontSize=8,
+                fontName='Helvetica',
+                textColor=colors.HexColor(COLORS['success']),
+                spaceBefore=1,
+                spaceAfter=1
+            )
+            
+            # ============================
+            # GENERATE REVENUE ANALYSIS CHART (PAID & PENDING ONLY)
+            # ============================
+            chart_files = []
+            
+            try:
+                # Revenue Analysis Bar Chart (Paid & Pending only)
+                if float(paid_revenue) > 0 or float(pending_revenue) > 0:
+                    plt.figure(figsize=(3, 2.5))
+                    categories = ['Paid', 'Pending']
+                    values = [float(paid_revenue), float(pending_revenue)]
+                    bar_colors = [COLORS['success'], COLORS['warning']]
+                    
+                    bars = plt.bar(categories, values, color=bar_colors, width=0.4)
+                    plt.ylabel('Amount (RM)', fontsize=8, color=COLORS['gray_600'])
+                    plt.title('Revenue Analysis', fontsize=10, fontweight='bold',
+                             color=COLORS['black'], pad=8)
+                    
+                    # Value labels on bars
+                    for bar in bars:
+                        height = bar.get_height()
+                        if height > 0:
+                            # Format value
+                            if height >= 1000:
+                                formatted_val = f'RM {height/1000:.1f}K'
+                            else:
+                                formatted_val = f'RM {height:,.0f}'
+                            
+                            plt.text(bar.get_x() + bar.get_width()/2., height + (max(values)*0.01),
+                                    formatted_val, ha='center', va='bottom', 
+                                    fontsize=7, fontweight='bold')
+                    
+                    plt.grid(axis='y', alpha=0.3, color=COLORS['gray_300'])
+                    plt.tight_layout(pad=1.5)
+                    
+                    temp_revenue = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+                    plt.savefig(temp_revenue.name, dpi=150, bbox_inches='tight', facecolor='white')
+                    chart_files.append(temp_revenue.name)
+                    plt.close()
                 
-                bars = plt.bar(categories, values, color=bar_colors, width=0.4)  # Narrower bars
-                plt.ylabel('Amount (RM)', fontsize=8, color=COLORS['gray_600'])
-                plt.title('Revenue Analysis', fontsize=10, fontweight='bold',
-                         color=COLORS['black'], pad=8)
+            except Exception as e:
+                print(f"Chart generation error: {e}")
+                # Continue without charts
+            
+            # ============================
+            # BUILD PDF STORY
+            # ============================
+            story = []
+            
+            # Header Section with black accent line
+            story.append(Spacer(1, 0.2*cm))
+            story.append(Paragraph("REGISTRATION DASHBOARD REPORT", title_style))
+            story.append(Paragraph(f"{event.title}", subtitle_style))
+            story.append(Paragraph(f"Event Date: {event.date.strftime('%d %B %Y')} | Generated: {malaysia_now().strftime('%d/%m/%Y %H:%M')}", 
+                                 ParagraphStyle('ReportInfo', parent=subtitle_style, fontSize=9)))
+            story.append(Spacer(1, 0.3*cm))
+            
+            # ============================
+            # ROW 1: SMALLER KEY METRIC CARDS
+            # ============================
+            
+            def create_metric_card(label, value, subtext=""):
+                """Create a SMALLER dashboard metric card with black/gray theme"""
+                # Create a table with value on top, label below
+                card_data = [
+                    [Paragraph(str(value), metric_value_style)],
+                    [Paragraph(label, metric_label_style)],
+                ]
                 
-                # Value labels on bars (formatted with K for thousands if large)
-                for bar in bars:
-                    height = bar.get_height()
-                    if height > 0:
-                        # Format value
-                        if height >= 1000:
-                            formatted_val = f'RM {height/1000:.1f}K'
-                        else:
-                            formatted_val = f'RM {height:,.0f}'
-                        
-                        plt.text(bar.get_x() + bar.get_width()/2., height + (max(values)*0.01),
-                                formatted_val, ha='center', va='bottom', 
-                                fontsize=7, fontweight='bold')
+                if subtext:
+                    card_data.append([Paragraph(subtext, metric_subtext_style)])
                 
-                plt.grid(axis='y', alpha=0.3, color=COLORS['gray_300'])
-                plt.tight_layout(pad=1.5)
+                # SMALLER card width
+                card_table = Table(card_data, colWidths=[4.2*cm])
                 
-                temp_revenue = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-                plt.savefig(temp_revenue.name, dpi=150, bbox_inches='tight', facecolor='white')
-                chart_files.append(temp_revenue.name)
-                plt.close()
+                # Style to match black/gray theme
+                card_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+                    ('BOX', (0, 0), (-1, -1), 1, colors.HexColor(COLORS['black'])),
+                    ('PADDING', (0, 0), (-1, -1), 5),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('TOPPADDING', (0, 0), (-1, 0), 6),
+                    ('BOTTOMPADDING', (0, -1), (-1, -1), 6),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_100'])),
+                ]))
+                
+                return card_table
+            
+            # Calculate metrics
+            payment_rate = (total_paid/total_registered*100) if total_registered > 0 else 0
+            avg_fee = total_revenue/total_registered if total_registered > 0 else 0
+            avg_paid_fee = paid_revenue/total_paid if total_paid > 0 else 0
+            
+            # Create 4 SMALLER metric cards
+            metric_cards = [
+                create_metric_card(
+                    "Total Registrations",
+                    total_registered,
+                    f"{total_paid} paid, {total_pending} pending"
+                ),
+                create_metric_card(
+                    "Payment Rate",
+                    f"{payment_rate:.1f}%",
+                    f"{total_paid} completed"
+                ),
+                create_metric_card(
+                    "Total Revenue",
+                    f"RM {total_revenue:,.2f}",
+                    f"Avg: RM {avg_fee:,.2f}"
+                ),
+                create_metric_card(
+                    "Avg Paid Fee",
+                    f"RM {avg_paid_fee:,.2f}" if total_paid > 0 else "RM 0.00",
+                    "Per successful registration"
+                )
+            ]
+            
+            # Arrange cards in a single row with SMALLER widths
+            metrics_row = Table([metric_cards], colWidths=[4.2*cm, 4.2*cm, 4.2*cm, 4.2*cm])
+            metrics_row.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('PADDING', (0, 0), (-1, -1), 2),
+            ]))
+            
+            story.append(metrics_row)
+            story.append(Spacer(1, 0.3*cm))
+            
+            # ============================
+            # COMBINED SECTION: REVENUE ANALYSIS & KEY INSIGHTS
+            # ============================
+            
+            # Revenue Chart Section
+            revenue_content = []
+            if len(chart_files) > 0:
+                revenue_content.append([Paragraph("REVENUE ANALYSIS", 
+                                     ParagraphStyle('SectionCenter', parent=section_style, alignment=1))])
+                revenue_content.append([Spacer(1, 0.1*cm)])
+                revenue_content.append([Image(chart_files[0], width=8*cm, height=4*cm)])
+            else:
+                revenue_content.append([Paragraph("REVENUE ANALYSIS", 
+                                     ParagraphStyle('SectionCenter', parent=section_style, alignment=1))])
+                revenue_content.append([Paragraph("No revenue data available", 
+                                     ParagraphStyle('Center', parent=table_cell_center, alignment=1))])
+            
+            # Key Insights Section
+            insights_content = []
+            insights_content.append([Paragraph("KEY INSIGHTS", 
+                                  ParagraphStyle('SectionCenter', parent=section_style, alignment=1))])
+            insights_content.append([Spacer(1, 0.1*cm)])
+            
+            # Generate insights list
+            insights_data = []
+            if total_registered > 0:
+                insights_data.append([Paragraph(f"• <b>{total_registered}</b> total registrations", insight_style)])
+                insights_data.append([Paragraph(f"• <b>{payment_rate:.1f}%</b> payment completion rate", insight_style)])
+                insights_data.append([Paragraph(f"• <b>RM {total_revenue:,.2f}</b> total revenue generated", insight_style)])
+                
+                if total_paid > 0:
+                    insights_data.append([Paragraph(f"• <b>RM {paid_revenue:,.2f}</b> confirmed revenue", insight_style)])
+                
+                if total_pending > 0:
+                    insights_data.append([Paragraph(f"• <b>RM {pending_revenue:,.2f}</b> pending revenue", insight_style)])
+                
+                if top_courses and top_courses[0]['count'] > 0:
+                    top_course_name = top_courses[0]['course'] or 'Unknown'
+                    if len(top_course_name) > 20:
+                        top_course_name = top_course_name[:18] + "..."
+                    insights_data.append([Paragraph(f"• <b>{top_course_name}</b> is the most popular course", insight_style)])
+                
+                if top_closers and top_closers[0]['count'] > 0:
+                    top_closer_name = top_closers[0]['closer'] or 'Unknown'
+                    if len(top_closer_name) > 20:
+                        top_closer_name = top_closer_name[:18] + "..."
+                    insights_data.append([Paragraph(f"• <b>{top_closer_name}</b> is the top performing closer", insight_style)])
+            else:
+                insights_data.append([Paragraph("• No registrations yet for this event", insight_style)])
+            
+            insights_table = Table(insights_data, colWidths=[12*cm])
+            insights_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(COLORS['white'])),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor(COLORS['gray_200'])),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('PADDING', (0, 0), (-1, -1), 2),
+            ]))
+            
+            insights_content.append([insights_table])
+            
+            # Create combined table with both sections side by side
+            combined_table = Table([
+                [Table(revenue_content), Table(insights_content)]
+            ], colWidths=[10*cm, 15*cm])
+            
+            combined_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('PADDING', (0, 0), (-1, -1), 5),
+                ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+                ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+            ]))
+            
+            story.append(combined_table)
+            story.append(Spacer(1, 0.3*cm))
+            
+            # ============================
+            # ROW 3: TOP PERFORMERS ANALYSIS
+            # ============================
+            
+            # Create centered header
+            story.append(Paragraph("TOP PERFORMERS ANALYSIS", 
+                        ParagraphStyle('SectionCenter', parent=section_style, fontSize=12, alignment=1)))
+            story.append(Spacer(1, 0.2*cm))
+            
+            # Create compact tables side by side
+            performers_tables = []
+            
+            # 1. COMPACT TOP COURSES TABLE
+            if top_courses and len(top_courses) > 0:
+                courses_data = []
+                
+                # Compact headers
+                courses_data.append([
+                    Paragraph('<b>#</b>', performer_header_style),
+                    Paragraph('<b>COURSE</b>', performer_header_style),
+                    Paragraph('<b>COUNT</b>', performer_header_style),
+                    Paragraph('<b>%</b>', performer_header_style),
+                    Paragraph('<b>REVENUE</b>', performer_header_style),
+                ])
+                
+                # Data rows
+                for i, course in enumerate(top_courses, 1):
+                    course_name = course.get('course', 'Unknown') or 'Unknown'
+                    if len(course_name) > 15:
+                        course_name = course_name[:13] + "..."
+                    
+                    course_count = course.get('count', 0)
+                    course_percentage = (course_count / total_registered * 100) if total_registered > 0 else 0
+                    course_revenue = course.get('revenue', 0) or 0
+                    
+                    # Choose rank style
+                    if i == 1:
+                        rank_style = rank_style_gold
+                    elif i == 2:
+                        rank_style = rank_style_silver
+                    elif i == 3:
+                        rank_style = rank_style_bronze
+                    else:
+                        rank_style = rank_style_regular
+                    
+                    # Apply highlight to top row
+                    if i == 1:
+                        name_style = performer_highlight_style
+                    else:
+                        name_style = performer_cell_style
+                    
+                    courses_data.append([
+                        Paragraph(str(i), rank_style),
+                        Paragraph(course_name, name_style),
+                        Paragraph(str(course_count), table_cell_center),
+                        Paragraph(f"{course_percentage:.1f}%", table_cell_center),
+                        Paragraph(f"RM {course_revenue:,.0f}" if course_revenue == int(course_revenue) else f"RM {course_revenue:,.2f}", revenue_cell_style),
+                    ])
+                
+                # Compact column widths
+                courses_col_widths = [1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm]
+                
+                courses_table = Table(courses_data, colWidths=courses_col_widths, repeatRows=1)
+                
+                # Compact table styling - Black/Gray theme
+                courses_table.setStyle(TableStyle([
+                    # Header - Black background
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 8),
+                    ('PADDING', (0, 0), (-1, 0), 5),
+                    ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    
+                    # Body
+                    ('FONTSIZE', (0, 1), (-1, -1), 8),
+                    ('PADDING', (0, 1), (-1, -1), 4),
+                    ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
+                    
+                    # Thin horizontal lines - Gray
+                    ('LINEBELOW', (0, 0), (-1, 0), 1, colors.white),
+                    ('LINEBELOW', (0, 1), (-1, -1), 0.2, colors.HexColor(COLORS['gray_300'])),
+                    
+                    # Column alignments
+                    ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+                    ('ALIGN', (2, 1), (3, -1), 'CENTER'),
+                    ('ALIGN', (4, 1), (4, -1), 'RIGHT'),
+                    
+                    # Top row highlight - Light gray
+                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor(COLORS['gray_100'])),
+                ]))
+                
+                performers_tables.append(courses_table)
+            
+            # 2. COMPACT TOP CLOSERS TABLE
+            if top_closers and len(top_closers) > 0:
+                closers_data = []
+                
+                # Compact headers
+                closers_data.append([
+                    Paragraph('<b>#</b>', performer_header_style),
+                    Paragraph('<b>CLOSER</b>', performer_header_style),
+                    Paragraph('<b>COUNT</b>', performer_header_style),
+                    Paragraph('<b>%</b>', performer_header_style),
+                    Paragraph('<b>REVENUE</b>', performer_header_style),
+                ])
+                
+                # Data rows
+                for i, closer in enumerate(top_closers, 1):
+                    closer_name = closer.get('closer', 'Unknown') or 'Unknown'
+                    if len(closer_name) > 15:
+                        closer_name = closer_name[:13] + "..."
+                    
+                    closer_count = closer.get('count', 0)
+                    closer_percentage = (closer_count / total_registered * 100) if total_registered > 0 else 0
+                    closer_revenue = closer.get('revenue', 0) or 0
+                    
+                    # Choose rank style
+                    if i == 1:
+                        rank_style = rank_style_gold
+                    elif i == 2:
+                        rank_style = rank_style_silver
+                    elif i == 3:
+                        rank_style = rank_style_bronze
+                    else:
+                        rank_style = rank_style_regular
+                    
+                    # Apply highlight to top row
+                    if i == 1:
+                        name_style = performer_highlight_style
+                    else:
+                        name_style = performer_cell_style
+                    
+                    closers_data.append([
+                        Paragraph(str(i), rank_style),
+                        Paragraph(closer_name, name_style),
+                        Paragraph(str(closer_count), table_cell_center),
+                        Paragraph(f"{closer_percentage:.1f}%", table_cell_center),
+                        Paragraph(f"RM {closer_revenue:,.0f}" if closer_revenue == int(closer_revenue) else f"RM {closer_revenue:,.2f}", revenue_cell_style),
+                    ])
+                
+                # Compact column widths
+                closers_col_widths = [1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm]
+                
+                closers_table = Table(closers_data, colWidths=closers_col_widths, repeatRows=1)
+                
+                # Compact table styling - Black/Gray theme
+                closers_table.setStyle(TableStyle([
+                    # Header - Black background
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 8),
+                    ('PADDING', (0, 0), (-1, 0), 5),
+                    ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    
+                    # Body
+                    ('FONTSIZE', (0, 1), (-1, -1), 8),
+                    ('PADDING', (0, 1), (-1, -1), 4),
+                    ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
+                    
+                    # Thin horizontal lines - Gray
+                    ('LINEBELOW', (0, 0), (-1, 0), 1, colors.white),
+                    ('LINEBELOW', (0, 1), (-1, -1), 0.2, colors.HexColor(COLORS['gray_300'])),
+                    
+                    # Column alignments
+                    ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+                    ('ALIGN', (2, 1), (3, -1), 'CENTER'),
+                    ('ALIGN', (4, 1), (4, -1), 'RIGHT'),
+                    
+                    # Top row highlight - Light gray
+                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor(COLORS['gray_100'])),
+                ]))
+                
+                performers_tables.append(closers_table)
+            
+            # Create a container to center the tables properly
+            if len(performers_tables) > 0:
+                if len(performers_tables) == 2:
+                    # Two tables side by side
+                    table1_width = sum([1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm])  # 12.5cm
+                    table2_width = sum([1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm])  # 12.5cm
+                    
+                    # Create centered container
+                    center_table = Table([
+                        performers_tables
+                    ], colWidths=[table1_width, table2_width])
+                    
+                    center_table.setStyle(TableStyle([
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('PADDING', (0, 0), (-1, -1), 3),
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ]))
+                    
+                    story.append(center_table)
+                    
+                elif len(performers_tables) == 1:
+                    # Single table - center it
+                    single_table_width = sum([1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm])  # 12.5cm
+                    
+                    # Create centered container for single table
+                    center_table = Table([
+                        [performers_tables[0]]
+                    ], colWidths=[single_table_width])
+                    
+                    center_table.setStyle(TableStyle([
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('PADDING', (0, 0), (-1, -1), 3),
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ]))
+                    
+                    story.append(center_table)
+            
+            story.append(Spacer(1, 0.3*cm))
+            
+            # ============================
+            # PAGE BREAK
+            # ============================
+            story.append(PageBreak())
+            
+            # ============================
+            # PAGE 2: DETAILED REGISTRATIONS
+            # ============================
+            
+            # Header
+            story.append(Paragraph("REGISTRATION DETAILS", title_style))
+            story.append(Paragraph(
+                f"Event: {event.title} | Total: {total_registered} registration(s)", 
+                subtitle_style
+            ))
+            story.append(Spacer(1, 0.3*cm))
+            
+            # ============================
+            # ADJUSTED TABLE STRUCTURE - FIXED COLUMN HEADERS
+            # ============================
+            
+            # Updated headers with adjusted widths
+            headers = [
+                ('ID', 0.8*cm),
+                ('ATTENDEE', 5.5*cm),
+                ('EMAIL', 3.0*cm),
+                ('REFERRAL<br/>CODE', 2.2*cm),
+                ('COURSE', 2.2*cm),
+                ('COLLEGE', 2.0*cm),
+                ('REG.<br/>DATE', 1.5*cm),
+                ('PRE-<br/>REG', 1.4*cm),
+                ('REG<br/>FEE', 1.4*cm),
+                ('TOTAL', 2.2*cm),
+                ('STATUS', 1.8*cm),
+                ('CLOSER', 2.0*cm),
+            ]
+            
+            # Create table data
+            table_data = []
+            
+            # Headers with multiline text - Black background
+            header_row = []
+            for header_text, width in headers:
+                header_row.append(Paragraph(f'<b>{header_text}</b>', table_header_style))
+            table_data.append(header_row)
+            
+            # Registration rows
+            sorted_registrations = registrations.order_by('-register_date', 'attendee__name')
+            for i, reg in enumerate(sorted_registrations, 1):
+                # Get inviting officer
+                inviting_officer = email_to_inviting_officer.get(
+                    reg.attendee.email.lower(), 'N/A'
+                )
+                
+                # Truncate long text
+                attendee_name = reg.attendee.name
+                if len(attendee_name) > 18:
+                    attendee_name = attendee_name[:16] + "..."
+                
+                email = reg.attendee.email
+                if len(email) > 18:
+                    email = email[:16] + "..."
+                
+                officer = inviting_officer
+                if len(officer) > 12:
+                    officer = officer[:10] + "..."
+                
+                course = reg.course or 'N/A'
+                if len(course) > 12:
+                    course = course[:10] + "..."
+                
+                college = reg.college or 'N/A'
+                if len(college) > 12:
+                    college = college[:10] + "..."
+                
+                closer = reg.closer or 'N/A'
+                if len(closer) > 12:
+                    closer = closer[:10] + "..."
+                
+                # Status with color coding
+                if reg.payment_status == 'DONE':
+                    status_cell = Paragraph('PAID', status_paid_style)
+                else:
+                    status_cell = Paragraph('PENDING', status_pending_style)
+                
+                # Format fees
+                pre_reg_fee = f"{reg.pre_registration_fee:,.0f}" if reg.pre_registration_fee == int(reg.pre_registration_fee) else f"{reg.pre_registration_fee:,.2f}"
+                reg_fee = f"{reg.registration_fee:,.0f}" if reg.registration_fee == int(reg.registration_fee) else f"{reg.registration_fee:,.2f}"
+                total_fee = f"{reg.total_fee():,.0f}" if reg.total_fee() == int(reg.total_fee()) else f"{reg.total_fee():,.2f}"
+                
+                # Build row
+                row = [
+                    Paragraph(str(i), table_cell_center),
+                    Paragraph(attendee_name, table_cell_style),
+                    Paragraph(email, table_cell_style),
+                    Paragraph(officer, table_cell_style),
+                    Paragraph(course, table_cell_style),
+                    Paragraph(college, table_cell_style),
+                    Paragraph(
+                        reg.register_date.strftime('%d/%m/%y') if reg.register_date else 'N/A',
+                        table_cell_center
+                    ),
+                    Paragraph(f"RM {pre_reg_fee}", table_cell_right),
+                    Paragraph(f"RM {reg_fee}", table_cell_right),
+                    Paragraph(f"RM {total_fee}", table_cell_right),
+                    status_cell,
+                    Paragraph(closer, table_cell_style),
+                ]
+                
+                table_data.append(row)
+            
+            # Add summary row
+            total_row = [
+                Paragraph(f'<b>SUMMARY: {total_registered} Registrations</b>', total_label_style),
+                '', '', '', '', '', '',
+                Paragraph('', table_cell_center),
+                Paragraph('', table_cell_center),
+                Paragraph(f'<b>RM {total_revenue:,.2f}</b>', total_amount_style),
+                '', ''
+            ]
+            
+            table_data.append(total_row)
+            
+            # Extract column widths
+            col_widths = [width for _, width in headers]
+            
+            # Create table
+            table = Table(table_data, colWidths=col_widths, repeatRows=1)
+            
+            # Apply styling - Black/Gray theme
+            table.setStyle(TableStyle([
+                # Header - Black background
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 8),
+                ('PADDING', (0, 0), (-1, 0), 6),
+                ('LEFTPADDING', (0, 0), (-1, 0), 4),
+                ('RIGHTPADDING', (0, 0), (-1, 0), 4),
+                ('TOPPADDING', (0, 0), (-1, 0), 5),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 5),
+                ('LINEBELOW', (0, 0), (-1, 0), 1, colors.white),
+                ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+                # Body
+                ('FONTSIZE', (0, 1), (-1, -2), 7),
+                ('PADDING', (0, 1), (-1, -2), 6),
+                ('LEFTPADDING', (0, 1), (-1, -2), 4),
+                ('RIGHTPADDING', (0, 1), (-1, -2), 4),
+                ('TOPPADDING', (0, 1), (-1, -2), 5),
+                ('BOTTOMPADDING', (0, 1), (-1, -2), 5),
+                ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -2), 0.25, colors.HexColor(COLORS['gray_300'])),
+                
+                # STATUS column
+                ('LEFTPADDING', (10, 1), (10, -2), 4),
+                ('RIGHTPADDING', (10, 1), (10, -2), 4),
+                ('TOPPADDING', (10, 1), (10, -2), 6),
+                ('BOTTOMPADDING', (10, 1), (10, -2), 6),
+                
+                # Alternating rows - using gray tones
+                ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
+                 [colors.white, colors.HexColor(COLORS['gray_50'])]),
+                
+                # Column alignments
+                ('ALIGN', (0, 1), (0, -2), 'CENTER'),
+                ('ALIGN', (6, 1), (6, -2), 'CENTER'),
+                ('ALIGN', (7, 1), (9, -2), 'RIGHT'),
+                ('ALIGN', (10, 1), (10, -2), 'CENTER'),
+                
+                # TOTAL ROW - Gray background with black text
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_200'])),
+                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, -1), (-1, -1), 8),
+                ('PADDING', (0, -1), (-1, -1), 5),
+                ('LEFTPADDING', (0, -1), (-1, -1), 4),
+                ('RIGHTPADDING', (0, -1), (-1, -1), 4),
+                ('TOPPADDING', (0, -1), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, -1), (-1, -1), 4),
+                ('LINEABOVE', (0, -1), (-1, -1), 1, colors.HexColor(COLORS['black'])),
+                ('VALIGN', (0, -1), (-1, -1), 'MIDDLE'),
+                
+                # Total amount cell
+                ('TOPPADDING', (9, -1), (9, -1), 3),
+                ('BOTTOMPADDING', (9, -1), (9, -1), 3),
+                ('VALIGN', (9, -1), (9, -1), 'MIDDLE'),
+                
+                # Span cells for summary row
+                ('SPAN', (0, -1), (8, -1)),
+                ('SPAN', (9, -1), (9, -1)),
+                
+                # Remove grid for total row
+                ('GRID', (0, -1), (-1, -1), 0, colors.white),
+            ]))
+            
+            story.append(table)
+            story.append(Spacer(1, 0.3*cm))
+            
+            # Page 2 footer
+            story.append(Paragraph(
+                f"Report ID: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')} | © ATTSYS Dashboard",
+                footer_style
+            ))
+            
+            # ============================
+            # BUILD PDF DOCUMENT
+            # ============================
+            doc = SimpleDocTemplate(
+                buffer, 
+                pagesize=landscape(A4),
+                rightMargin=2.5*cm,
+                leftMargin=2.5*cm,
+                topMargin=1.5*cm,
+                bottomMargin=1.5*cm,
+            )
+            
+            # Build the story
+            doc.build(story)
+            buffer.seek(0)
+            
+            # Clean up temporary chart files
+            for chart_file in chart_files:
+                try:
+                    os.unlink(chart_file)
+                except:
+                    pass
+            
+            # Create response
+            response = HttpResponse(buffer, content_type='application/pdf')
+            filename = f"Dashboard_Report_{event.title.replace(' ', '_')[:30]}_{malaysia_now().strftime('%Y%m%d_%H%M')}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            return response
             
         except Exception as e:
-            print(f"Chart generation error: {e}")
-            # Continue without charts
-        
-        # ============================
-        # BUILD PDF STORY
-        # ============================
-        story = []
-        
-        # Header Section with black accent line
-        story.append(Spacer(1, 0.2*cm))
-        story.append(Paragraph("REGISTRATION DASHBOARD REPORT", title_style))
-        story.append(Paragraph(f"{event.title}", subtitle_style))
-        story.append(Paragraph(f"Event Date: {event.date.strftime('%d %B %Y')} | Generated: {malaysia_now().strftime('%d/%m/%Y %H:%M')}", 
-                             ParagraphStyle('ReportInfo', parent=subtitle_style, fontSize=9)))
-        story.append(Spacer(1, 0.3*cm))  # Less spacing
-        
-        # ============================
-        # ROW 1: SMALLER KEY METRIC CARDS (4 cards - reduced size)
-        # ============================
-        
-        def create_metric_card(label, value, subtext=""):
-            """Create a SMALLER dashboard metric card with black/gray theme"""
-            # Create a table with value on top, label below
-            card_data = [
-                [Paragraph(str(value), metric_value_style)],
-                [Paragraph(label, metric_label_style)],
-            ]
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"PDF generation error: {str(e)}")
+            print(f"Error details: {error_details}")
             
-            if subtext:
-                card_data.append([Paragraph(subtext, metric_subtext_style)])
+            # Fallback: Simple PDF with error message
+            buffer = io.BytesIO()
+            from reportlab.pdfgen import canvas
+            c = canvas.Canvas(buffer, pagesize=landscape(A4))
             
-            # SMALLER card width
-            card_table = Table(card_data, colWidths=[4.2*cm])  # Reduced
+            # Add error message
+            c.setFont("Helvetica-Bold", 16)
+            c.drawString(50, 400, "Error Generating PDF Report")
             
-            # Style to match black/gray theme - clean boxes with black border
-            card_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.white),
-                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor(COLORS['black'])),  # Black border
-                ('PADDING', (0, 0), (-1, -1), 5),  # Less padding
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('TOPPADDING', (0, 0), (-1, 0), 6),   # Less padding
-                ('BOTTOMPADDING', (0, -1), (-1, -1), 6),  # Less padding
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_100'])),  # Light gray top
-            ]))
+            c.setFont("Helvetica", 12)
+            c.drawString(50, 370, f"Event: {event.title}")
+            c.drawString(50, 350, f"Error: {str(e)[:100]}")
+            c.drawString(50, 330, "Please check the server logs for details.")
             
-            return card_table
-        
-        # Calculate metrics
-        payment_rate = (total_paid/total_registered*100) if total_registered > 0 else 0
-        avg_fee = total_revenue/total_registered if total_registered > 0 else 0
-        avg_paid_fee = paid_revenue/total_paid if total_paid > 0 else 0
-        
-        # Create 4 SMALLER metric cards
-        metric_cards = [
-            create_metric_card(
-                "Total Registrations",
-                total_registered,
-                f"{total_paid} paid, {total_pending} pending"
-            ),
-            create_metric_card(
-                "Payment Rate",
-                f"{payment_rate:.2f}%",
-                f"{total_paid} completed"
-            ),
-            create_metric_card(
-                "Total Revenue",
-                f"RM {total_revenue:,.2f}",
-                f"Avg: RM {avg_fee:,.2f}"
-            ),
-            create_metric_card(
-                "Avg Paid Fee",
-                f"RM {avg_paid_fee:,.2f}" if total_paid > 0 else "RM 0.00",
-                "Per successful registration"
-            )
-        ]
-        
-        # Arrange cards in a single row with SMALLER widths
-        metrics_row = Table([metric_cards], colWidths=[4.2*cm, 4.2*cm, 4.2*cm, 4.2*cm])
-        metrics_row.setStyle(TableStyle([
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('PADDING', (0, 0), (-1, -1), 2),
-        ]))
-        
-        story.append(metrics_row)
-        story.append(Spacer(1, 0.3*cm))
-        
-        # ============================
-        # COMBINED SECTION: REVENUE ANALYSIS & KEY INSIGHTS (CENTERED)
-        # ============================
-        
-        # Create a combined container for both sections
-        combined_sections = []
-        
-        # Revenue Chart Section
-        revenue_content = []
-        if len(chart_files) > 0:
-            revenue_content.append([Paragraph("REVENUE ANALYSIS", 
-                                 ParagraphStyle('SectionCenter', parent=section_style, alignment=1))])
-            revenue_content.append([Spacer(1, 0.1*cm)])
-            revenue_content.append([Image(chart_files[0], width=8*cm, height=4*cm)])  # Smaller image
-        else:
-            revenue_content.append([Paragraph("REVENUE ANALYSIS", 
-                                 ParagraphStyle('SectionCenter', parent=section_style, alignment=1))])
-            revenue_content.append([Paragraph("No revenue data available", 
-                                 ParagraphStyle('Center', parent=table_cell_center, alignment=1))])
-        
-        # Key Insights Section
-        insights_content = []
-        insights_content.append([Paragraph("KEY INSIGHTS", 
-                              ParagraphStyle('SectionCenter', parent=section_style, alignment=1))])
-        insights_content.append([Spacer(1, 0.1*cm)])
-        
-        # Generate insights list
-        insights_data = []
-        if total_registered > 0:
-            insights_data.append([Paragraph(f"• <b>{total_registered}</b> total registrations", insight_style)])
-            insights_data.append([Paragraph(f"• <b>{payment_rate:.2f}%</b> payment completion rate", insight_style)])
-            insights_data.append([Paragraph(f"• <b>RM {total_revenue:,.2f}</b> total revenue generated", insight_style)])
+            c.save()
+            buffer.seek(0)
             
-            if total_paid > 0:
-                insights_data.append([Paragraph(f"• <b>RM {paid_revenue:,.2f}</b> confirmed revenue", insight_style)])
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="error_report_{event.id}.pdf"'
+            return response
             
-            if total_pending > 0:
-                insights_data.append([Paragraph(f"• <b>RM {pending_revenue:,.2f}</b> pending revenue", insight_style)])
-            
-            if top_courses and top_courses[0]['count'] > 0:
-                top_course_name = top_courses[0]['course'] or 'Unknown'
-                if len(top_course_name) > 20:
-                    top_course_name = top_course_name[:18] + "..."
-                insights_data.append([Paragraph(f"• <b>{top_course_name}</b> is the most popular course", insight_style)])
-            
-            if top_closers and top_closers[0]['count'] > 0:
-                top_closer_name = top_closers[0]['closer'] or 'Unknown'
-                if len(top_closer_name) > 20:
-                    top_closer_name = top_closer_name[:18] + "..."
-                insights_data.append([Paragraph(f"• <b>{top_closer_name}</b> is the top performing closer", insight_style)])
-        else:
-            insights_data.append([Paragraph("• No registrations yet for this event", insight_style)])
-        
-        insights_table = Table(insights_data, colWidths=[12*cm])
-        insights_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(COLORS['white'])),
-            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor(COLORS['gray_200'])),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('PADDING', (0, 0), (-1, -1), 2),
-        ]))
-        
-        insights_content.append([insights_table])
-        
-        # Create combined table with both sections side by side
-        combined_table = Table([
-            [Table(revenue_content), Table(insights_content)]
-        ], colWidths=[10*cm, 15*cm])
-        
-        combined_table.setStyle(TableStyle([
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('PADDING', (0, 0), (-1, -1), 5),
-            ('ALIGN', (0, 0), (0, 0), 'CENTER'),
-            ('ALIGN', (1, 0), (1, 0), 'CENTER'),
-        ]))
-        
-        story.append(combined_table)
-        story.append(Spacer(1, 0.3*cm))
-        
-        # ============================
-        # ROW 3: TOP PERFORMERS ANALYSIS (PROPERLY CENTERED LIKE REGISTRATION TABLE)
-        # ============================
-        
-        # Create centered header
-        story.append(Paragraph("TOP PERFORMERS ANALYSIS", 
-                    ParagraphStyle('SectionCenter', parent=section_style, fontSize=12, alignment=1)))
-        story.append(Spacer(1, 0.2*cm))
-        
-        # Create compact tables side by side
-        performers_tables = []
-        
-        # 1. COMPACT TOP COURSES TABLE
-        if top_courses:
-            courses_data = []
-            
-            # Compact headers
-            courses_data.append([
-                Paragraph('<b>#</b>', performer_header_style),
-                Paragraph('<b>COURSE</b>', performer_header_style),
-                Paragraph('<b>COUNT</b>', performer_header_style),
-                Paragraph('<b>%</b>', performer_header_style),
-                Paragraph('<b>REVENUE</b>', performer_header_style),
-            ])
-            
-            # Data rows
-            for i, course in enumerate(top_courses, 1):
-                course_name = course['course'] or 'Unknown'
-                if len(course_name) > 15:
-                    course_name = course_name[:13] + "..."
-                
-                course_percentage = (course['count'] / total_registered * 100) if total_registered > 0 else 0
-                course_revenue = course['revenue'] or 0
-                
-                # Choose rank style
-                if i == 1:
-                    rank_style = rank_style_gold
-                elif i == 2:
-                    rank_style = rank_style_silver
-                elif i == 3:
-                    rank_style = rank_style_bronze
-                else:
-                    rank_style = rank_style_regular
-                
-                # Apply highlight to top row
-                if i == 1:
-                    name_style = performer_highlight_style
-                else:
-                    name_style = performer_cell_style
-                
-                courses_data.append([
-                    Paragraph(str(i), rank_style),
-                    Paragraph(course_name, name_style),
-                    Paragraph(str(course['count']), table_cell_center),
-                    Paragraph(f"{course_percentage:.1f}%", table_cell_center),
-                    Paragraph(f"RM {course_revenue:,.0f}" if course_revenue == int(course_revenue) else f"RM {course_revenue:,.2f}", revenue_cell_style),
-                ])
-            
-            # Compact column widths
-            courses_col_widths = [1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm]
-            
-            courses_table = Table(courses_data, colWidths=courses_col_widths, repeatRows=1)
-            
-            # Compact table styling - Black/Gray theme
-            courses_table.setStyle(TableStyle([
-                # Header - Black background
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 8),
-                ('PADDING', (0, 0), (-1, 0), 5),
-                ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
-                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                
-                # Body
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('PADDING', (0, 1), (-1, -1), 4),
-                ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
-                
-                # Thin horizontal lines - Gray
-                ('LINEBELOW', (0, 0), (-1, 0), 1, colors.white),
-                ('LINEBELOW', (0, 1), (-1, -1), 0.2, colors.HexColor(COLORS['gray_300'])),
-                
-                # Column alignments
-                ('ALIGN', (0, 1), (0, -1), 'CENTER'),
-                ('ALIGN', (2, 1), (3, -1), 'CENTER'),
-                ('ALIGN', (4, 1), (4, -1), 'RIGHT'),
-                
-                # Top row highlight - Light gray
-                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor(COLORS['gray_100'])),
-            ]))
-            
-            performers_tables.append(courses_table)
-        
-        # 2. COMPACT TOP CLOSERS TABLE
-        if top_closers:
-            closers_data = []
-            
-            # Compact headers
-            closers_data.append([
-                Paragraph('<b>#</b>', performer_header_style),
-                Paragraph('<b>CLOSER</b>', performer_header_style),
-                Paragraph('<b>COUNT</b>', performer_header_style),
-                Paragraph('<b>%</b>', performer_header_style),
-                Paragraph('<b>REVENUE</b>', performer_header_style),
-            ])
-            
-            # Data rows
-            for i, closer in enumerate(top_closers, 1):
-                closer_name = closer['closer'] or 'Unknown'
-                if len(closer_name) > 15:
-                    closer_name = closer_name[:13] + "..."
-                
-                closer_percentage = (closer['count'] / total_registered * 100) if total_registered > 0 else 0
-                closer_revenue = closer['revenue'] or 0
-                
-                # Choose rank style
-                if i == 1:
-                    rank_style = rank_style_gold
-                elif i == 2:
-                    rank_style = rank_style_silver
-                elif i == 3:
-                    rank_style = rank_style_bronze
-                else:
-                    rank_style = rank_style_regular
-                
-                # Apply highlight to top row
-                if i == 1:
-                    name_style = performer_highlight_style
-                else:
-                    name_style = performer_cell_style
-                
-                closers_data.append([
-                    Paragraph(str(i), rank_style),
-                    Paragraph(closer_name, name_style),
-                    Paragraph(str(closer['count']), table_cell_center),
-                    Paragraph(f"{closer_percentage:.1f}%", table_cell_center),
-                    Paragraph(f"RM {closer_revenue:,.0f}" if closer_revenue == int(closer_revenue) else f"RM {closer_revenue:,.2f}", revenue_cell_style),
-                ])
-            
-            # Compact column widths
-            closers_col_widths = [1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm]
-            
-            closers_table = Table(closers_data, colWidths=closers_col_widths, repeatRows=1)
-            
-            # Compact table styling - Black/Gray theme
-            closers_table.setStyle(TableStyle([
-                # Header - Black background
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 8),
-                ('PADDING', (0, 0), (-1, 0), 5),
-                ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
-                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                
-                # Body
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('PADDING', (0, 1), (-1, -1), 4),
-                ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
-                
-                # Thin horizontal lines - Gray
-                ('LINEBELOW', (0, 0), (-1, 0), 1, colors.white),
-                ('LINEBELOW', (0, 1), (-1, -1), 0.2, colors.HexColor(COLORS['gray_300'])),
-                
-                # Column alignments
-                ('ALIGN', (0, 1), (0, -1), 'CENTER'),
-                ('ALIGN', (2, 1), (3, -1), 'CENTER'),
-                ('ALIGN', (4, 1), (4, -1), 'RIGHT'),
-                
-                # Top row highlight - Light gray
-                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor(COLORS['gray_100'])),
-            ]))
-            
-            performers_tables.append(closers_table)
-        
-        # Create a container to center the tables properly
-        if len(performers_tables) > 0:
-            # Calculate available width on page (landscape A4 minus margins)
-            page_width = landscape(A4)[0]
-            left_margin = 2.5*cm
-            right_margin = 2.5*cm
-            available_width = page_width - left_margin - right_margin
-            
-            # Determine how many tables we have and calculate their total width
-            if len(performers_tables) == 2:
-                # Two tables side by side
-                table1_width = sum([1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm])  # 12.5cm
-                table2_width = sum([1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm])  # 12.5cm
-                total_tables_width = table1_width + table2_width + 2*cm  # Add spacing
-                
-                # Create centered container
-                center_table = Table([
-                    performers_tables
-                ], colWidths=[table1_width, table2_width])
-                
-                center_table.setStyle(TableStyle([
-                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                    ('PADDING', (0, 0), (-1, -1), 3),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ]))
-                
-                story.append(center_table)
-                
-            elif len(performers_tables) == 1:
-                # Single table - center it
-                single_table_width = sum([1.2*cm, 5.5*cm, 1.8*cm, 1.5*cm, 2.5*cm])  # 12.5cm
-                
-                # Create centered container for single table
-                center_table = Table([
-                    [performers_tables[0]]
-                ], colWidths=[single_table_width])
-                
-                center_table.setStyle(TableStyle([
-                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                    ('PADDING', (0, 0), (-1, -1), 3),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ]))
-                
-                story.append(center_table)
-        
-        story.append(Spacer(1, 0.3*cm))
-        
-        # ============================
-        # PAGE BREAK
-        # ============================
-        story.append(PageBreak())
-        
-        # ============================
-        # PAGE 2: DETAILED REGISTRATIONS
-        # ============================
-        
-        # Header
-        story.append(Paragraph("REGISTRATION DETAILS", title_style))
-        story.append(Paragraph(
-            f"Event: {event.title} | Total: {total_registered} registration(s)", 
-            subtitle_style
-        ))
-        story.append(Spacer(1, 0.3*cm))  # Less spacing
-        
-        # ============================
-        # ADJUSTED TABLE STRUCTURE - FIXED COLUMN HEADERS
-        # ============================
-        
-        # Updated headers with adjusted widths
-        headers = [
-            ('ID', 0.8*cm),  # Smaller
-            ('ATTENDEE', 5.5*cm),  # Smaller
-            ('EMAIL',3.0*cm),  # Smaller
-            ('REFERRAL<br/>CODE', 2.2*cm),  # Smaller
-            ('COURSE', 2.2*cm),  # Smaller
-            ('COLLEGE', 2.0*cm),  # Smaller
-            ('REG.<br/>DATE', 1.5*cm),  # Smaller
-            ('PRE-<br/>REG', 1.4*cm),  # Smaller
-            ('REG<br/>FEE', 1.4*cm),  # Smaller
-            ('TOTAL', 2.2*cm),  # Smaller
-            ('STATUS', 1.8*cm),  # Smaller
-            ('CLOSER', 2.0*cm),  # Smaller
-        ]
-        
-        # Create table data
-        table_data = []
-        
-        # Headers with multiline text - Black background
-        header_row = []
-        for header_text, width in headers:
-            header_row.append(Paragraph(f'<b>{header_text}</b>', table_header_style))
-        table_data.append(header_row)
-        
-        # Registration rows
-        sorted_registrations = registrations.order_by('-register_date', 'attendee__name')
-        for i, reg in enumerate(sorted_registrations, 1):
-            # Get inviting officer
-            inviting_officer = email_to_inviting_officer.get(
-                reg.attendee.email.lower(), 'N/A'
-            )
-            
-            # Truncate long text
-            attendee_name = reg.attendee.name
-            if len(attendee_name) > 18:
-                attendee_name = attendee_name[:16] + "..."
-            
-            email = reg.attendee.email
-            if len(email) > 18:
-                email = email[:16] + "..."
-            
-            officer = inviting_officer
-            if len(officer) > 12:
-                officer = officer[:10] + "..."
-            
-            course = reg.course or 'N/A'
-            if len(course) > 12:
-                course = course[:10] + "..."
-            
-            college = reg.college or 'N/A'
-            if len(college) > 12:
-                college = college[:10] + "..."
-            
-            closer = reg.closer or 'N/A'
-            if len(closer) > 12:
-                closer = closer[:10] + "..."
-            
-            # Status with color coding
-            if reg.payment_status == 'DONE':
-                status_cell = Paragraph('PAID', status_paid_style)
-            else:
-                status_cell = Paragraph('PENDING', status_pending_style)
-            
-            # Format fees
-            pre_reg_fee = f"{reg.pre_registration_fee:,.0f}" if reg.pre_registration_fee == int(reg.pre_registration_fee) else f"{reg.pre_registration_fee:,.2f}"
-            reg_fee = f"{reg.registration_fee:,.0f}" if reg.registration_fee == int(reg.registration_fee) else f"{reg.registration_fee:,.2f}"
-            total_fee = f"{reg.total_fee():,.0f}" if reg.total_fee() == int(reg.total_fee()) else f"{reg.total_fee():,.2f}"
-            
-            # Build row
-            row = [
-                Paragraph(str(i), table_cell_center),
-                Paragraph(attendee_name, table_cell_style),
-                Paragraph(email, table_cell_style),
-                Paragraph(officer, table_cell_style),
-                Paragraph(course, table_cell_style),
-                Paragraph(college, table_cell_style),
-                Paragraph(
-                    reg.register_date.strftime('%d/%m/%y') if reg.register_date else 'N/A',
-                    table_cell_center
-                ),
-                Paragraph(f"RM {pre_reg_fee}", table_cell_right),
-                Paragraph(f"RM {reg_fee}", table_cell_right),
-                Paragraph(f"RM {total_fee}", table_cell_right),
-                status_cell,
-                Paragraph(closer, table_cell_style),
-            ]
-            
-            table_data.append(row)
-        
-        # Add summary row
-        total_row = [
-            Paragraph(f'<b>SUMMARY: {total_registered} Registrations</b>', total_label_style),
-            '', '', '', '', '', '',
-            Paragraph('', table_cell_center),
-            Paragraph('', table_cell_center),
-            Paragraph(f'<b>RM {total_revenue:,.2f}</b>', total_amount_style),
-            '', ''
-        ]
-        
-        table_data.append(total_row)
-        
-        # Extract column widths
-        col_widths = [width for _, width in headers]
-        
-        # Create table
-        table = Table(table_data, colWidths=col_widths, repeatRows=1)
-        
-        # Apply styling - Black/Gray theme
-        table.setStyle(TableStyle([
-            # Header - Black background
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 8),
-            ('PADDING', (0, 0), (-1, 0), 6),
-            ('LEFTPADDING', (0, 0), (-1, 0), 4),
-            ('RIGHTPADDING', (0, 0), (-1, 0), 4),
-            ('TOPPADDING', (0, 0), (-1, 0), 5),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 5),
-            ('LINEBELOW', (0, 0), (-1, 0), 1, colors.white),
-            ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
-            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-            
-            # Body
-            ('FONTSIZE', (0, 1), (-1, -2), 7),
-            ('PADDING', (0, 1), (-1, -2), 6),
-            ('LEFTPADDING', (0, 1), (-1, -2), 4),
-            ('RIGHTPADDING', (0, 1), (-1, -2), 4),
-            ('TOPPADDING', (0, 1), (-1, -2), 5),
-            ('BOTTOMPADDING', (0, 1), (-1, -2), 5),
-            ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
-            ('GRID', (0, 0), (-1, -2), 0.25, colors.HexColor(COLORS['gray_300'])),
-            
-            # STATUS column
-            ('LEFTPADDING', (10, 1), (10, -2), 4),
-            ('RIGHTPADDING', (10, 1), (10, -2), 4),
-            ('TOPPADDING', (10, 1), (10, -2), 6),
-            ('BOTTOMPADDING', (10, 1), (10, -2), 6),
-            
-            # Alternating rows - using gray tones
-            ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
-             [colors.white, colors.HexColor(COLORS['gray_50'])]),
-            
-            # Column alignments
-            ('ALIGN', (0, 1), (0, -2), 'CENTER'),
-            ('ALIGN', (6, 1), (6, -2), 'CENTER'),
-            ('ALIGN', (7, 1), (9, -2), 'RIGHT'),
-            ('ALIGN', (10, 1), (10, -2), 'CENTER'),
-            
-            # TOTAL ROW - Gray background with black text
-            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_200'])),
-            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, -1), (-1, -1), 8),
-            ('PADDING', (0, -1), (-1, -1), 5),
-            ('LEFTPADDING', (0, -1), (-1, -1), 4),
-            ('RIGHTPADDING', (0, -1), (-1, -1), 4),
-            ('TOPPADDING', (0, -1), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, -1), (-1, -1), 4),
-            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.HexColor(COLORS['black'])),
-            ('VALIGN', (0, -1), (-1, -1), 'MIDDLE'),
-            
-            # Total amount cell
-            ('TOPPADDING', (9, -1), (9, -1), 3),
-            ('BOTTOMPADDING', (9, -1), (9, -1), 3),
-            ('VALIGN', (9, -1), (9, -1), 'MIDDLE'),
-            
-            # Span cells for summary row
-            ('SPAN', (0, -1), (8, -1)),
-            ('SPAN', (9, -1), (9, -1)),
-            
-            # Remove grid for total row
-            ('GRID', (0, -1), (-1, -1), 0, colors.white),
-        ]))
-        
-        story.append(table)
-        story.append(Spacer(1, 0.3*cm))
-        
-        # Page 2 footer
-        story.append(Paragraph(
-            f"Report ID: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')} | © ATTSYS Dashboard",
-            footer_style
-        ))
-        
-        # ============================
-        # BUILD PDF DOCUMENT
-        # ============================
-        doc = SimpleDocTemplate(
-            buffer, 
-            pagesize=landscape(A4),
-            rightMargin=2.5*cm,
-            leftMargin=2.5*cm,
-            topMargin=1.5*cm,  # Reduced
-            bottomMargin=1.5*cm,  # Reduced
-        )
-        
-        # Build the story
-        doc.build(story)
-        buffer.seek(0)
-        
-        # Clean up temporary chart files
-        for chart_file in chart_files:
-            try:
-                os.unlink(chart_file)
-            except:
-                pass
-        
-        # Create response
-        response = HttpResponse(buffer, content_type='application/pdf')
-        filename = f"Dashboard_Report_{event.title.replace(' ', '_')[:30]}_{malaysia_now().strftime('%Y%m%d_%H%M')}.pdf"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        
-        return response
-        
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        print(f"PDF generation error: {str(e)}")
+        print(f"Overall PDF generation error: {str(e)}")
         print(f"Error details: {error_details}")
         
         # Simple error response
