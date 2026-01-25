@@ -3425,3 +3425,61 @@ def get_realtime_updates(request, event_id):
         'latest_timestamp': latest_timestamp.isoformat() if latest_timestamp else None,
         'current_time': timezone.now().isoformat()
     })
+
+
+@login_required
+@require_GET
+def get_print_form_number(request, application_id):
+    """Generate or retrieve a unique form number for printing"""
+    try:
+        application = Application.objects.get(id=application_id)
+        
+        # Check if already has a print record
+        print_record = PrintRecord.objects.filter(application=application).first()
+        
+        if print_record:
+            # Return existing form number
+            return JsonResponse({
+                'success': True,
+                'form_number': print_record.form_number,
+                'is_reprint': True,
+                'print_count': print_record.print_count
+            })
+        else:
+            # Generate new form number
+            event = application.event
+            
+            # Format: SES.STATE.MONTH.SEQUENCE
+            # Get application count for this event
+            sequence = Application.objects.filter(
+                event=event,
+                submitted_at__lt=application.submitted_at
+            ).count() + 1
+            
+            # Format state abbreviation
+            state_abbr = event.state[:3].upper() if event.state and len(event.state) >= 3 else 'EVT'
+            
+            # Format month (two digits)
+            month = event.date.strftime('%m')
+            
+            # Generate form number
+            form_number = f"SES.{state_abbr}.{month}.{str(sequence).zfill(4)}"
+            
+            # Create print record
+            print_record = PrintRecord.objects.create(
+                application=application,
+                form_number=form_number,
+                printed_by=request.user if request.user.is_authenticated else None
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'form_number': form_number,
+                'is_reprint': False,
+                'print_count': 1
+            })
+            
+    except Application.DoesNotExist:
+        return JsonResponse({'error': 'Application not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

@@ -830,3 +830,17 @@ def set_user_permissions(sender, instance, created, **kwargs):
                 is_staff=True,
                 is_superuser=False
             )
+
+
+class PrintRecord(models.Model):
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='print_records')
+    form_number = models.CharField(max_length=50, unique=True)
+    printed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    printed_at = models.DateTimeField(auto_now_add=True)
+    print_count = models.IntegerField(default=1)
+    
+    class Meta:
+        ordering = ['-printed_at']
+    
+    def __str__(self):
+        return f"{self.form_number} - {self.application.full_name}"
