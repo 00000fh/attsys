@@ -2449,29 +2449,46 @@
         
         const app = currentAttendeeData.application;
         
-        // Get event form number from the page
-        const eventFormNumber = '{{ event.form_number|default:"SES.KUL.01.0001" }}'; // Default if not available
-        
-        // Parse the event form number to get base parts
-        const formNumberParts = eventFormNumber.split('.');
-        const prefix = formNumberParts.length >= 1 ? formNumberParts[0] : 'SES';
-        const stateCode = formNumberParts.length >= 2 ? formNumberParts[1] : 'KUL';
-        const monthNum = formNumberParts.length >= 3 ? formNumberParts[2] : '01';
-        const baseRunningNum = formNumberParts.length >= 4 ? parseInt(formNumberParts[3]) : 1;
-        
-        // Get or initialize form counter for this session
-        let formCounter = localStorage.getItem('formCounter');
-        if (!formCounter || parseInt(formCounter) > 9999) {
-            formCounter = 1;
-        } else {
-            formCounter = parseInt(formCounter);
+        // Generate form number in format: SES.(state).(month).(running number)
+        function generateFormNumber(counter) {
+            // Get event state code (e.g., "KUALA_LUMPUR")
+            const eventStateCode = "{{ event.state }}" || 'KUALA_LUMPUR';
+            
+            // Convert to abbreviation
+            let stateAbbr = 'KUL'; // default
+            
+            switch(eventStateCode) {
+                case 'KUALA_LUMPUR': stateAbbr = 'KUL'; break;
+                case 'SELANGOR': stateAbbr = 'SEL'; break;
+                case 'JOHOR': stateAbbr = 'JHR'; break;
+                case 'PENANG': stateAbbr = 'PNG'; break;
+                case 'PERAK': stateAbbr = 'PRK'; break;
+                case 'SABAH': stateAbbr = 'SBH'; break;
+                case 'SARAWAK': stateAbbr = 'SWK'; break;
+                case 'PAHANG': stateAbbr = 'PHG'; break;
+                case 'NEGERI_SEMBILAN': stateAbbr = 'NSN'; break;
+                case 'KEDAH': stateAbbr = 'KDH'; break;
+                case 'KELANTAN': stateAbbr = 'KTN'; break;
+                case 'TERENGGANU': stateAbbr = 'TRG'; break;
+                case 'MELAKA': stateAbbr = 'MLK'; break;
+                case 'PERLIS': stateAbbr = 'PLS'; break;
+                case 'LABUAN': stateAbbr = 'LBN'; break;
+                case 'PUTRAJAYA': stateAbbr = 'PJY'; break;
+                default: stateAbbr = eventStateCode.substring(0, 3);
+            }
+            
+            // Get event month (two-digit)
+            const eventMonth = "{{ event.date|date:'m' }}" || '01';
+            
+            // Format counter with leading zeros (4 digits)
+            const counterStr = counter.toString().padStart(4, '0');
+            
+            // Return formatted form number
+            return `SES.${stateAbbr}.${eventMonth}.${counterStr}`;
         }
         
-        // Format the display form number: SES.STATE.MM.NNNN
-        const displayFormNumber = `${prefix}.${stateCode}.${monthNum}.${formCounter.toString().padStart(4, '0')}`;
-        
-        // Increment for next form
-        localStorage.setItem('formCounter', (formCounter + 1).toString());
+        // Get current form number and increment
+        const formNumber = generateFormNumber(formCounter++);
         
         function toUpperCase(value) {
             if (!value) return '';
@@ -2565,17 +2582,6 @@
                         break-inside: avoid !important;
                     }
                     
-                    /* REVERTED: Original Form Number styling - but with SES.STATE.MM.NNNN format */
-                    .form-number {
-                        position: absolute;
-                        top: 0;
-                        right: 0;
-                        font-size: 8.5pt !important;
-                        color: #666;
-                        margin-bottom: 3px !important;
-                        text-align: right;
-                    }
-                    
                     .print-title {
                         font-size: 16pt !important;
                         font-weight: bold;
@@ -2591,6 +2597,17 @@
                         margin-bottom: 0 !important;
                         color: #000;
                         line-height: 1.1;
+                    }
+                    
+                    /* Form Number Styling - ORIGINAL DESIGN */
+                    .form-number {
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        font-size: 8.5pt !important;
+                        color: #666;
+                        margin-bottom: 3px !important;
+                        text-align: right;
                     }
                     
                     .print-section {
@@ -2940,8 +2957,8 @@
             </head>
             <body>
                 <div class="print-form">
-                    <!-- REVERTED: Original Form Number styling with SES.STATE.MM.NNNN format -->
-                    <div class="form-number">Form No.: ${displayFormNumber}</div>
+                    <!-- Form Number with new format - Original position and style -->
+                    <div class="form-number">${formNumber}</div>
                     
                     <div class="print-header">
                         <!-- DUAL LOGOS -->
@@ -3004,36 +3021,9 @@
                         </div>
                     </div>
 
-                    <!-- Section 2: Address Details -->
+                    <!-- Section 2: Personal Details -->
                     <div class="print-section">
-                        <div class="print-section-title">2. MAKLUMAT ALAMAT / ADDRESS DETAILS</div>
-                        
-                        <div class="print-field-row">
-                            <div class="print-label">Alamat Baris / Address Line :</div>
-                            <div class="print-value">${toUpperCase(escapeHtml(app.address1))}</div>
-                        </div>
-                        
-                        <div class="print-grid-3col">
-                            <div class="print-field-row">
-                                <div class="print-label-small">Bandar / City:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.city))}</div>
-                            </div>
-                            
-                            <div class="print-field-row">
-                                <div class="print-label-small">Poskod / Postcode:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.postcode))}</div>
-                            </div>
-                            
-                            <div class="print-field-row">
-                                <div class="print-label-small">Negeri / State:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.state))}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 3: Personal Details -->
-                    <div class="print-section">
-                        <div class="print-section-title">3. MAKLUMAT PERIBADI / PERSONAL DETAILS</div>
+                        <div class="print-section-title">2. MAKLUMAT PERIBADI / PERSONAL DETAILS</div>
                         
                         <div class="print-grid-2col">
                             <div class="print-field-row">
@@ -3056,6 +3046,33 @@
                             <div class="print-field-row">
                                 <div class="print-label">No. Telefon / Phone Number:</div>
                                 <div class="print-value">${toUpperCase(escapeHtml(app.phone_no))}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Address Details -->
+                    <div class="print-section">
+                        <div class="print-section-title">3. MAKLUMAT ALAMAT / ADDRESS DETAILS</div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Alamat Baris / Address Line :</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.address1))}</div>
+                        </div>
+                        
+                        <div class="print-grid-3col">
+                            <div class="print-field-row">
+                                <div class="print-label-small">Bandar / City:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.city))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label-small">Poskod / Postcode:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.postcode))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label-small">Negeri / State:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.state))}</div>
                             </div>
                         </div>
                     </div>
@@ -3111,43 +3128,43 @@
                         
                         <div class="print-field-row">
                             <div class="print-label">Nama Penuh / Full Name:</div>
-                            <div class="print-value">${toUpperCase(escapeHtml(app.mother_name))}</div>
-                        </div>
-                        
-                        <div class="print-grid-2col">
-                            <div class="print-field-row">
-                                <div class="print-label">No. Kad Pengenalan / IC No.:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_ic))}</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_name))}</div>
                             </div>
                             
-                            <div class="print-field-row">
-                                <div class="print-label">No. Telefon / Phone Number:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_phone))}</div>
+                            <div class="print-grid-2col">
+                                <div class="print-field-row">
+                                    <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_ic))}</div>
+                                </div>
+                                
+                                <div class="print-field-row">
+                                    <div class="print-label">No. Telefon / Phone Number:</div>
+                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_phone))}</div>
+                                </div>
                             </div>
-                        </div>
-                        
-                        ${app.mother_occupation ? `
-                        <div class="print-field-row">
-                            <div class="print-label">Pekerjaan / Occupation:</div>
-                            <div class="print-value">${toUpperCase(escapeHtml(app.mother_occupation))}</div>
-                        </div>
-                        ` : ''}
-                        
-                        <div class="print-grid-2col">
-                            ${app.mother_income ? `
-                            <div class="print-field-row">
-                                <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_income))}</div>
-                            </div>
-                            ` : '<div></div>'}
                             
-                            ${app.mother_dependants ? `
+                            ${app.mother_occupation ? `
                             <div class="print-field-row">
-                                <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_dependants))}</div>
+                                <div class="print-label">Pekerjaan / Occupation:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_occupation))}</div>
                             </div>
-                            ` : '<div></div>'}
-                        </div>
+                            ` : ''}
+                            
+                            <div class="print-grid-2col">
+                                ${app.mother_income ? `
+                                <div class="print-field-row">
+                                    <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
+                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_income))}</div>
+                                </div>
+                                ` : '<div></div>'}
+                                
+                                ${app.mother_dependants ? `
+                                <div class="print-field-row">
+                                    <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
+                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_dependants))}</div>
+                                </div>
+                                ` : '<div></div>'}
+                            </div>
                     </div>
 
                     <!-- Section 6: Programme Interest - 3 separate boxes -->
@@ -3272,11 +3289,6 @@
         const printWindow = window.open('', '_blank');
         printWindow.document.write(printHtml);
         printWindow.document.close();
-        
-        // Show success message
-        setTimeout(() => {
-            showToast(`Form printed with number: ${displayFormNumber}`);
-        }, 1000);
     };
     
     // Helper: Escape HTML

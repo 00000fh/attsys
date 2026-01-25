@@ -1,14 +1,15 @@
+<!-- create_event.html - CLEAN VERSION -->
 {% extends "base.html" %}
 
 {% block title %}Create Event | ATTSYS{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Create Event Page Specific Styles - WIDE LAYOUT */
+    /* Create Event Page Specific Styles */
     .create-event-container {
-        max-width: 1200px; /* Wider container */
+        max-width: 1000px;
         margin: 0 auto;
-        padding: 0 2rem; /* Reduced side padding */
+        padding: 0 1.5rem;
     }
     
     .page-header {
@@ -22,7 +23,6 @@
         border-radius: 12px;
         padding: 2rem;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
         margin-bottom: 1.5rem;
     }
     
@@ -38,7 +38,6 @@
         margin-bottom: 2rem;
         font-size: 1rem;
         line-height: 1.4;
-        max-width: 100%;
     }
     
     .form-label {
@@ -75,13 +74,6 @@
         margin-bottom: 1.5rem;
     }
     
-    .form-group-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        align-items: start;
-    }
-    
     .form-group-row-3 {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -103,7 +95,6 @@
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        letter-spacing: 0.3px;
     }
     
     .btn-submit:hover {
@@ -162,7 +153,7 @@
         border-top: 1px solid var(--gray-100);
     }
     
-    /* Form Section Styling - More compact */
+    /* Form Section Styling */
     .form-section {
         margin-bottom: 2rem;
         padding-bottom: 1.5rem;
@@ -192,45 +183,16 @@
         font-size: 1.1rem;
     }
     
-    /* Wider form layout for better use of space */
-    .wide-form {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 2rem;
-        align-items: start;
-    }
-    
-    .wide-form-section {
-        margin: 0;
-        padding: 0;
-        border: none;
-    }
-    
-    /* Character counter */
-    .character-counter {
-        font-size: 0.75rem !important;
-        color: var(--gray-600);
-        text-align: right;
-        margin-top: 0.25rem !important;
+    /* Custom State Input */
+    .custom-state-container {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: var(--gray-50);
+        border-radius: 8px;
+        border: 1px solid var(--gray-300);
     }
     
     /* Responsive Design */
-    @media (max-width: 1200px) {
-        .create-event-container {
-            max-width: 100%;
-            padding: 0 1.5rem;
-        }
-        
-        .form-card {
-            padding: 1.5rem;
-        }
-        
-        .wide-form {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-    }
-    
     @media (max-width: 768px) {
         .create-event-container {
             padding: 0 1rem;
@@ -241,7 +203,6 @@
             border-radius: 8px;
         }
         
-        .form-group-row,
         .form-group-row-3 {
             grid-template-columns: 1fr;
             gap: 1.5rem;
@@ -284,49 +245,6 @@
         .form-title {
             font-size: 1.35rem;
         }
-        
-        .info-card {
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-    }
-    
-    /* Compact layout utilities */
-    .compact-field {
-        margin-bottom: 1rem !important;
-    }
-    
-    .small-hint {
-        font-size: 0.75rem !important;
-        margin-top: 0.25rem !important;
-    }
-    
-    /* Animation for form focus */
-    @keyframes formFocus {
-        0% {
-            transform: scale(1);
-            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
-        }
-        70% {
-            transform: scale(1.01);
-            box-shadow: 0 0 0 10px rgba(13, 110, 253, 0.1);
-        }
-        100% {
-            transform: scale(1);
-            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
-        }
-    }
-    
-    .form-group.focus-animate {
-        animation: formFocus 0.5s ease-out;
-    }
-    
-    /* Helper text styling */
-    .helper-text {
-        font-size: 0.8rem;
-        color: var(--gray-600);
-        margin-top: 0.25rem;
-        display: block;
     }
 </style>
 {% endblock %}
@@ -347,59 +265,149 @@
         <form method="post" id="eventForm">
             {% csrf_token %}
             
-            <!-- Event Information Section - Wider layout -->
-            <div class="wide-form">
-                <!-- Left Column -->
-                <div class="wide-form-section">
-                    <h2 class="section-title">
-                        <i class="bi bi-calendar-event"></i>
-                        Event Details
-                    </h2>
-                    
-                    <!-- Event Title -->
-                    <div class="form-group compact-field" id="titleGroup">
+            <!-- Event Information Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-calendar-event"></i>
+                    Event Information
+                </h2>
+                
+                <!-- Event Title -->
+                <div class="form-group">
+                    <label class="form-label required">
+                        <i class="bi bi-card-heading form-icon"></i>
+                        Event Title
+                    </label>
+                    <input
+                        type="text"
+                        name="title"
+                        class="form-control"
+                        placeholder="Enter event title"
+                        required
+                        id="eventTitle"
+                        maxlength="200"
+                    >
+                    <span class="form-hint">
+                        Example: "Diploma Open Day 2024" or "Career Fair"
+                    </span>
+                </div>
+                
+                <!-- Event Description -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-card-text form-icon"></i>
+                        Event Description (Optional)
+                    </label>
+                    <textarea
+                        name="description"
+                        class="form-control"
+                        placeholder="Brief description of the event..."
+                        rows="3"
+                        id="eventDescription"
+                        maxlength="500"
+                    ></textarea>
+                    <span class="form-hint">
+                        Include agenda, speakers, or special instructions
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Event Location Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-geo-alt"></i>
+                    Event Location
+                </h2>
+                
+                <!-- Venue Details -->
+                <div class="form-group">
+                    <label class="form-label required">
+                        <i class="bi bi-building form-icon"></i>
+                        Venue/Location
+                    </label>
+                    <input
+                        type="text"
+                        name="venue"
+                        class="form-control"
+                        placeholder="Enter venue name or physical location"
+                        required
+                        id="eventVenue"
+                        maxlength="200"
+                    >
+                    <span class="form-hint">
+                        Example: "Grand Ballroom, KL Convention Centre"
+                    </span>
+                </div>
+                
+                <!-- State Selection (Dropdown) -->
+                <div class="form-group">
+                    <label class="form-label required">
+                        <i class="bi bi-map form-icon"></i>
+                        State
+                    </label>
+                    <select
+                        name="state"
+                        class="form-select"
+                        required
+                        id="eventState"
+                    >
+                        <option value="" selected disabled>Select a state</option>
+                        <option value="KUALA_LUMPUR">Kuala Lumpur</option>
+                        <option value="SELANGOR">Selangor</option>
+                        <option value="JOHOR">Johor</option>
+                        <option value="PENANG">Penang</option>
+                        <option value="PERAK">Perak</option>
+                        <option value="SABAH">Sabah</option>
+                        <option value="SARAWAK">Sarawak</option>
+                        <option value="PAHANG">Pahang</option>
+                        <option value="NEGERI_SEMBILAN">Negeri Sembilan</option>
+                        <option value="KEDAH">Kedah</option>
+                        <option value="KELANTAN">Kelantan</option>
+                        <option value="TERENGGANU">Terengganu</option>
+                        <option value="MELAKA">Melaka</option>
+                        <option value="PERLIS">Perlis</option>
+                        <option value="LABUAN">Labuan</option>
+                        <option value="PUTRAJAYA">Putrajaya</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                    <span class="form-hint">
+                        Select the state where the event is located
+                    </span>
+                </div>
+                
+                <!-- Custom State Input (hidden by default) -->
+                <div class="custom-state-container" id="customStateContainer" style="display: none;">
+                    <div class="form-group">
                         <label class="form-label required">
-                            <i class="bi bi-card-heading form-icon"></i>
-                            Event Title
+                            <i class="bi bi-pencil form-icon"></i>
+                            Specify State
                         </label>
                         <input
                             type="text"
-                            name="title"
+                            name="custom_state"
                             class="form-control"
-                            placeholder="Enter event title"
-                            required
-                            aria-label="Event title"
-                            id="eventTitle"
-                            maxlength="200"
+                            placeholder="Enter state name"
+                            id="customStateInput"
+                            maxlength="100"
                         >
-                        <span class="form-hint small-hint">
-                            Example: "Diploma Open Day 2024" or "Career Fair"
+                        <span class="form-hint">
+                            Enter the state name (if not listed above)
                         </span>
                     </div>
-                    
-                    <!-- Venue -->
-                    <div class="form-group compact-field" id="venueGroup">
-                        <label class="form-label required">
-                            <i class="bi bi-geo-alt form-icon"></i>
-                            Venue/Location
-                        </label>
-                        <input
-                            type="text"
-                            name="venue"
-                            class="form-control"
-                            placeholder="Physical location or virtual meeting link"
-                            required
-                            aria-label="Event venue"
-                            id="eventVenue"
-                            maxlength="200"
-                        >
-                        <span class="form-hint small-hint">
-                            Include meeting platform and link for virtual events
-                        </span>
-                    </div>
-                    
+                </div>
+            </div>
+            
+            <!-- Event Schedule Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-clock"></i>
+                    Event Schedule
+                </h2>
+                
+                <!-- Date and Time Row -->
+                <div class="form-group-row-3">
                     <!-- Date -->
-                    <div class="form-group compact-field" id="dateGroup">
+                    <div class="form-group">
                         <label class="form-label required">
                             <i class="bi bi-calendar-check form-icon"></i>
                             Event Date
@@ -409,80 +417,46 @@
                             name="date"
                             class="form-control"
                             required
-                            aria-label="Event date"
                             id="eventDate"
                         >
-                        <span class="form-hint small-hint">
+                        <span class="form-hint">
                             Select event date
                         </span>
                     </div>
-                </div>
-                
-                <!-- Right Column -->
-                <div class="wide-form-section">
-                    <h2 class="section-title">
-                        <i class="bi bi-clock"></i>
-                        Schedule
-                    </h2>
                     
-                    <!-- Time Row -->
-                    <div class="form-group-row">
-                        <!-- Start Time -->
-                        <div class="form-group" id="startTimeGroup">
-                            <label class="form-label required">
-                                <i class="bi bi-play-circle form-icon"></i>
-                                Start Time
-                            </label>
-                            <input
-                                type="time"
-                                name="start_time"
-                                class="form-control"
-                                required
-                                aria-label="Event start time"
-                                id="startTime"
-                            >
-                            <span class="form-hint small-hint">
-                                Event begins
-                            </span>
-                        </div>
-                        
-                        <!-- End Time -->
-                        <div class="form-group" id="endTimeGroup">
-                            <label class="form-label required">
-                                <i class="bi bi-stop-circle form-icon"></i>
-                                End Time
-                            </label>
-                            <input
-                                type="time"
-                                name="end_time"
-                                class="form-control"
-                                required
-                                aria-label="Event end time"
-                                id="endTime"
-                            >
-                            <span class="form-hint small-hint">
-                                Event concludes
-                            </span>
-                        </div>
+                    <!-- Start Time -->
+                    <div class="form-group">
+                        <label class="form-label required">
+                            <i class="bi bi-play-circle form-icon"></i>
+                            Start Time
+                        </label>
+                        <input
+                            type="time"
+                            name="start_time"
+                            class="form-control"
+                            required
+                            id="startTime"
+                        >
+                        <span class="form-hint">
+                            Event begins
+                        </span>
                     </div>
                     
-                    <!-- Additional Fields (Future Enhancement) -->
-                    <div class="form-group compact-field" style="margin-top: 1.5rem;">
-                        <label class="form-label">
-                            <i class="bi bi-text-paragraph form-icon"></i>
-                            Description (Optional)
+                    <!-- End Time -->
+                    <div class="form-group">
+                        <label class="form-label required">
+                            <i class="bi bi-stop-circle form-icon"></i>
+                            End Time
                         </label>
-                        <textarea
-                            name="description"
+                        <input
+                            type="time"
+                            name="end_time"
                             class="form-control"
-                            placeholder="Brief description of the event..."
-                            rows="3"
-                            aria-label="Event description"
-                            id="eventDescription"
-                            maxlength="500"
-                        ></textarea>
-                        <span class="form-hint small-hint">
-                            Include agenda, speakers, or special instructions
+                            required
+                            id="endTime"
+                        >
+                        <span class="form-hint">
+                            Event concludes
                         </span>
                     </div>
                 </div>
@@ -493,23 +467,14 @@
                 <div class="d-flex gap-2">
                     <a href="{% url 'dashboard' %}" class="btn btn-outline-dark flex-fill">
                         <i class="bi bi-arrow-left me-1"></i>
-                        Back
+                        Back to Dashboard
                     </a>
-                    <button type="submit" class="btn-submit flex-fill" id="submitBtn">
+                    <button type="submit" class="btn-submit flex-fill">
                         <i class="bi bi-plus-circle"></i>
                         Create Event
                     </button>
                 </div>
-                
-                <!-- Optional: Additional actions -->
-                <div class="text-center mt-2">
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle me-1"></i>
-                        After creation, you can generate QR code and assign staff
-                    </small>
-                </div>
             </div>
-            
         </form>
     </div>
 </div>
@@ -518,12 +483,11 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Form elements
-        const form = document.getElementById('eventForm');
+        // Elements
+        const stateSelect = document.getElementById('eventState');
+        const customStateContainer = document.getElementById('customStateContainer');
+        const customStateInput = document.getElementById('customStateInput');
         const dateInput = document.getElementById('eventDate');
-        const startTimeInput = document.getElementById('startTime');
-        const endTimeInput = document.getElementById('endTime');
-        const submitBtn = document.getElementById('submitBtn');
         
         // Set today's date as minimum and default
         const today = new Date();
@@ -532,36 +496,19 @@
         dateInput.value = formattedDate;
         
         // Set default times
-        startTimeInput.value = '09:00';
-        endTimeInput.value = '17:00';
+        document.getElementById('startTime').value = '09:00';
+        document.getElementById('endTime').value = '17:00';
         
-        // Format time display helper
-        function formatTimeDisplay(input) {
-            const time = input.value;
-            if (time) {
-                const [hours, minutes] = time.split(':');
-                const hour = parseInt(hours);
-                const ampm = hour >= 12 ? 'PM' : 'AM';
-                const displayHour = hour % 12 || 12;
-                // Update the hint text
-                const hint = input.nextElementSibling;
-                if (hint && hint.classList.contains('form-hint')) {
-                    hint.textContent = `${displayHour}:${minutes} ${ampm}`;
-                }
+        // Show/hide custom state input based on state selection
+        stateSelect.addEventListener('change', function() {
+            if (this.value === 'OTHER') {
+                customStateContainer.style.display = 'block';
+                customStateInput.required = true;
+            } else {
+                customStateContainer.style.display = 'none';
+                customStateInput.required = false;
+                customStateInput.value = '';
             }
-        }
-        
-        // Initialize time displays
-        formatTimeDisplay(startTimeInput);
-        formatTimeDisplay(endTimeInput);
-        
-        // Update time displays on change
-        startTimeInput.addEventListener('change', function() {
-            formatTimeDisplay(this);
-        });
-        
-        endTimeInput.addEventListener('change', function() {
-            formatTimeDisplay(this);
         });
         
         // Date validation
@@ -579,128 +526,44 @@
         
         // Time validation
         function validateTimes() {
-            const startTime = startTimeInput.value;
-            const endTime = endTimeInput.value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
             
-            if (startTime && endTime) {
-                if (startTime >= endTime) {
-                    endTimeInput.style.borderColor = '#dc3545';
-                    endTimeInput.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.15)';
-                    return false;
-                } else {
-                    endTimeInput.style.borderColor = '';
-                    endTimeInput.style.boxShadow = '';
-                    return true;
-                }
+            if (startTime && endTime && startTime >= endTime) {
+                alert('End time must be after start time.');
+                document.getElementById('endTime').focus();
+                return false;
             }
             return true;
         }
         
-        startTimeInput.addEventListener('change', validateTimes);
-        endTimeInput.addEventListener('change', validateTimes);
+        document.getElementById('startTime').addEventListener('change', validateTimes);
+        document.getElementById('endTime').addEventListener('change', validateTimes);
         
         // Form submission validation
-        form.addEventListener('submit', function(e) {
-            // Clear previous validation states
-            document.querySelectorAll('.form-control').forEach(input => {
-                input.style.borderColor = '';
-                input.style.boxShadow = '';
-            });
-            
-            // Validate required fields
-            let isValid = true;
-            const requiredFields = form.querySelectorAll('[required]');
-            
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.style.borderColor = '#dc3545';
-                    field.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.15)';
-                    field.closest('.form-group').classList.add('focus-animate');
-                    isValid = false;
-                    
-                    setTimeout(() => {
-                        field.closest('.form-group').classList.remove('focus-animate');
-                    }, 500);
-                    
-                    if (field.id === 'eventTitle') {
-                        field.focus();
-                    }
-                }
-            });
-            
-            // Validate time order
-            if (!validateTimes()) {
-                isValid = false;
-                endTimeInput.focus();
-            }
-            
-            if (!isValid) {
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            // Validate custom state if "Other" is selected
+            if (stateSelect.value === 'OTHER' && !customStateInput.value.trim()) {
                 e.preventDefault();
-                submitBtn.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Please fix errors';
-                submitBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
-                
-                setTimeout(() => {
-                    submitBtn.innerHTML = '<i class="bi bi-plus-circle"></i> Create Event';
-                    submitBtn.style.background = 'linear-gradient(135deg, var(--dark) 0%, #343a40 100%)';
-                }, 2000);
+                alert('Please specify the state name.');
+                customStateInput.focus();
                 return false;
             }
             
-            // Show loading state
-            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating...';
-            submitBtn.disabled = true;
-        });
-        
-        // Add focus effects to form groups
-        const formGroups = document.querySelectorAll('.form-group');
-        formGroups.forEach(group => {
-            const input = group.querySelector('.form-control, .form-select');
-            if (input) {
-                input.addEventListener('focus', function() {
-                    group.style.transform = 'translateY(-1px)';
-                    group.style.transition = 'transform 0.2s ease';
-                });
-                
-                input.addEventListener('blur', function() {
-                    group.style.transform = 'translateY(0)';
-                });
+            // Validate time order
+            if (!validateTimes()) {
+                e.preventDefault();
+                return false;
             }
+            
+            // Simple loading state (just disable button)
+            const submitBtn = this.querySelector('.btn-submit');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating...';
         });
         
         // Auto-focus event title
-        const eventTitle = document.getElementById('eventTitle');
-        eventTitle.focus();
-        
-        // Add character counter for text inputs
-        const textInputs = document.querySelectorAll('input[type="text"], textarea');
-        textInputs.forEach(input => {
-            const maxLength = input.maxLength || 200;
-            const counter = document.createElement('div');
-            counter.className = 'character-counter';
-            counter.style.fontSize = '0.75rem';
-            counter.style.color = 'var(--gray-600)';
-            counter.style.textAlign = 'right';
-            counter.style.marginTop = '0.25rem';
-            
-            input.parentNode.appendChild(counter);
-            
-            function updateCounter() {
-                const length = input.value.length;
-                counter.textContent = `${length}/${maxLength}`;
-                
-                if (length > maxLength * 0.9) {
-                    counter.style.color = '#dc3545';
-                    counter.style.fontWeight = '600';
-                } else if (length > maxLength * 0.75) {
-                    counter.style.color = '#fd7e14';
-                } else {
-                    counter.style.color = 'var(--gray-600)';
-                }
-            }
-            
-            input.addEventListener('input', updateCounter);
-            updateCounter();
-        });
+        document.getElementById('eventTitle').focus();
     });
 </script>
 {% endblock %}

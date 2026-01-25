@@ -1,8 +1,7 @@
 # attsys/urls.py
 from django.urls import path
 from django.shortcuts import redirect
-from . import views
-from .views import export_registrations_pdf
+from . import views  # Import the entire module, not specific functions
 
 urlpatterns = [
     # Redirect root to login
@@ -27,7 +26,8 @@ urlpatterns = [
     path('api/attendee/<int:attendee_id>/printable-details/', views.get_printable_attendee_details, name='printable_attendee_details'),
     
     # QR public page - THIS IS THE KEY ONE
-    path('check-in/<int:event_id>/<str:token>/', views.check_in, name='check_in'),  # ← Will be /attsys/check-in/... if included in ses/urls.py
+    path('check-in/<int:event_id>/<str:token>/', views.check_in, name='check_in'),
+    path('success/', views.success_page, name='success_page'),  # Add this line
     path('event/<int:event_id>/download-qr/', views.download_qr_code, name='download_qr'),
     
     

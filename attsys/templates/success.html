@@ -128,7 +128,7 @@
             }
         }
 
-        /* Auto close indicator */
+        /* Auto close indicator - CHANGED TEXT */
         .auto-close {
             position: absolute;
             bottom: 2rem;
@@ -257,9 +257,9 @@
             </p>
         </div>
         
-        <!-- Auto close notice -->
+        <!-- Auto close notice - CHANGED TEXT -->
         <div class="auto-close" style="opacity: 0;">
-            Closing automatically...
+            You can close this tab
         </div>
     </div>
 
@@ -267,33 +267,33 @@
         document.addEventListener('DOMContentLoaded', function() {
             'use strict';
             
-            // Auto-close window after 3 seconds
-            setTimeout(function() {
-                try {
-                    if (window.history.length > 1) {
-                        window.history.back();
-                    } else {
-                        // If we can't go back, just leave as is
-                        document.querySelector('.success-title').textContent = 'Done';
-                        document.querySelector('.success-message').textContent = 'You may close this window';
-                        document.querySelector('.auto-close').textContent = '';
-                    }
-                } catch (e) {
-                    // Fallback if window.close is blocked
-                    document.querySelector('.auto-close').textContent = 'Completed';
-                }
-            }, 3000);
-            
-            // Close on any tap/click
-            document.body.addEventListener('click', function() {
-                try {
-                    if (window.history.length > 1) {
-                        window.history.back();
-                    }
-                } catch (e) {
-                    // Ignore errors
+            // Clear any stored form data to prevent going back to filled form
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('form_')) {
+                    localStorage.removeItem(key);
                 }
             });
+            
+            // Clear sessionStorage too
+            sessionStorage.clear();
+            
+            // Add vibration feedback on load (if supported)
+            if (navigator.vibrate) {
+                navigator.vibrate([50]);
+            }
+            
+            // Close on any tap/click after 2 seconds
+            setTimeout(function() {
+                document.body.addEventListener('click', function() {
+                    try {
+                        if (window.history.length > 1) {
+                            window.history.back();
+                        }
+                    } catch (e) {
+                        // Ignore errors
+                    }
+                });
+            }, 2000);
             
             // Close on escape key
             document.addEventListener('keydown', function(e) {
@@ -307,11 +307,6 @@
                     }
                 }
             });
-            
-            // Add vibration feedback on load (if supported)
-            if (navigator.vibrate) {
-                navigator.vibrate([50]);
-            }
             
             // Prevent accidental refresh on mobile
             let touchStartY = 0;
@@ -327,12 +322,25 @@
                 }
             }, { passive: false });
             
-            // Handle page visibility
+            // Handle page visibility - prevent going back to form
             document.addEventListener('visibilitychange', function() {
                 if (document.hidden) {
-                    // Page is hidden, could have auto-closed
+                    // Page is hidden, clear any navigation history
+                    try {
+                        // Replace current history entry so back button doesn't go to form
+                        window.history.replaceState(null, null, window.location.href);
+                    } catch (e) {
+                        // Ignore errors
+                    }
                 }
             });
+            
+            // Replace history state to prevent going back to form
+            try {
+                window.history.replaceState(null, null, window.location.href);
+            } catch (e) {
+                // Ignore errors
+            }
         });
         
         // Handle beforeunload for cleanup

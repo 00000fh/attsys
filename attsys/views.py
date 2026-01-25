@@ -36,6 +36,8 @@ from django.conf import settings
 from reportlab.pdfgen import canvas
 from django.db import models
 from PIL import Image, ImageDraw, ImageFont
+import re
+from django.urls import reverse
 
 
 User = get_user_model()
@@ -153,6 +155,10 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+def success_page(request):
+    return render(request, 'success.html')
 
 
 @login_required
@@ -346,100 +352,72 @@ def create_event(request):
         return HttpResponseForbidden()
 
     if request.method == 'POST':
-        # Get form data
-        title = request.POST['title']
-        venue = request.POST['venue']
-        event_date = request.POST['date']
-        
-        # Extract state from venue (assuming format like "Kuala Lumpur, Selangor" or "Selangor")
-        state = extract_state_from_venue(venue)
-        
-        # Get current month from event date
         try:
-            month_num = datetime.strptime(event_date, '%Y-%m-%d').month
-        except:
-            month_num = timezone.now().month
-        
-        # Generate form number
-        form_number = generate_form_number(state, month_num)
-        
-        # Create the event
-        event = Event.objects.create(
-            title=title,
-            venue=venue,
-            date=event_date,
-            start_time=request.POST['start_time'],
-            end_time=request.POST['end_time'],
-            form_number=form_number,  # Use generated form number
-            created_by=request.user
-        )
-        
-        # Show success message with form number
-        messages.success(request, f"Event created successfully! Form Number: {event.form_number}")
-        return redirect('dashboard')
+            # Get form data
+            title = request.POST.get('title', '').strip()
+            venue = request.POST.get('venue', '').strip()
+            state = request.POST.get('state', '')
+            custom_state = request.POST.get('custom_state', '').strip()
+            date_str = request.POST.get('date', '')
+            start_time_str = request.POST.get('start_time', '')
+            end_time_str = request.POST.get('end_time', '')
+            description = request.POST.get('description', '').strip()
+            
+            # Basic validation
+            if not all([title, venue, state, date_str, start_time_str, end_time_str]):
+                messages.error(request, 'Please fill in all required fields')
+                return render(request, 'create_event.html', {'form_data': request.POST})
+            
+            # Handle custom state
+            if state == 'OTHER' and custom_state:
+                # For 'OTHER', store the custom state value in custom_state field
+                # Keep state as 'OTHER'
+                pass  # We'll use custom_state as is
+            else:
+                # For regular states, clear custom_state
+                custom_state = ''
+            
+            # Convert date and time
+            try:
+                date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                start_time = datetime.strptime(start_time_str, '%H:%M').time()
+                end_time = datetime.strptime(end_time_str, '%H:%M').time()
+            except ValueError:
+                messages.error(request, 'Invalid date or time format')
+                return render(request, 'create_event.html', {'form_data': request.POST})
+            
+            # Validate date is not in past
+            if date < date.today():
+                messages.error(request, 'Event date cannot be in the past')
+                return render(request, 'create_event.html', {'form_data': request.POST})
+            
+            # Validate time order
+            if start_time >= end_time:
+                messages.error(request, 'End time must be after start time')
+                return render(request, 'create_event.html', {'form_data': request.POST})
+            
+            # Create event
+            event = Event.objects.create(
+                title=title,
+                venue=venue,
+                state=state,
+                custom_state=custom_state,
+                date=date,
+                start_time=start_time,
+                end_time=end_time,
+                description=description,
+                created_by=request.user
+            )
+            
+            messages.success(request, f'Event "{event.title}" created successfully!')
+            return redirect('event_detail', event_id=event.id)
+            
+        except Exception as e:
+            print(f"Error creating event: {e}")
+            messages.error(request, f'Error creating event: {str(e)}')
+            return render(request, 'create_event.html', {'form_data': request.POST})
 
     return render(request, 'create_event.html')
-
-
-# Helper function to extract state abbreviation from venue
-def extract_state_from_venue(venue):
-    """
-    Extract state abbreviation from venue string
-    Common Malaysian states mapping
-    """
-    state_mapping = {
-        'johor': 'JHR',
-        'kedah': 'KDH',
-        'kelantan': 'KTN',
-        'melaka': 'MLK',
-        'negeri sembilan': 'NSN',
-        'pahang': 'PHG',
-        'perak': 'PRK',
-        'perlis': 'PLS',
-        'pulau pinang': 'PNG',
-        'penang': 'PNG',
-        'sabah': 'SBH',
-        'sarawak': 'SRW',
-        'selangor': 'SGR',
-        'terengganu': 'TRG',
-        'kuala lumpur': 'KUL',
-        'labuan': 'LBN',
-        'putrajaya': 'PJY'
-    }
-    
-    venue_lower = venue.lower()
-    
-    # Check for state names in the venue
-    for state_name, abbreviation in state_mapping.items():
-        if state_name in venue_lower:
-            return abbreviation
-    
-    # Default to KUL if no state found
-    return 'KUL'
-
-
-# Function to generate form number
-def generate_form_number(state_abbr, month_num):
-    """
-    Generate form number in format: SES.STATE.MM.NNNN
-    Example: SES.JHR.01.0001
-    """
-    # Get count of events in this state and month for the running number
-    current_year = timezone.now().year
-    
-    # Count events with the same state and month in current year
-    events_count = Event.objects.filter(
-        created_at__year=current_year,
-        form_number__startswith=f"SES.{state_abbr}.{month_num:02d}."
-    ).count()
-    
-    # Running number starts from 0001
-    running_number = events_count + 1
-    
-    # Format: SES.STATE.MM.NNNN
-    form_number = f"SES.{state_abbr}.{month_num:02d}.{running_number:04d}"
-    
-    return form_number
 
 
 @login_required
@@ -673,38 +651,41 @@ def check_in(request, event_id, token):
     Public check-in view for attendees to submit application forms
     """
     try:
-        # Debug logging
-        print(f"CHECK-IN ATTEMPT:")
-        print(f"  Event ID: {event_id}")
-        print(f"  Token received: {token}")
-        print(f"  Token type: {type(token)}")
-        
         # Get the event
         event = get_object_or_404(Event, id=event_id)
         
         # Check if event is active
         if not event.is_active:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'error': 'This event is no longer active for check-in.'
+                }, status=400)
             return render(request, 'error.html', {
                 'title': 'Event Inactive',
                 'error': 'This event is no longer active for check-in.',
                 'event': event
             })
         
-        # Check token - IMPORTANT: Compare as strings
-        event_token_str = str(event.check_in_token)
-        received_token_str = str(token)
-        
-        print(f"  Event token: {event_token_str}")
-        print(f"  Token match: {event_token_str == received_token_str}")
-        
-        if event_token_str != received_token_str:
+        # Check token
+        if str(event.check_in_token) != str(token):
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid check-in token.'
+                }, status=400)
             return render(request, 'error.html', {
-                'title': 'Invalid QR Code',
-                'error': 'This QR code is invalid or has expired. Please ask the event organizer for a new QR code.',
+                'title': 'Invalid Token',
+                'error': 'The check-in link is invalid or expired.',
                 'event': event
             })
             
     except Event.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'error': 'The event you are trying to check into does not exist.'
+            }, status=404)
         return render(request, 'error.html', {
             'title': 'Event Not Found',
             'error': 'The event you are trying to check into does not exist.'
@@ -713,6 +694,11 @@ def check_in(request, event_id, token):
         print(f"Error in check-in validation: {e}")
         import traceback
         traceback.print_exc()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'error': 'An error occurred while processing your check-in.'
+            }, status=500)
         return render(request, 'error.html', {
             'title': 'Error',
             'error': 'An error occurred while processing your check-in. Please try again.'
@@ -720,6 +706,11 @@ def check_in(request, event_id, token):
 
     # Block staff/admin from checking in as attendees
     if request.user.is_authenticated and request.user.role in ['STAFF', 'ADMIN']:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'error': 'Staff and Admin users cannot check in as attendees.'
+            }, status=403)
         return render(request, 'error.html', {
             'title': 'Staff/Admin Access',
             'error': 'Staff and Admin users cannot check in as attendees. Please use a different browser or incognito mode.'
@@ -727,7 +718,7 @@ def check_in(request, event_id, token):
 
     if request.method == 'POST':
         try:
-            # UPDATED: Added father_occupation, mother_occupation, and interest_choice1 to required fields
+            # Required fields
             required_fields = [
                 'registration_officer', 'applied_programme', 'full_name',
                 'city', 'postcode', 'state', 'ic_no', 'email',
@@ -736,46 +727,103 @@ def check_in(request, event_id, token):
                 'mother_phone', 'mother_occupation'
             ]
             
+            # Collect errors for validation
+            errors = {}
             for field in required_fields:
-                if not request.POST.get(field, '').strip():
+                value = request.POST.get(field, '').strip()
+                if not value:
+                    errors[field] = f'{field.replace("_", " ").title()} is required'
+            
+            # If there are validation errors
+            if errors:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Please fill in all required fields.',
+                        'field_errors': errors
+                    }, status=400)
+                else:
+                    first_error = list(errors.values())[0] if errors else 'Please fill in all required fields.'
                     return render(request, 'check_in.html', {
                         'event': event,
-                        'error': f'Please fill in all required fields. Missing: {field.replace("_", " ").title()}',
+                        'error': first_error,
                         'form_data': request.POST
                     })
 
-            # Handle SPM Total Credit - convert to integer
+            # Handle SPM Total Credit
             spm_total_credit_str = request.POST.get('spm_total_credit', '0').strip()
-            spm_total_credit = int(spm_total_credit_str) if spm_total_credit_str.isdigit() else 0
+            try:
+                spm_total_credit = int(spm_total_credit_str) if spm_total_credit_str.isdigit() else 0
+            except ValueError:
+                spm_total_credit = 0
             
-            # Handle father/mother dependants - convert to integer
+            # Handle father/mother dependants
             father_dependants_str = request.POST.get('father_dependants', '0').strip()
-            father_dependants = int(father_dependants_str) if father_dependants_str.isdigit() else 0
+            try:
+                father_dependants = int(father_dependants_str) if father_dependants_str.isdigit() else 0
+            except ValueError:
+                father_dependants = 0
             
             mother_dependants_str = request.POST.get('mother_dependants', '0').strip()
-            mother_dependants = int(mother_dependants_str) if mother_dependants_str.isdigit() else 0
+            try:
+                mother_dependants = int(mother_dependants_str) if mother_dependants_str.isdigit() else 0
+            except ValueError:
+                mother_dependants = 0
             
-            # UPDATED: Format empty values as dash for optional fields
+            # Format empty values as dash for optional fields
             def format_optional_value(value):
-                """Return dash if value is empty, otherwise return stripped value"""
                 if not value or not str(value).strip():
                     return '-'
                 return str(value).strip()
 
-            # Get interest choices - first choice is required, others optional
+            # Get interest choices
             interest_choice1 = format_optional_value(request.POST.get('interest_choice1', ''))
             interest_choice2 = format_optional_value(request.POST.get('interest_choice2', ''))
             interest_choice3 = format_optional_value(request.POST.get('interest_choice3', ''))
             
-            # UPDATED: Get father and mother occupation (now required)
+            # Get father and mother occupation
             father_occupation = request.POST.get('father_occupation', '').strip()
             mother_occupation = request.POST.get('mother_occupation', '').strip()
             
-            # Format other optional fields with dash if empty
+            # Format other optional fields
             father_income = format_optional_value(request.POST.get('father_income', ''))
             mother_income = format_optional_value(request.POST.get('mother_income', ''))
             
-            # UPDATED: Create Application record with all fields
+            # Email validation
+            email = request.POST['email'].strip().lower()
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Please enter a valid email address.'
+                    }, status=400)
+                else:
+                    return render(request, 'check_in.html', {
+                        'event': event,
+                        'error': 'Please enter a valid email address.',
+                        'form_data': request.POST
+                    })
+            
+            # Check if already submitted
+            existing_application = Application.objects.filter(
+                event=event,
+                email__iexact=email
+            ).exists()
+            
+            if existing_application:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'You have already submitted an application for this event.'
+                    }, status=400)
+                else:
+                    return render(request, 'check_in.html', {
+                        'event': event,
+                        'error': 'You have already submitted an application for this event.',
+                        'form_data': request.POST
+                    })
+            
+            # Create Application record
             application = Application.objects.create(
                 event=event,
                 registration_officer=request.POST['registration_officer'].strip(),
@@ -786,25 +834,25 @@ def check_in(request, event_id, token):
                 postcode=request.POST['postcode'].strip(),
                 state=request.POST['state'].strip(),
                 ic_no=request.POST['ic_no'].strip(),
-                email=request.POST['email'].strip().lower(),
+                email=email,
                 phone_no=request.POST['phone_no'].strip(),
                 marriage_status=request.POST['marriage_status'],
                 spm_total_credit=spm_total_credit,
                 father_name=request.POST['father_name'].strip(),
                 father_ic=request.POST['father_ic'].strip(),
                 father_phone=request.POST['father_phone'].strip(),
-                father_occupation=father_occupation,  # Now required
-                father_income=father_income,  # Optional, formatted
+                father_occupation=father_occupation,
+                father_income=father_income,
                 father_dependants=father_dependants,
                 mother_name=request.POST['mother_name'].strip(),
                 mother_ic=request.POST['mother_ic'].strip(),
                 mother_phone=request.POST['mother_phone'].strip(),
-                mother_occupation=mother_occupation,  # Now required
-                mother_income=mother_income,  # Optional, formatted
+                mother_occupation=mother_occupation,
+                mother_income=mother_income,
                 mother_dependants=mother_dependants,
-                interest_choice1=interest_choice1,  # Required
-                interest_choice2=interest_choice2,  # Optional, formatted
-                interest_choice3=interest_choice3,  # Optional, formatted
+                interest_choice1=interest_choice1,
+                interest_choice2=interest_choice2,
+                interest_choice3=interest_choice3,
                 interested_programme=(
                     f"1. {interest_choice1}\n"
                     f"2. {interest_choice2}\n"
@@ -815,7 +863,7 @@ def check_in(request, event_id, token):
             # Also mark as attendee for attendance tracking
             attendee, created = Attendee.objects.get_or_create(
                 event=event,
-                email=request.POST['email'].strip().lower(),
+                email=email,
                 defaults={
                     'name': request.POST['full_name'].strip(),
                     'phone_number': request.POST['phone_no'].strip()
@@ -834,41 +882,59 @@ def check_in(request, event_id, token):
             print(f"  Attendee: {attendee.name}")
             print(f"  Email: {attendee.email}")
             print(f"  Application ID: {application.id}")
-            print(f"  Father Occupation: {father_occupation}")
-            print(f"  Mother Occupation: {mother_occupation}")
-            print(f"  First Choice: {interest_choice1}")
             
-            # Show success message
-            return render(request, 'success.html', {
-                'event': event,
-                'application': application,
-                'attendee': attendee
-            })
+            # ================================================
+            # CRITICAL FIX: Force immediate redirect for ALL requests
+            # ================================================
+            success_url = '/attsys/success/'  # Direct URL to success page
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                # For AJAX requests, return a success with NO redirect URL
+                # This will let JavaScript handle clearing the form
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Application submitted successfully!',
+                    'application_id': application.id,
+                    'attendee_id': attendee.id,
+                    # NO redirect_url - let JS handle clearing form first
+                })
+            
+            # For non-AJAX requests, redirect immediately
+            return redirect(success_url)
 
         except IntegrityError as e:
-            if 'attendees' in str(e):
-                error_msg = 'You have already checked in to this event.'
-            elif 'applications' in str(e):
-                error_msg = 'You have already submitted an application for this event.'
-            else:
-                error_msg = 'An error occurred. Please try again.'
-            
+            error_msg = 'You have already submitted an application for this event.'
             print(f"Integrity Error in check-in: {e}")
-            return render(request, 'check_in.html', {
-                'event': event,
-                'error': error_msg,
-                'form_data': request.POST
-            })
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'error': error_msg
+                }, status=400)
+            else:
+                return render(request, 'check_in.html', {
+                    'event': event,
+                    'error': error_msg,
+                    'form_data': request.POST
+                })
             
         except Exception as e:
             print(f"Error in check_in POST: {e}")
             import traceback
             traceback.print_exc()
-            return render(request, 'check_in.html', {
-                'event': event,
-                'error': 'An unexpected error occurred. Please try again.',
-                'form_data': request.POST
-            })
+            
+            error_msg = 'An unexpected error occurred. Please try again.'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'error': error_msg
+                }, status=500)
+            else:
+                return render(request, 'check_in.html', {
+                    'event': event,
+                    'error': error_msg,
+                    'form_data': request.POST
+                })
 
     # GET request - show check-in form
     return render(request, 'check_in.html', {'event': event})
