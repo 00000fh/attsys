@@ -2951,7 +2951,7 @@
     };
     
     // ============================================
-    // REST OF THE CODE (UNCHANGED)
+    // HELPER FUNCTIONS
     // ============================================
     
     // Helper: Escape HTML
@@ -2961,6 +2961,23 @@
         div.textContent = text;
         return div.innerHTML;
     }
+    
+    // Show toast notification
+    function showToast(message, isError = false) {
+        if (!toast || !toastMessage) return;
+        
+        toastMessage.textContent = message;
+        toast.style.background = isError ? '#dc3545' : 'var(--success)';
+        toast.classList.add('show');
+        
+        setTimeout(function() {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+    
+    // ============================================
+    // QR CODE MODAL FUNCTIONS
+    // ============================================
     
     // Open QR modal
     window.openQRModal = function() {
@@ -3030,19 +3047,6 @@
         document.body.removeChild(textArea);
     }
     
-    // Show toast notification
-    function showToast(message, isError = false) {
-        if (!toast || !toastMessage) return;
-        
-        toastMessage.textContent = message;
-        toast.style.background = isError ? '#dc3545' : 'var(--success)';
-        toast.classList.add('show');
-        
-        setTimeout(function() {
-            toast.classList.remove('show');
-        }, 3000);
-    }
-    
     // Show download toast
     function showDownloadToast() {
         setTimeout(function() {
@@ -3050,267 +3054,435 @@
         }, 500);
     }
     
-    // Show attendee details
-    window.showAttendeeDetails = function(attendeeId) {
-        // Show modal immediately
-        const modalElement = document.getElementById('attendeeModal');
+    // Preview QR function
+    function previewQR(event) {
+        event.preventDefault();
+        const url = event.currentTarget.href;
+        
+        // Show modal
+        const modalElement = document.getElementById('previewModal');
         const modal = new bootstrap.Modal(modalElement);
         modal.show();
         
-        // Show loading state
-        const modalBody = document.getElementById('attendeeModalBody');
-        modalBody.innerHTML = `
-            <div class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3 text-muted">Loading attendee details...</p>
-            </div>
-        `;
-        
-        // Hide print button while loading
-        const printBtn = document.getElementById('printAttendeeBtn');
-        if (printBtn) printBtn.style.display = 'none';
-        
-        // Fetch attendee details
-        fetch(`/attsys/api/attendee/${attendeeId}/details/`, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch attendee details');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.error) {
-                modalBody.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        ${data.error}
-                    </div>
-                `;
-                return;
-            }
-            
-            // Store data for printing
-            currentAttendeeData = data;
-            
-            // Generate HTML for modal
-            let html = '';
-            
-            if (data.application) {
-                const app = data.application;
-                html = `
-                    <!-- Personal Information -->
-                    <div class="attendee-details-section">
-                        <h6><i class="bi bi-person me-2"></i>Personal Information</h6>
-                        <div class="detail-row">
-                            <div class="detail-label">Full Name:</div>
-                            <div class="detail-value">${escapeHtml(app.full_name)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">IC Number:</div>
-                            <div class="detail-value">${escapeHtml(app.ic_no)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Email:</div>
-                            <div class="detail-value">${escapeHtml(app.email)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Phone:</div>
-                            <div class="detail-value">${escapeHtml(app.phone_no)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Marriage Status:</div>
-                            <div class="detail-value">${escapeHtml(app.marriage_status)}</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Address Information -->
-                    <div class="attendee-details-section">
-                        <h6><i class="bi bi-house me-2"></i>Address Information</h6>
-                        <div class="detail-row">
-                            <div class="detail-label">Address Line 1:</div>
-                            <div class="detail-value">${escapeHtml(app.address1)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">City:</div>
-                            <div class="detail-value">${escapeHtml(app.city)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Postcode:</div>
-                            <div class="detail-value">${escapeHtml(app.postcode)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">State:</div>
-                            <div class="detail-value">${escapeHtml(app.state)}</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Father's Information -->
-                    <div class="attendee-details-section">
-                        <h6><i class="bi bi-person-standing me-2"></i>Father's Information</h6>
-                        <div class="detail-row">
-                            <div class="detail-label">Full Name:</div>
-                            <div class="detail-value">${escapeHtml(app.father_name)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">IC Number:</div>
-                            <div class="detail-value">${escapeHtml(app.father_ic)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Phone Number:</div>
-                            <div class="detail-value">${escapeHtml(app.father_phone)}</div>
-                        </div>
-                        ${app.father_occupation ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Occupation:</div>
-                            <div class="detail-value">${escapeHtml(app.father_occupation)}</div>
-                        </div>
-                        ` : ''}
-                        ${app.father_income ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Estimated Monthly Income:</div>
-                            <div class="detail-value">RM ${escapeHtml(app.father_income)}</div>
-                        </div>
-                        ` : ''}
-                        ${app.father_dependants ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Number of Dependants:</div>
-                            <div class="detail-value">${escapeHtml(app.father_dependants)}</div>
-                        </div>
-                        ` : ''}
-                    </div>
-                    
-                    <!-- Mother's Information -->
-                    <div class="attendee-details-section">
-                        <h6><i class="bi bi-person-standing-dress me-2"></i>Mother's Information</h6>
-                        <div class="detail-row">
-                            <div class="detail-label">Full Name:</div>
-                            <div class="detail-value">${escapeHtml(app.mother_name)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">IC Number:</div>
-                            <div class="detail-value">${escapeHtml(app.mother_ic)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Phone Number:</div>
-                            <div class="detail-value">${escapeHtml(app.mother_phone)}</div>
-                        </div>
-                        ${app.mother_occupation ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Occupation:</div>
-                            <div class="detail-value">${escapeHtml(app.mother_occupation)}</div>
-                        </div>
-                        ` : ''}
-                        ${app.mother_income ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Estimated Monthly Income:</div>
-                            <div class="detail-value">RM ${escapeHtml(app.mother_income)}</div>
-                        </div>
-                        ` : ''}
-                        ${app.mother_dependants ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Number of Dependants:</div>
-                            <div class="detail-value">${escapeHtml(app.mother_dependants)}</div>
-                        </div>
-                        ` : ''}
-                    </div>
-                    
-                    <!-- Application Details -->
-                    <div class="attendee-details-section">
-                        <h6><i class="bi bi-book me-2"></i>Application Details</h6>
-                        <div class="detail-row">
-                            <div class="detail-label">Inviting Officer:</div>
-                            <div class="detail-value">${escapeHtml(app.registration_officer)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Applied Programme:</div>
-                            <div class="detail-value">${escapeHtml(app.applied_programme)}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">SPM Total Credit:</div>
-                            <div class="detail-value">${escapeHtml(app.spm_total_credit || '0')}</div>
-                        </div>
-                        ${app.interest_choice1 ? `
-                        <div class="detail-row">
-                            <div class="detail-label">First Choice Programme:</div>
-                            <div class="detail-value" style="white-space: pre-wrap;">${escapeHtml(app.interest_choice1)}</div>
-                        </div>
-                        ` : ''}
-                        ${app.interest_choice2 ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Second Choice Programme:</div>
-                            <div class="detail-value" style="white-space: pre-wrap;">${escapeHtml(app.interest_choice2)}</div>
-                        </div>
-                        ` : ''}
-                        ${app.interest_choice3 ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Other Programme Interests:</div>
-                            <div class="detail-value" style="white-space: pre-wrap;">${escapeHtml(app.interest_choice3)}</div>
-                        </div>
-                        ` : ''}
-                    </div>
-                `;
-            } else {
-                // No application found
-                html = `
-                    <div class="no-application">
-                        <i class="bi bi-file-text" style="font-size: 3rem;"></i>
-                        <h4 class="mt-3">No Application Form Found</h4>
-                        <p class="text-muted">This attendee did not submit an application form during check-in.</p>
-                        <div class="mt-4">
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle me-2"></i>
-                                Only basic attendance information is available.
-                            </div>
-                        </div>
-                        <div class="attendee-details-section mt-4">
-                            <h6><i class="bi bi-clock-history me-2"></i>Attendance Information</h6>
-                            <div class="detail-row">
-                                <div class="detail-label">Name:</div>
-                                <div class="detail-value">${escapeHtml(data.attendee.name)}</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Email:</div>
-                                <div class="detail-value">${escapeHtml(data.attendee.email)}</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Phone:</div>
-                                <div class="detail-value">${escapeHtml(data.attendee.phone_number)}</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Checked In At:</div>
-                                <div class="detail-value">${data.attendee.attended_at_display} (${data.attendee.attended_date_display})</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            modalBody.innerHTML = html;
-            
-            // Show/hide print button based on whether we have application data
-            if (printBtn) {
-                printBtn.style.display = data.application ? 'inline-flex' : 'none';
-            }
-        })
-        .catch(error => {
-            console.error('Error loading attendee details:', error);
+        // Load image
+        const modalBody = modalElement.querySelector('.modal-body');
+        const img = new Image();
+        img.onload = function() {
+            modalBody.innerHTML = `
+                <img src="${url}" alt="QR Code" class="img-fluid rounded" style="max-height: 400px;">
+                <p class="mt-3 text-muted">Right-click and select "Save image as..." to download</p>
+            `;
+        };
+        img.onerror = function() {
             modalBody.innerHTML = `
                 <div class="alert alert-danger">
                     <i class="bi bi-exclamation-triangle me-2"></i>
-                    Failed to load attendee details. Please try again.
+                    Failed to load QR code preview.
                 </div>
             `;
-        });
+        };
+        img.src = url;
+    }
+    
+    // ============================================
+    // REGISTRATION FUNCTIONS
+    // ============================================
+    
+    // Open registration modal
+    window.openRegistrationModal = function(attendeeId) {
+        currentAttendeeId = attendeeId;
+        const modal = new bootstrap.Modal(document.getElementById('registrationModal'));
+
+        document.getElementById('attendeeId').value = attendeeId;
+
+        document.getElementById('registrationForm').reset();
+        
+        // Set modal title
+        document.getElementById('modalTitle').textContent = 'Registration Form';
+        document.getElementById('saveBtnText').textContent = 'Save Registration';
+        
+        // Reset form
+        document.getElementById('registrationForm').reset();
+        document.getElementById('register_date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('closer').value = "{{ request.user.get_full_name|default:request.user.username }}";
+        
+        // Load attendee info
+        fetch(`/attsys/api/attendee/${attendeeId}/details/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.attendee) {
+                    const attendee = data.attendee;
+                    document.getElementById('previewName').textContent = attendee.name;
+                    document.getElementById('previewEmail').textContent = attendee.email;
+                    document.getElementById('previewPhone').textContent = attendee.phone_number || 'N/A';
+                    document.getElementById('previewCheckInTime').textContent = 
+                        `Checked in: ${attendee.attended_at_display} (${attendee.attended_date_display})`;
+                    
+                    // Check if registration exists
+                    fetch(`/attsys/api/attendee/${attendeeId}/registration/`)
+                        .then(res => res.json())
+                        .then(regData => {
+                            if (regData.registration) {
+                                // Update modal for editing
+                                document.getElementById('modalTitle').textContent = 'Update Registration';
+                                document.getElementById('saveBtnText').textContent = 'Update Registration';
+                                populateRegistrationForm(regData.registration);
+                            }
+                        })
+                        .catch(() => {
+                            // No registration exists, keep form empty
+                        });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading attendee:', error);
+            });
+        
+        modal.show();
     };
     
-    // ... REST OF YOUR CODE (registration functions, etc.) ...
+    // Populate form with existing registration data
+    function populateRegistrationForm(registration) {
+        document.getElementById('course').value = registration.course || '';
+        document.getElementById('college').value = registration.college || '';
+        document.getElementById('register_date').value = registration.register_date || new Date().toISOString().split('T')[0];
+        document.getElementById('pre_registration_fee').value = registration.pre_registration_fee || '0.00';
+        document.getElementById('registration_fee').value = registration.registration_fee || '0.00';
+        document.getElementById('payment_status').value = registration.payment_status || 'PENDING';
+        document.getElementById('closer').value = registration.closer || '';
+        document.getElementById('referral_number').value = registration.referral_number || '';
+        document.getElementById('remark').value = registration.remark || '';
+        
+        // Update fee display
+        updateFeeDisplay();
+    }
+    
+    // Calculate and update fee display
+    function updateFeeDisplay() {
+        const preFee = parseFloat(document.getElementById('pre_registration_fee').value) || 0;
+        const regFee = parseFloat(document.getElementById('registration_fee').value) || 0;
+        const total = preFee + regFee;
+        
+        document.getElementById('totalFeeDisplay').textContent = total.toFixed(2);
+        document.getElementById('summaryTotal').textContent = total.toFixed(2);
+        
+        const status = document.getElementById('payment_status').value;
+        const statusBadge = status === 'DONE' ? 
+            '<span class="badge bg-success">Done</span>' : 
+            '<span class="badge bg-warning">Pending</span>';
+        document.getElementById('summaryStatus').innerHTML = statusBadge;
+    }
+    
+    // Save registration
+    window.saveRegistration = function() {
+        const form = document.getElementById('registrationForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const saveBtn = document.querySelector('#registrationModal .btn-primary');
+        const spinner = document.getElementById('saveSpinner');
+        const btnText = document.getElementById('saveBtnText');
+        
+        saveBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.textContent = 'Saving...';
+        
+        const formData = new FormData(form);
+        
+        fetch('/attsys/api/registration/save/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Registration saved successfully!');
+                
+                // Update UI
+                updateAttendeeRegistrationDisplay(currentAttendeeId, data.registration);
+                
+                // Update statistics
+                updateRegistrationStats();
+                
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('registrationModal')).hide();
+            } else {
+                showToast(data.error || 'Failed to save registration', true);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred. Please try again.', true);
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            spinner.classList.add('d-none');
+            btnText.textContent = document.getElementById('modalTitle').textContent === 'Registration Form' ? 
+                'Save Registration' : 'Update Registration';
+        });
+    };
+
+    // Export Registration PDF
+    window.exportRegistrationPDF = function() {
+        const eventId = {{ event.id }};
+        const url = `/attsys/api/event/${eventId}/export-registrations-pdf/`;
+        
+        // Show loading toast
+        showToast('Generating PDF report... Please wait.');
+        
+        // Open in new window
+        const newWindow = window.open(url, '_blank');
+        
+        // If popup blocked, show alternative
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            // Popup blocked, create download link
+            const link = document.createElement('a');
+            link.href = url;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('PDF download started. Check your downloads folder.');
+        }
+    };
+    
+    // Update attendee row with registration info
+    function updateAttendeeRegistrationDisplay(attendeeId, registration) {
+        const row = document.querySelector(`#attendee-${attendeeId}`);
+        if (!row) return;
+        
+        // Update registration info
+        const regInfoDiv = document.getElementById(`registration-info-${attendeeId}`);
+        const regDate = new Date(registration.register_date);
+        regInfoDiv.innerHTML = `
+            <div class="small">
+                <strong>${registration.course}</strong><br>
+                <span class="text-muted">${registration.college}</span><br>
+                <small>Reg: ${regDate.toLocaleDateString('en-GB')}</small>
+            </div>
+        `;
+        
+        // Update payment status
+        const paymentDiv = document.getElementById(`payment-status-${attendeeId}`);
+        const statusClass = registration.payment_status === 'DONE' ? 'bg-success' : 'bg-warning';
+        const statusText = registration.payment_status === 'DONE' ? 'Done' : 'Pending';
+        const totalFee = parseFloat(registration.total_fee || 0).toFixed(2);
+        
+        paymentDiv.innerHTML = `
+            <span class="badge ${statusClass}">${statusText}</span>
+            ${registration.payment_status === 'DONE' ? 
+                `<div class="small text-success mt-1">RM ${totalFee}</div>` :
+                `<div class="small text-muted mt-1">Pending: RM ${registration.registration_fee}</div>`}
+        `;
+        
+        // Update button
+        const btn = row.querySelector('.btn-success, .btn-warning');
+        if (btn) {
+            btn.className = btn.className.replace('btn-success', 'btn-warning').replace('btn-warning', 'btn-warning');
+            btn.innerHTML = `
+                <i class="bi bi-pencil"></i>
+                <span class="d-none d-md-inline">Update</span>
+            `;
+            btn.title = 'Update Registration';
+        }
+    }
+    
+    // Update registration statistics
+    function updateRegistrationStats() {
+        fetch(`/attsys/api/event/{{ event.id }}/registration-stats/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('totalRegistered').textContent = data.total_registered;
+                    document.getElementById('totalPaid').textContent = data.total_paid;
+                    document.getElementById('totalPending').textContent = data.total_pending;
+                    document.getElementById('totalRevenue').textContent = `RM ${data.total_revenue}`;
+                }
+            })
+            .catch(error => console.error('Error loading stats:', error));
+    }
+    
+    // Show all registration statistics
+    window.showAllRegistrationStats = function() {
+        const modal = new bootstrap.Modal(document.getElementById('statsModal'));
+        
+        fetch(`/attsys/api/event/{{ event.id }}/registration-full-stats/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update stats cards
+                    document.getElementById('statsTotalRegistered').textContent = data.total_registered;
+                    document.getElementById('statsTotalPaid').textContent = data.total_paid;
+                    document.getElementById('statsTotalPending').textContent = data.total_pending;
+                    document.getElementById('statsTotalRevenue').textContent = `RM ${data.total_revenue}`;
+                    
+                    // Create charts
+                    if (data.charts) {
+                        createChart('topCoursesChart', data.charts.top_courses, 'Courses');
+                        createChart('topClosersChart', data.charts.top_closers, 'Closers');
+                        createTimelineChart('timelineChart', data.charts.timeline);
+                    }
+                }
+            })
+            .catch(error => console.error('Error loading full stats:', error));
+        
+        modal.show();
+    };
+    
+    // Export registration report
+    window.exportRegistrationReport = function() {
+        window.open(`/attsys/api/event/{{ event.id }}/export-registrations/`, '_blank');
+    };
+    
+    // Create chart for stats modal
+    function createChart(canvasId, data, label, color) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        // Clear existing chart if it exists
+        if (window[`${canvasId}Chart`]) {
+            window[`${canvasId}Chart`].destroy();
+        }
+        
+        const labels = data.map(item => item.label);
+        const values = data.map(item => item.value);
+        
+        window[`${canvasId}Chart`] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: values,
+                    backgroundColor: color,
+                    borderColor: color.replace('0.8', '1'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Create timeline chart
+    function createTimelineChart(canvasId, data) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        // Clear existing chart if it exists
+        if (window[`${canvasId}Chart`]) {
+            window[`${canvasId}Chart`].destroy();
+        }
+        
+        const labels = data.map(item => item.date);
+        const values = data.map(item => item.count);
+        
+        window[`${canvasId}Chart`] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Registrations',
+                    data: values,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Real-time stats update function
+    function updateLiveStats() {
+        const eventId = {{ event.id }};  // Get event ID from template
+        
+        fetch(`/attsys/event/${eventId}/live-stats/`)  // This should now work
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update total attendees
+                    document.getElementById('totalAttendees').textContent = 
+                        data.statistics.attendees.total;
+                    
+                    // Update last check-in
+                    const lastCheckinTime = document.getElementById('lastCheckinTime');
+                    const lastCheckinInfo = document.getElementById('lastCheckinInfo');
+                    
+                    if (data.statistics.attendees.last_checkin) {
+                        lastCheckinTime.textContent = data.statistics.attendees.last_checkin;
+                        lastCheckinInfo.textContent = 'Last check-in';
+                    } else {
+                        lastCheckinTime.textContent = '—';
+                        lastCheckinInfo.textContent = 'No check-ins yet';
+                    }
+                    
+                    // Update attendees count in header
+                    document.getElementById('attendeesCount').textContent = 
+                        data.statistics.attendees.total;
+                    
+                    // Update registration stats
+                    document.getElementById('totalRegistered').textContent = 
+                        data.statistics.registrations.total;
+                    document.getElementById('totalPaid').textContent = 
+                        data.statistics.registrations.paid;
+                    document.getElementById('totalPending').textContent = 
+                        data.statistics.registrations.pending;
+                    document.getElementById('totalRevenue').textContent = 
+                        `RM ${data.statistics.registrations.revenue.toFixed(2)}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error updating live stats:', error);
+                // Don't show error to user, just fail silently
+            });
+    }
+    
+    // ============================================
+    // EVENT LISTENERS
+    // ============================================
     
     document.addEventListener('DOMContentLoaded', function() {
         // QR Code Modal Setup
@@ -3332,7 +3504,129 @@
             });
         }
         
-        // ... REST OF YOUR DOMContentLoaded CODE ...
+        // Fullscreen change handler
+        document.addEventListener('fullscreenchange', function() {
+            if (fullscreenIcon) {
+                if (document.fullscreenElement) {
+                    fullscreenIcon.className = 'bi bi-fullscreen-exit';
+                } else {
+                    fullscreenIcon.className = 'bi bi-fullscreen';
+                }
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Escape to close modal
+            if (e.key === 'Escape' && qrModal && qrModal.classList.contains('active')) {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    closeQRModal();
+                }
+            }
+            
+            // F key to toggle fullscreen (only when modal is open)
+            if ((e.key === 'f' || e.key === 'F') && qrModal && qrModal.classList.contains('active')) {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+            
+            // D key to download QR
+            if ((e.key === 'd' || e.key === 'D') && qrModal && qrModal.classList.contains('active')) {
+                e.preventDefault();
+                const downloadLink = document.querySelector('[href*="download-qr"]');
+                if (downloadLink) {
+                    downloadLink.click();
+                }
+            }
+            
+            // C key to copy URL
+            if ((e.key === 'c' || e.key === 'C') && qrModal && qrModal.classList.contains('active')) {
+                e.preventDefault();
+                copyToClipboard();
+            }
+        });
+        
+        // Initialize Attendance Chart
+        const chartEl = document.getElementById('attendanceChart');
+        if (chartEl) {
+            const ctx = chartEl.getContext('2d');
+            
+            // Prepare data
+            const labels = [
+                {% for row in attendance_by_hour %}
+                    "{{ row.hour|date:'H:i' }}",
+                {% endfor %}
+            ];
+            
+            const data = [
+                {% for row in attendance_by_hour %}
+                    {{ row.count }},
+                {% endfor %}
+            ];
+            
+            window.attendanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Check-ins per Hour',
+                        data: data,
+                        borderColor: '#212529',
+                        backgroundColor: 'rgba(33, 37, 41, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update fee display when fee inputs change
+        document.getElementById('pre_registration_fee')?.addEventListener('input', updateFeeDisplay);
+        document.getElementById('registration_fee')?.addEventListener('input', updateFeeDisplay);
+        document.getElementById('payment_status')?.addEventListener('change', updateFeeDisplay);
+        
+        // Load initial registration statistics
+        updateRegistrationStats();
+        
+        // Start real-time stats updates (every 30 seconds)
+        updateLiveStats();
+        setInterval(updateLiveStats, 30000);
     });
 </script>
 {% endblock %}
