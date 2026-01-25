@@ -3487,7 +3487,7 @@
         const paymentDiv = document.getElementById(`payment-status-${attendeeId}`);
         const statusClass = registration.payment_status === 'DONE' ? 'bg-success' : 'bg-warning';
         const statusText = registration.payment_status === 'DONE' ? 'Done' : 'Pending';
-        const totalFee = (parseFloat(registration.pre_registration_fee) + parseFloat(registration.registration_fee)).toFixed(2);
+        const totalFee = parseFloat(registration.total_fee || 0).toFixed(2);
         
         paymentDiv.innerHTML = `
             <span class="badge ${statusClass}">${statusText}</span>

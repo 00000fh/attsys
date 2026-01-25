@@ -1414,7 +1414,7 @@ def get_attendee_registration(request, attendee_id):
                 'remark': registration.remark,
                 'closer': registration.closer,
                 'referral_number': registration.referral_number,
-                'total_fee': str(registration.total_fee()),
+                'total_fee': str(registration.total_fee),
                 'created_at': timezone.localtime(registration.created_at).strftime('%Y-%m-%d %H:%M:%S'),
                 'updated_at': timezone.localtime(registration.updated_at).strftime('%Y-%m-%d %H:%M:%S')
             }
@@ -1540,7 +1540,7 @@ def save_registration(request):
                 'register_date': registration.register_date.strftime('%Y-%m-%d'),
                 'pre_registration_fee': str(registration.pre_registration_fee),
                 'registration_fee': str(registration.registration_fee),
-                'total_fee': str(registration.total_fee()),
+                'total_fee': str(registration.total_fee),
                 'payment_status': registration.payment_status,
                 'closer': registration.closer,
                 'referral_number': registration.referral_number
