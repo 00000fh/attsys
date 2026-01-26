@@ -742,37 +742,36 @@
     }
     
     /* ========================= */
-    /* NEW: Clean Attendee Details Modal - Black/White Theme */
+    /* NEW: Updated Attendee Details Modal - Cleaner and Wider */
     /* ========================= */
     .attendee-modal .modal-dialog {
-        max-width: 1000px !important;
+        max-width: 1200px !important;
         margin: 1.75rem auto;
     }
     
     .attendee-modal .modal-content {
         border: none;
         border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
         overflow: hidden;
         background: white;
-        border: 1px solid var(--gray-200);
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
     }
     
     .attendee-modal .modal-header {
-        background: var(--dark);
-        color: white;
-        padding: 1.75rem 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.5rem 2rem;
         border-bottom: none;
         position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        color: white;
     }
     
     .attendee-modal .modal-title {
         color: white;
         font-weight: 600;
-        font-size: 1.35rem;
+        font-size: 1.5rem;
         margin: 0;
         display: flex;
         align-items: center;
@@ -780,30 +779,38 @@
     }
     
     .attendee-modal .btn-close {
-        background: transparent;
+        background: rgba(255, 255, 255, 0.2);
         border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
         color: white;
-        opacity: 0.8;
-        transition: opacity 0.2s ease;
-        padding: 0.5rem;
+        opacity: 0.9;
+        transition: all 0.2s ease;
+        padding: 0;
         margin: 0;
-        filter: brightness(0) invert(1);
     }
     
     .attendee-modal .btn-close:hover {
+        background: rgba(255, 255, 255, 0.3);
         opacity: 1;
+        transform: scale(1.05);
     }
     
     .attendee-modal .modal-body {
         padding: 2rem;
-        max-height: 70vh;
         overflow-y: auto;
-        background: white;
+        background: #f8f9fa;
+        flex: 1;
     }
     
     .attendee-modal .modal-footer {
-        background: var(--gray-50);
-        padding: 1.5rem 2rem;
+        background: white;
+        padding: 1.25rem 2rem;
         border-top: 1px solid var(--gray-200);
         display: flex;
         justify-content: space-between;
@@ -811,205 +818,225 @@
         gap: 1rem;
     }
     
-    /* Attendee Details Sections - Clean Layout */
+    /* Attendee Details Sections - Updated for cleaner look */
     .attendee-details-section {
-        margin-bottom: 2.5rem;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid var(--gray-200);
+        background: white;
+        border-radius: 12px;
+        padding: 1.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--gray-200);
     }
     
     .attendee-details-section:last-child {
-        border-bottom: none;
         margin-bottom: 0;
-        padding-bottom: 0;
     }
     
     .attendee-details-section h6 {
-        color: var(--dark);
-        font-size: 1.1rem;
-        font-weight: 600;
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 0.75rem;
         margin-bottom: 1.5rem;
+        color: var(--dark);
+        font-size: 1.125rem;
+        font-weight: 600;
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        position: relative;
-        padding-bottom: 0.75rem;
     }
     
-    .attendee-details-section h6::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 60px;
-        height: 3px;
-        background: var(--dark);
-        border-radius: 2px;
-    }
-    
-    /* Grid Layout for Details */
+    /* Clean detail grid layout */
     .detail-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 1.25rem;
     }
     
     .detail-grid-item {
         background: var(--gray-50);
         border: 1px solid var(--gray-200);
         border-radius: 10px;
-        padding: 1.5rem;
-        transition: all 0.2s ease;
+        padding: 1.25rem;
+        transition: transform 0.2s ease;
     }
     
     .detail-grid-item:hover {
-        border-color: var(--gray-300);
+        transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
     
     .detail-grid-title {
         font-weight: 600;
         color: var(--dark);
-        margin-bottom: 1.25rem;
-        font-size: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
         border-bottom: 1px solid var(--gray-300);
-        padding-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
     
-    /* Detail Items */
-    .detail-item {
-        margin-bottom: 1rem;
+    /* Detail rows inside grid items */
+    .detail-row {
         display: flex;
+        margin-bottom: 0.75rem;
         align-items: flex-start;
+        gap: 0.75rem;
     }
     
-    .detail-item:last-child {
+    .detail-row:last-child {
         margin-bottom: 0;
     }
     
     .detail-label {
         font-weight: 500;
-        width: 180px;
-        min-width: 180px;
+        min-width: 120px;
         color: var(--gray-700);
-        font-size: 0.9rem;
-        padding: 0.5rem 0;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        font-size: 0.875rem;
+        padding: 0.25rem 0;
     }
     
     .detail-value {
         flex: 1;
         color: var(--dark);
-        padding: 0.75rem 1rem;
-        background: white;
-        border-radius: 8px;
-        border: 1px solid var(--gray-200);
-        min-height: 45px;
-        display: flex;
-        align-items: center;
-        font-size: 0.95rem;
+        padding: 0.25rem 0;
+        font-size: 0.9rem;
         word-break: break-word;
-        font-weight: 500;
+        line-height: 1.4;
     }
     
-    .detail-value.empty {
-        color: var(--gray-500);
-        font-style: italic;
-    }
-    
-    /* Quick Info Cards */
-    .quick-info-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-    
-    .info-card {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
+    /* Check-in information box */
+    .checkin-info-box {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         border-radius: 10px;
         padding: 1.25rem;
-        text-align: center;
-        transition: all 0.2s ease;
+        margin-top: 1rem;
+        border: 1px solid var(--gray-300);
     }
     
-    .info-card:hover {
-        border-color: var(--gray-300);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-    
-    .info-card-icon {
-        font-size: 1.5rem;
-        color: var(--dark);
-        margin-bottom: 0.75rem;
-    }
-    
-    .info-card-label {
-        font-size: 0.8rem;
-        color: var(--gray-600);
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-    }
-    
-    .info-card-value {
-        font-size: 1.1rem;
+    .checkin-info-title {
         font-weight: 600;
         color: var(--dark);
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
-    /* No Application State */
+    /* No application state */
     .no-application {
         text-align: center;
-        padding: 3rem 1rem;
+        padding: 3rem 2rem;
         color: var(--gray-600);
+        background: white;
+        border-radius: 12px;
+        border: 2px dashed var(--gray-300);
     }
     
     .no-application i {
         font-size: 3rem;
         color: var(--gray-300);
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
     }
     
     .no-application h4 {
         color: var(--gray-700);
         font-weight: 600;
         margin-bottom: 0.75rem;
+        font-size: 1.25rem;
     }
     
-    /* Print Button */
-    .print-btn {
+    /* Print button styling */
+    #printAttendeeBtn {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
         padding: 0.75rem 1.75rem;
         font-weight: 500;
-        background: var(--dark);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
         border-radius: 8px;
         transition: all 0.2s ease;
-        cursor: pointer;
+        font-size: 0.9rem;
     }
     
-    .print-btn:hover {
-        background: var(--gray-800);
+    #printAttendeeBtn:hover {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4290 100%);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
     
-    .print-btn:disabled {
+    #printAttendeeBtn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
+    }
+    
+    /* Loading state */
+    .loading-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    
+    .loading-state .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.25em;
+    }
+    
+    /* Error state */
+    .error-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #dc3545;
+        background: #fff5f5;
+        border-radius: 12px;
+        border: 1px solid #f8d7da;
+    }
+    
+    .error-state i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Program interest boxes */
+    .program-interest-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 0.75rem;
+    }
+    
+    .program-interest-box {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        padding: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .program-interest-box:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
+    }
+    
+    .program-interest-title {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .program-interest-content {
+        color: var(--gray-700);
+        font-size: 0.875rem;
+        line-height: 1.4;
     }
     
     /* Registration Modal Styles */
@@ -1153,6 +1180,16 @@
     }
     
     /* Responsive Design */
+    @media (max-width: 1200px) {
+        .attendee-modal .modal-dialog {
+            max-width: 95% !important;
+        }
+        
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
     @media (max-width: 768px) {
         .action-buttons {
             flex-direction: column;
@@ -1215,36 +1252,35 @@
         }
         
         /* Updated: Attendee modal responsive */
-        .attendee-modal .modal-dialog {
-            max-width: 95% !important;
-            margin: 0.5rem auto;
+        .attendee-modal .modal-header {
+            padding: 1.25rem 1.5rem;
         }
         
         .attendee-modal .modal-body {
             padding: 1.5rem;
-            max-height: 80vh;
         }
         
-        .detail-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        
-        .detail-item {
+        .attendee-modal .modal-footer {
+            padding: 1.25rem;
             flex-direction: column;
-            gap: 0.5rem;
+        }
+        
+        .attendee-modal .modal-footer .btn {
+            width: 100%;
+        }
+        
+        .detail-row {
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
         }
         
         .detail-label {
-            width: 100%;
-            min-width: 100%;
-        }
-        
-        .detail-value {
+            min-width: auto;
             width: 100%;
         }
         
-        .quick-info-cards {
+        .program-interest-grid {
             grid-template-columns: 1fr;
         }
         
@@ -1266,14 +1302,6 @@
         
         .debug-info {
             grid-template-columns: 1fr;
-        }
-        
-        .attendee-modal .modal-footer {
-            flex-direction: column;
-        }
-        
-        .print-btn {
-            width: 100%;
         }
     }
     
@@ -1315,14 +1343,17 @@
         
         /* Updated: Attendee modal mobile */
         .attendee-modal .modal-header {
-            padding: 1.25rem 1.5rem;
+            flex-direction: column;
+            text-align: center;
+            gap: 0.75rem;
+            padding: 1.5rem 1rem;
         }
         
         .attendee-modal .modal-body {
             padding: 1.25rem;
         }
         
-        .attendee-modal .modal-footer {
+        .attendee-details-section {
             padding: 1.25rem;
         }
         
@@ -1347,8 +1378,9 @@
             max-width: 1000px;
         }
         
+        /* Updated: Attendee modal for large screens */
         .attendee-modal .modal-dialog {
-            max-width: 1200px !important;
+            max-width: 1400px !important;
         }
     }
 </style>
@@ -1610,32 +1642,30 @@
     </div>
 
     <!-- ========================= -->
-    <!-- NEW: Clean Attendee Details Modal - Black/White Theme -->
+    <!-- NEW: Clean Attendee Details Modal - Wider and Cleaner -->
     <!-- ========================= -->
     <div class="modal fade attendee-modal" id="attendeeModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="bi bi-person-circle"></i>
+                        <i class="bi bi-person-circle me-2"></i>
                         Attendee Details
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="attendeeModalBody">
                     <!-- Content will be loaded via AJAX -->
-                    <div class="text-center py-5">
-                        <div class="spinner-border text-dark" role="status">
+                    <div class="loading-state">
+                        <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <p class="mt-3 text-muted">Loading attendee details...</p>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x me-1"></i>Close
-                    </button>
-                    <button type="button" class="btn btn-dark print-btn" onclick="printAttendeeForm()" id="printAttendeeBtn" disabled>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="printAttendeeForm()" id="printAttendeeBtn" disabled>
                         <i class="bi bi-printer me-2"></i>Print Application Form
                     </button>
                 </div>
@@ -1934,7 +1964,7 @@
                             <i class="bi bi-people me-2"></i>
                             Attendees (<span id="attendeesCount">{{ total_attendees_count }}</span>)
                         </h3>
-                        <button class="btn btn-sm btn-outline-dark" onclick="showAllRegistrationStats()">
+                        <button class="btn btn-sm btn-outline-primary" onclick="showAllRegistrationStats()">
                             <i class="bi bi-graph-up me-1"></i>
                             View Registration Stats
                         </button>
@@ -2064,7 +2094,7 @@
                             <!-- Actions -->
                             <div class="col-md-2 col-12">
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-dark" 
+                                    <button class="btn btn-sm btn-outline-primary" 
                                             onclick="showAttendeeDetails({{ attendee.id }})"
                                             title="View Details">
                                         <i class="bi bi-eye"></i>
@@ -2156,7 +2186,7 @@
     const toastMessage = document.getElementById('toastMessage');
     
     // ============================================
-    // SHOW ATTENDEE DETAILS MODAL - UPDATED UI
+    // SHOW ATTENDEE DETAILS MODAL - UPDATED
     // ============================================
     window.showAttendeeDetails = async function(attendeeId) {
         console.log('Opening attendee details for:', attendeeId);
@@ -2166,21 +2196,16 @@
         
         const modal = new bootstrap.Modal(document.getElementById('attendeeModal'));
         const modalBody = document.getElementById('attendeeModalBody');
-        const printBtn = document.getElementById('printAttendeeBtn');
         
         // Show loading
         modalBody.innerHTML = `
-            <div class="text-center py-5">
-                <div class="spinner-border text-dark" role="status">
+            <div class="loading-state">
+                <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
                 <p class="mt-3 text-muted">Loading attendee details...</p>
             </div>
         `;
-        
-        // Disable print button initially
-        printBtn.disabled = true;
-        printBtn.innerHTML = '<i class="bi bi-printer me-2"></i>Print Application Form';
         
         // Show modal first
         modal.show();
@@ -2209,19 +2234,18 @@
             let html = '';
             
             if (application) {
-                // Helper function to create detail item
-                function createDetailItem(label, value, icon = 'bi-info-circle', emptyText = 'Not provided') {
-                    const displayValue = value && value !== '-' && value !== 'N/A' ? value : emptyText;
-                    const valueClass = value && value !== '-' && value !== 'N/A' ? '' : 'empty';
-                    
+                // Helper function to format display
+                function formatValue(value, label, icon = 'bi-info-circle') {
+                    if (!value || value === '-' || value === 'N/A') {
+                        return '';
+                    }
                     return `
-                        <div class="detail-item">
+                        <div class="detail-row">
                             <div class="detail-label">
-                                <i class="bi ${icon}"></i>
-                                <span>${label}</span>
+                                <i class="bi ${icon} me-2"></i>${label}
                             </div>
-                            <div class="detail-value ${valueClass}">
-                                ${displayValue}
+                            <div class="detail-value">
+                                ${value}
                             </div>
                         </div>
                     `;
@@ -2229,67 +2253,30 @@
                 
                 // Format for printing (all uppercase)
                 function toUpperCase(value) {
-                    if (!value || value === '-' || value === 'N/A') return '';
+                    if (!value) return '';
                     return value.toString().toUpperCase();
                 }
                 
-                // Quick Info Cards
                 html = `
-                    <!-- Quick Info Cards -->
-                    <div class="quick-info-cards mb-4">
-                        <div class="info-card">
-                            <div class="info-card-icon">
-                                <i class="bi bi-person-badge"></i>
-                            </div>
-                            <div class="info-card-label">Attendee ID</div>
-                            <div class="info-card-value">${attendee.id}</div>
-                        </div>
-                        
-                        <div class="info-card">
-                            <div class="info-card-icon">
-                                <i class="bi bi-calendar-check"></i>
-                            </div>
-                            <div class="info-card-label">Checked In</div>
-                            <div class="info-card-value">${attendee.attended_date_display}</div>
-                        </div>
-                        
-                        <div class="info-card">
-                            <div class="info-card-icon">
-                                <i class="bi bi-clock"></i>
-                            </div>
-                            <div class="info-card-label">Check-in Time</div>
-                            <div class="info-card-value">${attendee.attended_at_display}</div>
-                        </div>
-                        
-                        <div class="info-card">
-                            <div class="info-card-icon">
-                                <i class="bi bi-mortarboard"></i>
-                            </div>
-                            <div class="info-card-label">Programme</div>
-                            <div class="info-card-value">${application.applied_programme || 'N/A'}</div>
-                        </div>
-                    </div>
-                `;
-                
-                // Personal Information Section
-                html += `
+                    <!-- Personal Information -->
                     <div class="attendee-details-section">
                         <h6>
-                            <i class="bi bi-person"></i>
+                            <i class="bi bi-person-badge text-primary"></i>
                             Personal Information
                         </h6>
                         
                         <div class="detail-grid">
                             <div class="detail-grid-item">
                                 <div class="detail-grid-title">
-                                    <i class="bi bi-person-badge"></i>
+                                    <i class="bi bi-person"></i>
                                     Basic Details
                                 </div>
-                                ${createDetailItem('Full Name', toUpperCase(application.full_name), 'bi-person')}
-                                ${createDetailItem('IC Number', application.ic_no, 'bi-card-text')}
-                                ${createDetailItem('Email', application.email, 'bi-envelope')}
-                                ${createDetailItem('Phone', application.phone_no, 'bi-telephone')}
-                                ${createDetailItem('Marital Status', toUpperCase(application.marriage_status), 'bi-heart')}
+                                ${formatValue(toUpperCase(application.full_name), 'Full Name', 'bi-person')}
+                                ${formatValue(application.ic_no, 'IC Number', 'bi-card-text')}
+                                ${formatValue(application.email, 'Email', 'bi-envelope')}
+                                ${formatValue(application.phone_no, 'Phone', 'bi-telephone')}
+                                ${formatValue(application.marriage_status, 'Marital Status', 'bi-heart')}
+                                ${formatValue(application.spm_total_credit, 'SPM Total Credit', 'bi-award')}
                             </div>
                             
                             <div class="detail-grid-item">
@@ -2297,10 +2284,10 @@
                                     <i class="bi bi-geo-alt"></i>
                                     Address
                                 </div>
-                                ${createDetailItem('Address', toUpperCase(application.address1), 'bi-house')}
-                                ${createDetailItem('City', toUpperCase(application.city), 'bi-building')}
-                                ${createDetailItem('Postcode', application.postcode, 'bi-mailbox')}
-                                ${createDetailItem('State', toUpperCase(application.state), 'bi-map')}
+                                ${formatValue(toUpperCase(application.address1), 'Address Line 1', 'bi-house')}
+                                ${formatValue(toUpperCase(application.city), 'City', 'bi-geo-alt')}
+                                ${formatValue(application.postcode, 'Postcode', 'bi-mailbox')}
+                                ${formatValue(toUpperCase(application.state), 'State', 'bi-map')}
                             </div>
                         </div>
                     </div>
@@ -2308,35 +2295,35 @@
                     <!-- Family Information -->
                     <div class="attendee-details-section">
                         <h6>
-                            <i class="bi bi-people"></i>
+                            <i class="bi bi-people text-primary"></i>
                             Family Information
                         </h6>
                         
                         <div class="detail-grid">
                             <div class="detail-grid-item">
                                 <div class="detail-grid-title">
-                                    <i class="bi bi-person-badge"></i>
+                                    <i class="bi bi-person-standing"></i>
                                     Father's Details
                                 </div>
-                                ${createDetailItem('Name', toUpperCase(application.father_name), 'bi-person')}
-                                ${createDetailItem('IC Number', application.father_ic, 'bi-card-text')}
-                                ${createDetailItem('Phone', application.father_phone, 'bi-telephone')}
-                                ${createDetailItem('Occupation', toUpperCase(application.father_occupation), 'bi-briefcase')}
-                                ${createDetailItem('Income', application.father_income ? `RM ${application.father_income}` : null, 'bi-cash')}
-                                ${createDetailItem('Dependants', application.father_dependants, 'bi-people')}
+                                ${formatValue(toUpperCase(application.father_name), 'Name', 'bi-person')}
+                                ${formatValue(application.father_ic, 'IC Number', 'bi-card-text')}
+                                ${formatValue(application.father_phone, 'Phone', 'bi-telephone')}
+                                ${formatValue(toUpperCase(application.father_occupation), 'Occupation', 'bi-briefcase')}
+                                ${formatValue(application.father_income, 'Monthly Income', 'bi-cash')}
+                                ${formatValue(application.father_dependants, 'Dependants', 'bi-people')}
                             </div>
                             
                             <div class="detail-grid-item">
                                 <div class="detail-grid-title">
-                                    <i class="bi bi-person-badge"></i>
+                                    <i class="bi bi-person-standing"></i>
                                     Mother's Details
                                 </div>
-                                ${createDetailItem('Name', toUpperCase(application.mother_name), 'bi-person')}
-                                ${createDetailItem('IC Number', application.mother_ic, 'bi-card-text')}
-                                ${createDetailItem('Phone', application.mother_phone, 'bi-telephone')}
-                                ${createDetailItem('Occupation', toUpperCase(application.mother_occupation), 'bi-briefcase')}
-                                ${createDetailItem('Income', application.mother_income ? `RM ${application.mother_income}` : null, 'bi-cash')}
-                                ${createDetailItem('Dependants', application.mother_dependants, 'bi-people')}
+                                ${formatValue(toUpperCase(application.mother_name), 'Name', 'bi-person')}
+                                ${formatValue(application.mother_ic, 'IC Number', 'bi-card-text')}
+                                ${formatValue(application.mother_phone, 'Phone', 'bi-telephone')}
+                                ${formatValue(toUpperCase(application.mother_occupation), 'Occupation', 'bi-briefcase')}
+                                ${formatValue(application.mother_income, 'Monthly Income', 'bi-cash')}
+                                ${formatValue(application.mother_dependants, 'Dependants', 'bi-people')}
                             </div>
                         </div>
                     </div>
@@ -2344,7 +2331,7 @@
                     <!-- Application Details -->
                     <div class="attendee-details-section">
                         <h6>
-                            <i class="bi bi-file-earmark-text"></i>
+                            <i class="bi bi-file-earmark-text text-primary"></i>
                             Application Details
                         </h6>
                         
@@ -2352,55 +2339,155 @@
                             <div class="detail-grid-item">
                                 <div class="detail-grid-title">
                                     <i class="bi bi-person-badge"></i>
-                                    Application Information
+                                    Application Info
                                 </div>
-                                ${createDetailItem('Inviting Officer', toUpperCase(application.registration_officer), 'bi-person')}
-                                ${createDetailItem('Applied Programme', toUpperCase(application.applied_programme), 'bi-mortarboard')}
-                                ${createDetailItem('SPM Total Credit', application.spm_total_credit, 'bi-award')}
-                                ${createDetailItem('Submitted At', new Date(application.submitted_at).toLocaleString('en-MY'), 'bi-clock-history')}
+                                ${formatValue(application.registration_officer, 'Inviting Officer', 'bi-person-badge')}
+                                ${formatValue(application.applied_programme, 'Applied Programme', 'bi-mortarboard')}
+                            </div>
+                        </div>
+                        
+                        <!-- Programme Interests -->
+                        <div class="program-interest-grid">
+                            <div class="program-interest-box">
+                                <div class="program-interest-title">
+                                    <i class="bi bi-star"></i>
+                                    First Choice
+                                </div>
+                                <div class="program-interest-content">
+                                    ${application.interest_choice1 || 'Not specified'}
+                                </div>
                             </div>
                             
-                            <div class="detail-grid-item">
-                                <div class="detail-grid-title">
+                            <div class="program-interest-box">
+                                <div class="program-interest-title">
                                     <i class="bi bi-star"></i>
-                                    Programme Interests
+                                    Second Choice
                                 </div>
-                                ${createDetailItem('First Choice', toUpperCase(application.interest_choice1), 'bi-1-circle')}
-                                ${createDetailItem('Second Choice', toUpperCase(application.interest_choice2), 'bi-2-circle')}
-                                ${createDetailItem('Third Choice', toUpperCase(application.interest_choice3), 'bi-3-circle')}
+                                <div class="program-interest-content">
+                                    ${application.interest_choice2 || 'Not specified'}
+                                </div>
+                            </div>
+                            
+                            <div class="program-interest-box">
+                                <div class="program-interest-title">
+                                    <i class="bi bi-star"></i>
+                                    Third Choice
+                                </div>
+                                <div class="program-interest-content">
+                                    ${application.interest_choice3 || 'Not specified'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Check-in Information -->
+                    <div class="attendee-details-section">
+                        <h6>
+                            <i class="bi bi-clock-history text-primary"></i>
+                            Check-in Information
+                        </h6>
+                        
+                        <div class="checkin-info-box">
+                            <div class="checkin-info-title">
+                                <i class="bi bi-check-circle"></i>
+                                Check-in Details
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    <i class="bi bi-calendar-check"></i>Checked In At
+                                </div>
+                                <div class="detail-value">
+                                    ${attendee.attended_at_display} (${attendee.attended_date_display})
+                                </div>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    <i class="bi bi-person"></i>Attendee Name
+                                </div>
+                                <div class="detail-value">
+                                    ${attendee.name}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    <i class="bi bi-envelope"></i>Email
+                                </div>
+                                <div class="detail-value">
+                                    ${attendee.email}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    <i class="bi bi-telephone"></i>Phone
+                                </div>
+                                <div class="detail-value">
+                                    ${attendee.phone_number || 'N/A'}
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
                 
                 // Enable print button since we have application data
-                printBtn.disabled = false;
-                printBtn.innerHTML = '<i class="bi bi-printer me-2"></i>Print Application Form';
+                document.getElementById('printAttendeeBtn').disabled = false;
                 
             } else {
                 // No application found
                 html = `
                     <div class="no-application">
-                        <i class="bi bi-person-x"></i>
+                        <i class="bi bi-person-x display-4 text-muted"></i>
                         <h4 class="mt-3">No Application Form Found</h4>
-                        <p class="mb-4">This attendee checked in but did not submit an application form.</p>
+                        <p>This attendee checked in but did not submit an application form.</p>
                         
-                        <div class="attendee-details-section">
+                        <div class="attendee-details-section mt-4">
                             <h6>
                                 <i class="bi bi-info-circle"></i>
                                 Basic Information
                             </h6>
-                            
                             <div class="detail-grid">
                                 <div class="detail-grid-item">
                                     <div class="detail-grid-title">
                                         <i class="bi bi-person"></i>
                                         Attendee Details
                                     </div>
-                                    ${createDetailItem('Name', attendee.name, 'bi-person')}
-                                    ${createDetailItem('Email', attendee.email, 'bi-envelope')}
-                                    ${createDetailItem('Phone', attendee.phone_number || 'N/A', 'bi-telephone')}
-                                    ${createDetailItem('Checked In At', `${attendee.attended_at_display} (${attendee.attended_date_display})`, 'bi-clock')}
+                                    <div class="detail-row">
+                                        <div class="detail-label">
+                                            <i class="bi bi-person me-2"></i>Name
+                                        </div>
+                                        <div class="detail-value">
+                                            ${attendee.name}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="detail-row">
+                                        <div class="detail-label">
+                                            <i class="bi bi-envelope me-2"></i>Email
+                                        </div>
+                                        <div class="detail-value">
+                                            ${attendee.email}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="detail-row">
+                                        <div class="detail-label">
+                                            <i class="bi bi-telephone me-2"></i>Phone
+                                        </div>
+                                        <div class="detail-value">
+                                            ${attendee.phone_number || 'N/A'}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="detail-row">
+                                        <div class="detail-label">
+                                            <i class="bi bi-clock me-2"></i>Checked In At
+                                        </div>
+                                        <div class="detail-value">
+                                            ${attendee.attended_at_display} (${attendee.attended_date_display})
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2408,8 +2495,7 @@
                 `;
                 
                 // Disable print button since no application data
-                printBtn.disabled = true;
-                printBtn.innerHTML = '<i class="bi bi-printer me-2"></i>No Application to Print';
+                document.getElementById('printAttendeeBtn').disabled = true;
             }
             
             modalBody.innerHTML = html;
@@ -2417,13 +2503,13 @@
         } catch (error) {
             console.error('Error loading attendee details:', error);
             modalBody.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>Error loading attendee details:</strong> ${error.message}
+                <div class="error-state">
+                    <i class="bi bi-exclamation-triangle display-4"></i>
+                    <h4 class="mt-3">Error Loading Details</h4>
+                    <p class="mt-2">${error.message}</p>
                 </div>
             `;
-            printBtn.disabled = true;
-            printBtn.innerHTML = '<i class="bi bi-printer me-2"></i>Print Application Form';
+            document.getElementById('printAttendeeBtn').disabled = true;
         }
     };
     
@@ -2431,7 +2517,7 @@
     // FORM NUMBER GENERATION FUNCTIONS
     // ============================================
     
-    // Generate form number based on application submission order (NEW)
+    // Generate form number based on application submission order
     async function generateUniqueFormNumber(application) {
         try {
             // Try to get form number from server (if you implement the database solution later)
@@ -2500,10 +2586,10 @@
     }
     
     // ============================================
-    // PRINT ATTENDEE FORM (UPDATED - OPTIMIZED FOR A4)
+    // PRINT ATTENDEE FORM (UPDATED - SINGLE PAGE)
     // ============================================
     
-    // Print attendee form
+    // Print attendee form (Single Page Optimized)
     window.printAttendeeForm = async function() {
         if (!currentAttendeeData || !currentAttendeeData.application) {
             showToast('No application data available to print', true);
@@ -2522,42 +2608,18 @@
             return value.toString().toUpperCase();
         }
         
-        // Create printable form HTML - OPTIMIZED FOR A4
+        // Create SINGLE-PAGE printable form HTML
         const printHtml = `
             <!DOCTYPE html>
             <html>
             <head>
                 <title>Application Form - ${escapeHtml(app.full_name)}</title>
                 <style>
-                    * {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        box-sizing: border-box !important;
-                        font-family: "Arial", sans-serif !important;
-                    }
-                    
-                    /* A4 Page Size */
-                    body {
-                        background: white !important;
-                        color: black !important;
-                        width: 210mm !important;
-                        min-height: 297mm !important;
-                        max-height: 297mm !important;
-                        margin: 0 auto !important;
-                        padding: 10mm 15mm !important;
-                        font-size: 10.5pt !important;
-                        line-height: 1.2 !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    
-                    /* Remove print headers/footers */
                     @page {
-                        margin: 0 !important;
+                        margin: 8mm 12mm 8mm 12mm !important;
                         size: A4 portrait;
                         
+                        /* Remove all headers and footers */
                         @top-left { content: none !important; }
                         @top-center { content: none !important; }
                         @top-right { content: none !important; }
@@ -2566,87 +2628,102 @@
                         @bottom-right { content: none !important; }
                     }
                     
+                    * {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        box-sizing: border-box !important;
+                        font-family: "Arial", sans-serif !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    body {
+                        background: white !important;
+                        color: black !important;
+                        width: 210mm !important;
+                        height: 297mm !important;
+                        margin: 0 auto !important;
+                        padding: 0 !important;
+                        font-size: 10pt !important;
+                        line-height: 1.1 !important;
+                        position: relative;
+                    }
+                    
                     .print-form {
                         display: block !important;
                         visibility: visible !important;
                         position: relative !important;
                         width: 100% !important;
-                        min-height: 277mm !important;
-                        max-height: 277mm !important;
+                        height: 100% !important;
                         margin: 0 !important;
                         padding: 0 !important;
                         background: white !important;
                         color: black !important;
-                        border: none !important;
-                        outline: none !important;
-                        box-shadow: none !important;
-                        font-size: 10.5pt !important;
+                        overflow: hidden !important;
+                        z-index: 1;
                     }
                     
-                    /* Watermark Background */
-                    .watermark {
+                    /* WATERMARK - CENTERED AND TRANSPARENT */
+                    .print-form::after {
+                        content: "";
                         position: absolute;
                         top: 50%;
                         left: 50%;
-                        transform: translate(-50%, -50%) rotate(-45deg);
-                        opacity: 0.03;
+                        width: 400px;
+                        height: 400px;
+                        transform: translate(-50%, -50%);
+                        background-image: url("${LOGO_URL1}");
+                        background-repeat: no-repeat;
+                        background-position: center;
+                        background-size: contain;
+                        opacity: 0.05;
                         z-index: 0;
-                        font-size: 80pt;
-                        font-weight: bold;
-                        color: #666;
-                        white-space: nowrap;
                         pointer-events: none;
                     }
-                    
-                    .print-content {
+
+                    .print-form > * {
                         position: relative;
                         z-index: 1;
                     }
                     
-                    .print-section {
-                        page-break-inside: avoid !important;
-                        break-inside: avoid !important;
-                        margin-bottom: 8px !important;
-                        margin-top: 6px !important;
-                        width: 100%;
-                    }
-                    
-                    /* Header with Dual Logos */
+                    /* HEADER WITH DUAL LOGOS */
                     .print-header {
                         position: relative;
                         text-align: center;
                         margin-bottom: 12px !important;
                         padding: 8px 0 10px 0 !important;
-                        border-bottom: 1.5px solid #000;
+                        border-bottom: 1px solid #000;
+                        height: 75px;
+                        overflow: hidden;
                     }
                     
                     .logo-container {
                         position: absolute;
                         top: 0;
-                        left: 0;
+                        left: 5px;
                         display: flex;
                         align-items: center;
                         gap: 8px;
-                        height: 50px;
+                        height: 65px;
                     }
                     
                     .print-logo {
-                        height: 50px;
+                        height: 65px;
                         width: auto;
-                        max-width: 120px;
+                        object-fit: contain;
                     }
                     
                     .print-header-content {
                         position: relative;
                         z-index: 1;
-                        padding-left: 130px;
+                        padding-left: 140px;
                         padding-right: 10px;
                     }
                     
                     .print-title {
-                        font-size: 15pt !important;
+                        font-size: 16pt !important;
                         font-weight: bold;
-                        margin-bottom: 3px !important;
+                        margin-bottom: 2px !important;
                         color: #000;
                         text-transform: uppercase;
                         line-height: 1.1;
@@ -2660,23 +2737,32 @@
                         line-height: 1.1;
                     }
                     
-                    /* Form Number */
+                    /* FORM NUMBER - TOP RIGHT */
                     .form-number {
                         position: absolute;
-                        top: 0;
-                        right: 0;
+                        top: 5px;
+                        right: 5px;
                         font-size: 8pt !important;
                         color: #666;
                         margin-bottom: 3px !important;
                         text-align: right;
+                        z-index: 2;
                     }
                     
-                    /* Section Titles */
+                    /* COMPACT SECTIONS FOR SINGLE PAGE */
+                    .print-section {
+                        margin-bottom: 8px !important;
+                        margin-top: 6px !important;
+                        width: 100%;
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+                    
                     .print-section-title {
                         font-size: 10.5pt !important;
                         font-weight: bold;
-                        margin-bottom: 6px !important;
-                        padding: 4px 0 !important;
+                        margin-bottom: 5px !important;
+                        padding: 3px 0 !important;
                         border-bottom: 1px solid #000;
                         line-height: 1.1;
                         width: 100%;
@@ -2684,30 +2770,13 @@
                         padding-left: 5px !important;
                     }
                     
-                    /* Grid Layouts */
-                    .print-grid-2col {
-                        display: grid;
-                        grid-template-columns: 2fr 1fr;
-                        gap: 8px !important;
-                        margin-bottom: 6px !important;
-                        width: 100%;
-                    }
-                    
-                    .print-grid-3col {
-                        display: grid;
-                        grid-template-columns: 1fr 1fr 1fr;
-                        gap: 8px !important;
-                        margin-bottom: 6px !important;
-                        width: 100%;
-                    }
-                    
-                    /* Form Fields */
+                    /* COMPACT FIELD ROWS */
                     .print-field-row {
                         display: flex;
                         align-items: center;
-                        margin-bottom: 5px !important;
-                        min-height: 18px !important;
-                        line-height: 1.2;
+                        margin-bottom: 4px !important;
+                        min-height: 16px !important;
+                        line-height: 1.1;
                         width: 100%;
                     }
                     
@@ -2717,7 +2786,7 @@
                         width: 150px !important;
                         min-width: 150px !important;
                         max-width: 150px !important;
-                        padding-right: 8px !important;
+                        padding-right: 6px !important;
                         flex-shrink: 0;
                         color: #000;
                     }
@@ -2725,10 +2794,10 @@
                     .print-label-small {
                         font-weight: bold;
                         font-size: 9.5pt !important;
-                        width: 95px !important;
-                        min-width: 95px !important;
-                        max-width: 95px !important;
-                        padding-right: 6px !important;
+                        width: 90px !important;
+                        min-width: 90px !important;
+                        max-width: 90px !important;
+                        padding-right: 5px !important;
                         flex-shrink: 0;
                         color: #000;
                     }
@@ -2736,10 +2805,10 @@
                     .print-label-spm {
                         font-weight: bold;
                         font-size: 9.5pt !important;
-                        width: 125px !important;
-                        min-width: 125px !important;
-                        max-width: 125px !important;
-                        padding-right: 8px !important;
+                        width: 120px !important;
+                        min-width: 120px !important;
+                        max-width: 120px !important;
+                        padding-right: 6px !important;
                         flex-shrink: 0;
                         color: #000;
                     }
@@ -2747,42 +2816,59 @@
                     .print-value {
                         font-size: 9.5pt !important;
                         flex: 1;
-                        min-height: 18px !important;
-                        line-height: 1.2;
+                        min-height: 16px !important;
+                        line-height: 1.1;
                         word-break: break-word;
-                        border-bottom: 0.7px solid #999;
-                        padding-bottom: 2px !important;
+                        border-bottom: 0.5px solid #999;
+                        padding-bottom: 1px !important;
                         color: #000;
                         overflow: hidden;
                         text-overflow: ellipsis;
                         white-space: nowrap;
                     }
                     
-                    /* Applied Programme Section */
+                    /* COMPACT GRID LAYOUTS */
+                    .print-grid-2col {
+                        display: grid;
+                        grid-template-columns: 2fr 1fr;
+                        gap: 8px !important;
+                        margin-bottom: 5px !important;
+                        width: 100%;
+                    }
+                    
+                    .print-grid-3col {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr;
+                        gap: 6px !important;
+                        margin-bottom: 5px !important;
+                        width: 100%;
+                    }
+                    
+                    /* APPLIED PROGRAMME - COMPACT TICKBOXES */
                     .applied-programme-section {
-                        margin-bottom: 8px !important;
-                        margin-top: 6px !important;
+                        margin-bottom: 6px !important;
+                        margin-top: 5px !important;
                         width: 100%;
                     }
                     
                     .applied-programme-line {
                         display: flex;
                         align-items: center;
-                        gap: 10px !important;
-                        margin-bottom: 5px !important;
+                        gap: 8px !important;
+                        margin-bottom: 4px !important;
                     }
                     
                     .programme-label-inline {
                         font-weight: bold;
                         font-size: 9.5pt !important;
                         color: #000;
-                        margin-right: 6px !important;
+                        margin-right: 5px !important;
                         white-space: nowrap;
                     }
                     
                     .programme-options-inline {
                         display: flex;
-                        gap: 15px !important;
+                        gap: 12px !important;
                         flex-wrap: wrap;
                         align-items: center;
                     }
@@ -2790,17 +2876,17 @@
                     .programme-option-inline {
                         display: flex;
                         align-items: center;
-                        gap: 4px !important;
+                        gap: 3px !important;
                         font-size: 9.5pt !important;
                         line-height: 1.1;
                         cursor: default;
                     }
                     
                     .tickbox-inline {
-                        width: 11px;
-                        height: 11px;
+                        width: 10px;
+                        height: 10px;
                         border: 1px solid #000;
-                        border-radius: 2px;
+                        border-radius: 1px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
@@ -2813,12 +2899,12 @@
                         font-weight: bold;
                     }
                     
-                    /* Interest Boxes */
+                    /* COMPACT INTEREST BOXES */
                     .interest-grid-3col {
                         display: grid;
                         grid-template-columns: 1fr 1fr 1fr;
                         gap: 8px !important;
-                        margin-top: 6px !important;
+                        margin-top: 5px !important;
                         margin-bottom: 8px !important;
                         width: 100%;
                     }
@@ -2827,12 +2913,12 @@
                         width: 100%;
                         min-height: 55px !important;
                         max-height: 55px !important;
-                        padding: 4px 6px !important;
+                        padding: 3px 5px !important;
                         font-size: 9.5pt !important;
                         line-height: 1.1;
                         word-break: break-word;
                         background: transparent !important;
-                        border: 0.7px solid #bbb;
+                        border: 0.5px solid #bbb;
                         overflow: hidden;
                         text-overflow: ellipsis;
                     }
@@ -2840,14 +2926,22 @@
                     .interest-box-title {
                         font-size: 8.5pt !important;
                         font-weight: bold;
-                        margin-bottom: 3px !important;
+                        margin-bottom: 2px !important;
                         color: #000;
                         text-align: center;
                         padding: 1px 0 !important;
-                        border-bottom: 0.7px solid #aaa;
+                        border-bottom: 0.5px solid #aaa;
                     }
                     
-                    /* Declaration Section */
+                    .interest-content {
+                        font-size: 9.5pt !important;
+                        line-height: 1.1;
+                        word-break: break-word;
+                        height: 35px;
+                        overflow: hidden;
+                    }
+                    
+                    /* COMPACT DECLARATION */
                     .print-declaration {
                         margin-top: 10px !important;
                         padding-top: 6px !important;
@@ -2858,7 +2952,7 @@
                     .print-declaration-title {
                         font-size: 10.5pt !important;
                         font-weight: bold;
-                        margin-bottom: 6px !important;
+                        margin-bottom: 5px !important;
                         text-align: center;
                         line-height: 1.1;
                     }
@@ -2868,10 +2962,10 @@
                     }
                     
                     .declaration-malay {
-                        margin-bottom: 4px !important;
+                        margin-bottom: 3px !important;
                         text-align: justify;
                         font-size: 8.5pt !important;
-                        line-height: 1.3;
+                        line-height: 1.2;
                     }
                     
                     .declaration-english {
@@ -2879,10 +2973,10 @@
                         text-align: justify;
                         font-style: italic;
                         font-size: 8.5pt !important;
-                        line-height: 1.3;
+                        line-height: 1.2;
                     }
                     
-                    /* Signature Area */
+                    /* COMPACT SIGNATURE AREA */
                     .print-signature-area {
                         margin-top: 8px !important;
                         width: 100%;
@@ -2901,9 +2995,9 @@
                     }
                     
                     .signature-line {
-                        width: 170px !important;
+                        width: 160px !important;
                         height: 35px !important;
-                        margin: 6px auto 4px auto !important;
+                        margin: 6px auto 3px auto !important;
                         font-weight: bold;
                         font-size: 9.5pt !important;
                         line-height: 1.1;
@@ -2914,7 +3008,7 @@
                     
                     .signature-name {
                         font-size: 8.5pt !important;
-                        margin-top: 2px !important;
+                        margin-top: 1px !important;
                         color: #000;
                         line-height: 1.1;
                         min-height: 10px !important;
@@ -2923,17 +3017,17 @@
                     .signature-date {
                         font-size: 8.5pt !important;
                         text-align: center;
-                        margin-top: 2px !important;
+                        margin-top: 1px !important;
                         color: #000;
                         line-height: 1.1;
                         min-height: 10px !important;
                     }
                     
-                    /* Office Use Section */
+                    /* COMPACT FORM FOOTER */
                     .form-footer {
                         margin-top: 8px !important;
                         padding-top: 4px !important;
-                        border-top: 0.7px solid #666;
+                        border-top: 0.5px solid #666;
                         font-size: 8.5pt !important;
                         color: #444;
                         line-height: 1.1;
@@ -2941,377 +3035,354 @@
                     }
                     
                     .office-use-section {
-                        margin-top: 4px !important;
-                        padding: 4px 6px !important;
-                        border: 0.7px solid #666;
+                        margin-top: 3px !important;
+                        padding: 3px 5px !important;
+                        border: 0.5px solid #666;
                         min-height: 40px !important;
                         font-size: 8.5pt !important;
                         background: transparent !important;
                     }
                     
-                    /* Hide from screen, show only in print */
-                    @media screen {
-                        body {
-                            border: 1px solid #ccc;
-                            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                        }
-                    }
-                    
+                    /* PRINT MEDIA */
                     @media print {
                         body {
                             margin: 0 !important;
                             padding: 0 !important;
-                            border: none !important;
                         }
                         
                         .print-form {
-                            min-height: 297mm !important;
+                            position: relative;
+                            height: 100%;
                         }
                         
-                        /* Force everything on one page */
+                        /* Ensure no page breaks */
                         .print-section {
-                            page-break-inside: avoid !important;
-                            break-inside: avoid !important;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+                        
+                        /* Hide any browser-generated headers/footers */
+                        header, footer {
+                            display: none !important;
                         }
                     }
                 </style>
             </head>
             <body>
                 <div class="print-form">
-                    <!-- Watermark -->
-                    <div class="watermark">SES EDUCATION</div>
+                    <!-- Form Number -->
+                    <div class="form-number">${formNumber}</div>
                     
-                    <div class="print-content">
-                        <!-- Form Number -->
-                        <div class="form-number">${formNumber}</div>
+                    <!-- Header with Dual Logos -->
+                    <div class="print-header">
+                        <div class="logo-container">
+                            <img src="${LOGO_URL}" class="print-logo" alt="SES Logo">
+                            <img src="${UPKB_LOGO_URL}" class="print-logo" alt="UPKB Logo" onerror="this.style.display='none'">
+                        </div>
                         
-                        <!-- Header with Logos -->
-                        <div class="print-header">
-                            <div class="logo-container">
-                                <img src="${LOGO_URL}" class="print-logo" alt="SES Logo" onerror="this.style.display='none'">
-                                <img src="${UPKB_LOGO_URL}" class="print-logo" alt="UPKB Logo" onerror="this.style.display='none'">
-                            </div>
-                            
-                            <div class="print-header-content">
-                                <div class="print-title">BORANG PERMOHONAN & TEMUDUGA</div>
-                                <div class="print-subtitle">APPLICATION & INTERVIEW FORM</div>
-                            </div>
+                        <div class="print-header-content">
+                            <div class="print-title">BORANG PERMOHONAN & TEMUDUGA</div>
+                            <div class="print-subtitle">APPLICATION & INTERVIEW FORM</div>
                         </div>
+                    </div>
 
-                        <!-- Section 1: Applicant Information -->
-                        <div class="print-section">
-                            <div class="print-section-title">1. MAKLUMAT PEMOHON / APPLICANT INFORMATION</div>
-                            
-                            <div class="print-field-row">
-                                <div class="print-label">Nombor Rujukan / Referral Number:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.registration_officer))}</div>
-                            </div>
-                            
-                            <!-- Applied Programme -->
-                            <div class="applied-programme-section">
-                                <div class="applied-programme-line">
-                                    <span class="programme-label-inline">Program Dipilih / Applied Programme:</span>
-                                    <div class="programme-options-inline">
-                                        <div class="programme-option-inline">
-                                            <div class="tickbox-inline ${app.applied_programme === 'Diploma' ? 'checked' : ''}"></div>
-                                            <span class="programme-text-inline">Diploma</span>
-                                        </div>
-                                        <div class="programme-option-inline">
-                                            <div class="tickbox-inline ${app.applied_programme === 'Pra-Diploma' ? 'checked' : ''}"></div>
-                                            <span class="programme-text-inline">Pra-Diploma</span>
-                                        </div>
-                                        <div class="programme-option-inline">
-                                            <div class="tickbox-inline ${app.applied_programme === 'TVET' ? 'checked' : ''}"></div>
-                                            <span class="programme-text-inline">TVET</span>
-                                        </div>
-                                        <div class="programme-option-inline">
-                                            <div class="tickbox-inline ${app.applied_programme === 'Smart Tahfiz' ? 'checked' : ''}"></div>
-                                            <span class="programme-text-inline">Smart Tahfiz</span>
-                                        </div>
+                    <!-- Section 1: Applicant Information -->
+                    <div class="print-section">
+                        <div class="print-section-title">1. MAKLUMAT PEMOHON / APPLICANT INFORMATION</div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Nombor Rujukan / Referral Number:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.registration_officer))}</div>
+                        </div>
+                        
+                        <!-- Applied Programme - Compact -->
+                        <div class="applied-programme-section">
+                            <div class="applied-programme-line">
+                                <span class="programme-label-inline">Program Dipilih / Applied Programme:</span>
+                                <div class="programme-options-inline">
+                                    <div class="programme-option-inline">
+                                        <div class="tickbox-inline ${app.applied_programme === 'Diploma' ? 'checked' : ''}"></div>
+                                        <span class="programme-text-inline">Diploma</span>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Name and SPM -->
-                            <div class="print-grid-2col">
-                                <div class="print-field-row">
-                                    <div class="print-label">Nama Penuh (IC) / Full Name (as per IC):</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.full_name))}</div>
-                                </div>
-                                
-                                <div class="print-field-row">
-                                    <div class="print-label-spm">SPM Total Credit / Jumlah Kredit SPM:</div>
-                                    <div class="print-value">${app.spm_total_credit || '0'}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section 2: Personal Details -->
-                        <div class="print-section">
-                            <div class="print-section-title">2. MAKLUMAT PERIBADI / PERSONAL DETAILS</div>
-                            
-                            <div class="print-grid-2col">
-                                <div class="print-field-row">
-                                    <div class="print-label">No. Kad Pengenalan / IC No.:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.ic_no))}</div>
-                                </div>
-                                
-                                <div class="print-field-row">
-                                    <div class="print-label">Status Perkahwinan / Marital Status:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.marriage_status))}</div>
-                                </div>
-                            </div>
-                            
-                            <div class="print-grid-2col">
-                                <div class="print-field-row">
-                                    <div class="print-label">Alamat Emel / Email Address:</div>
-                                    <div class="print-value">${escapeHtml(app.email)}</div>
-                                </div>
-                                
-                                <div class="print-field-row">
-                                    <div class="print-label">No. Telefon / Phone Number:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.phone_no))}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section 3: Address Details -->
-                        <div class="print-section">
-                            <div class="print-section-title">3. MAKLUMAT ALAMAT / ADDRESS DETAILS</div>
-                            
-                            <div class="print-field-row">
-                                <div class="print-label">Alamat Baris / Address Line :</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.address1))}</div>
-                            </div>
-                            
-                            <div class="print-grid-3col">
-                                <div class="print-field-row">
-                                    <div class="print-label-small">Bandar / City:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.city))}</div>
-                                </div>
-                                
-                                <div class="print-field-row">
-                                    <div class="print-label-small">Poskod / Postcode:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.postcode))}</div>
-                                </div>
-                                
-                                <div class="print-field-row">
-                                    <div class="print-label-small">Negeri / State:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.state))}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section 4: Father's Information -->
-                        <div class="print-section">
-                            <div class="print-section-title">4. MAKLUMAT BAPA / FATHER'S INFORMATION</div>
-                            
-                            <div class="print-field-row">
-                                <div class="print-label">Nama Penuh / Full Name:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.father_name))}</div>
-                            </div>
-                            
-                            <div class="print-grid-2col">
-                                <div class="print-field-row">
-                                    <div class="print-label">No. Kad Pengenalan / IC No.:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.father_ic))}</div>
-                                </div>
-                                
-                                <div class="print-field-row">
-                                    <div class="print-label">No. Telefon / Phone Number:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.father_phone))}</div>
-                                </div>
-                            </div>
-                            
-                            ${app.father_occupation ? `
-                            <div class="print-field-row">
-                                <div class="print-label">Pekerjaan / Occupation:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.father_occupation))}</div>
-                            </div>
-                            ` : ''}
-                            
-                            <div class="print-grid-2col">
-                                ${app.father_income ? `
-                                <div class="print-field-row">
-                                    <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.father_income))}</div>
-                                </div>
-                                ` : '<div></div>'}
-                                
-                                ${app.father_dependants ? `
-                                <div class="print-field-row">
-                                    <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.father_dependants))}</div>
-                                </div>
-                                ` : '<div></div>'}
-                            </div>
-                        </div>
-
-                        <!-- Section 5: Mother's Information -->
-                        <div class="print-section">
-                            <div class="print-section-title">5. MAKLUMAT IBU / MOTHER'S INFORMATION</div>
-                            
-                            <div class="print-field-row">
-                                <div class="print-label">Nama Penuh / Full Name:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_name))}</div>
-                            </div>
-                            
-                            <div class="print-grid-2col">
-                                <div class="print-field-row">
-                                    <div class="print-label">No. Kad Pengenalan / IC No.:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_ic))}</div>
-                                </div>
-                                
-                                <div class="print-field-row">
-                                    <div class="print-label">No. Telefon / Phone Number:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_phone))}</div>
-                                </div>
-                            </div>
-                            
-                            ${app.mother_occupation ? `
-                            <div class="print-field-row">
-                                <div class="print-label">Pekerjaan / Occupation:</div>
-                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_occupation))}</div>
-                            </div>
-                            ` : ''}
-                            
-                            <div class="print-grid-2col">
-                                ${app.mother_income ? `
-                                <div class="print-field-row">
-                                    <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_income))}</div>
-                                </div>
-                                ` : '<div></div>'}
-                                
-                                ${app.mother_dependants ? `
-                                <div class="print-field-row">
-                                    <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
-                                    <div class="print-value">${toUpperCase(escapeHtml(app.mother_dependants))}</div>
-                                </div>
-                                ` : '<div></div>'}
-                            </div>
-                        </div>
-
-                        <!-- Section 6: Programme Interest -->
-                        <div class="print-section">
-                            <div class="print-section-title">6. MINAT PROGRAM / PROGRAMME INTEREST (Boleh lebih dari 1 program / Can be more than 1 programme)</div>
-                            
-                            <div class="interest-grid-3col">
-                                <!-- First Choice -->
-                                <div class="interest-box">
-                                    <div class="interest-box-title">Pilihan Pertama / First Choice</div>
-                                    <div class="interest-content">${app.interest_choice1 ? toUpperCase(escapeHtml(app.interest_choice1)) : ''}</div>
-                                </div>
-                                
-                                <!-- Second Choice -->
-                                <div class="interest-box">
-                                    <div class="interest-box-title">Pilihan Kedua / Second Choice</div>
-                                    <div class="interest-content">${app.interest_choice2 ? toUpperCase(escapeHtml(app.interest_choice2)) : ''}</div>
-                                </div>
-                                
-                                <!-- Third Choice -->
-                                <div class="interest-box">
-                                    <div class="interest-box-title">Pilihan Ketiga / Third Choice</div>
-                                    <div class="interest-content">${app.interest_choice3 ? toUpperCase(escapeHtml(app.interest_choice3)) : ''}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section 7: Declaration -->
-                        <div class="print-declaration">
-                            <div class="print-declaration-title">PENGAKUAN DAN TANDATANGAN / DECLARATION & SIGNATURE</div>
-                            
-                            <div class="declaration-dual">
-                                <div class="declaration-malay">
-                                    Saya dengan ini mengaku bahawa semua maklumat yang diberikan dalam borang permohonan ini adalah benar, lengkap, dan tepat mengikut pengetahuan saya.
-                                </div>
-                                
-                                <div class="declaration-english">
-                                    I hereby declare that all information given in this application form is true, complete, and accurate to the best of my knowledge.
-                                </div>
-                            </div>
-
-                            <div class="print-signature-area">
-                                <div class="signature-box">
-                                    <div class="signature-item">
-                                        <div class="signature-line"></div>
-                                        <div class="signature-name">Tandatangan Pemohon / Applicant's Signature</div>
-                                        <div class="signature-name">
-                                            Nama / Name: <span style="font-weight: bold;">${toUpperCase(escapeHtml(app.full_name))}</span><br>
-                                            Tarikh / Date: <span style="font-weight: bold;">${new Date().toLocaleDateString('en-GB')}</span>
-                                        </div>
+                                    <div class="programme-option-inline">
+                                        <div class="tickbox-inline ${app.applied_programme === 'Pra-Diploma' ? 'checked' : ''}"></div>
+                                        <span class="programme-text-inline">Pra-Diploma</span>
                                     </div>
-                                    
-                                    <div class="signature-item">
-                                        <div class="signature-line"></div>
-                                        <div class="signature-date">Tandatangan Pegawai Temuduga / Interview Officer's Signature</div>
-                                        <div class="signature-date">
-                                            Tarikh / Date: <span style="font-weight: bold;">${new Date().toLocaleDateString('en-GB')}</span>
-                                        </div>
+                                    <div class="programme-option-inline">
+                                        <div class="tickbox-inline ${app.applied_programme === 'TVET' ? 'checked' : ''}"></div>
+                                        <span class="programme-text-inline">TVET</span>
+                                    </div>
+                                    <div class="programme-option-inline">
+                                        <div class="tickbox-inline ${app.applied_programme === 'Smart Tahfiz' ? 'checked' : ''}"></div>
+                                        <span class="programme-text-inline">Smart Tahfiz</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Form Footer - OFFICE USE ONLY -->
-                        <div class="form-footer">
-                            <div class="office-use-section">
-                                <strong>UNTUK KEGUNAAN PEJABAT SAHAJA / FOR OFFICE USE ONLY</strong><br>
-                                <div style="margin-top: 1px;">
-                                    <br>
+                        <!-- Name and SPM Credit - Compact -->
+                        <div class="print-grid-2col">
+                            <div class="print-field-row">
+                                <div class="print-label">Nama Penuh (IC) / Full Name (as per IC):</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.full_name))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label-spm">SPM Total Credit / Jumlah Kredit SPM:</div>
+                                <div class="print-value">${app.spm_total_credit || '0'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Personal Details -->
+                    <div class="print-section">
+                        <div class="print-section-title">2. MAKLUMAT PERIBADI / PERSONAL DETAILS</div>
+                        
+                        <div class="print-grid-2col">
+                            <div class="print-field-row">
+                                <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.ic_no))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label">Status Perkahwinan / Marital Status:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.marriage_status))}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="print-grid-2col">
+                            <div class="print-field-row">
+                                <div class="print-label">Alamat Emel / Email Address:</div>
+                                <div class="print-value">${escapeHtml(app.email)}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label">No. Telefon / Phone Number:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.phone_no))}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Address Details -->
+                    <div class="print-section">
+                        <div class="print-section-title">3. MAKLUMAT ALAMAT / ADDRESS DETAILS</div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Alamat Baris / Address Line :</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.address1))}</div>
+                        </div>
+                        
+                        <div class="print-grid-3col">
+                            <div class="print-field-row">
+                                <div class="print-label-small">Bandar / City:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.city))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label-small">Poskod / Postcode:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.postcode))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label-small">Negeri / State:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.state))}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Father's Information -->
+                    <div class="print-section">
+                        <div class="print-section-title">4. MAKLUMAT BAPA / FATHER'S INFORMATION</div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Nama Penuh / Full Name:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.father_name))}</div>
+                        </div>
+                        
+                        <div class="print-grid-2col">
+                            <div class="print-field-row">
+                                <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.father_ic))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label">No. Telefon / Phone Number:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.father_phone))}</div>
+                            </div>
+                        </div>
+                        
+                        ${app.father_occupation ? `
+                        <div class="print-field-row">
+                            <div class="print-label">Pekerjaan / Occupation:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.father_occupation))}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="print-grid-2col">
+                            ${app.father_income ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.father_income))}</div>
+                            </div>
+                            ` : '<div></div>'}
+                            
+                            ${app.father_dependants ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.father_dependants))}</div>
+                            </div>
+                            ` : '<div></div>'}
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Mother's Information -->
+                    <div class="print-section">
+                        <div class="print-section-title">5. MAKLUMAT IBU / MOTHER'S INFORMATION</div>
+                        
+                        <div class="print-field-row">
+                            <div class="print-label">Nama Penuh / Full Name:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.mother_name))}</div>
+                        </div>
+                        
+                        <div class="print-grid-2col">
+                            <div class="print-field-row">
+                                <div class="print-label">No. Kad Pengenalan / IC No.:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_ic))}</div>
+                            </div>
+                            
+                            <div class="print-field-row">
+                                <div class="print-label">No. Telefon / Phone Number:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_phone))}</div>
+                            </div>
+                        </div>
+                        
+                        ${app.mother_occupation ? `
+                        <div class="print-field-row">
+                            <div class="print-label">Pekerjaan / Occupation:</div>
+                            <div class="print-value">${toUpperCase(escapeHtml(app.mother_occupation))}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="print-grid-2col">
+                            ${app.mother_income ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Pendapatan Bulanan / Monthly Income (RM):</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_income))}</div>
+                            </div>
+                            ` : '<div></div>'}
+                            
+                            ${app.mother_dependants ? `
+                            <div class="print-field-row">
+                                <div class="print-label">Bil. Tanggungan / No. of Dependants:</div>
+                                <div class="print-value">${toUpperCase(escapeHtml(app.mother_dependants))}</div>
+                            </div>
+                            ` : '<div></div>'}
+                        </div>
+                    </div>
+
+                    <!-- Section 6: Programme Interest - Compact 3 boxes -->
+                    <div class="print-section">
+                        <div class="print-section-title">6. MINAT PROGRAM / PROGRAMME INTEREST (Boleh lebih dari 1 program / Can be more than 1 programme)</div>
+                        
+                        <div class="interest-grid-3col">
+                            <!-- First Choice -->
+                            <div class="interest-box">
+                                <div class="interest-box-title">Pilihan Pertama / First Choice</div>
+                                <div class="interest-content">${app.interest_choice1 ? toUpperCase(escapeHtml(app.interest_choice1)) : ''}</div>
+                            </div>
+                            
+                            <!-- Second Choice -->
+                            <div class="interest-box">
+                                <div class="interest-box-title">Pilihan Kedua / Second Choice</div>
+                                <div class="interest-content">${app.interest_choice2 ? toUpperCase(escapeHtml(app.interest_choice2)) : ''}</div>
+                            </div>
+                            
+                            <!-- Third Choice -->
+                            <div class="interest-box">
+                                <div class="interest-box-title">Pilihan Ketiga / Third Choice</div>
+                                <div class="interest-content">${app.interest_choice3 ? toUpperCase(escapeHtml(app.interest_choice3)) : ''}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 7: Declaration - Compact -->
+                    <div class="print-declaration">
+                        <div class="print-declaration-title">PENGAKUAN DAN TANDATANGAN / DECLARATION & SIGNATURE</div>
+                        
+                        <div class="declaration-dual">
+                            <div class="declaration-malay">
+                                Saya dengan ini mengaku bahawa semua maklumat yang diberikan dalam borang permohonan ini adalah benar, lengkap, dan tepat mengikut pengetahuan saya.
+                            </div>
+                            
+                            <div class="declaration-english">
+                                I hereby declare that all information given in this application form is true, complete, and accurate to the best of my knowledge.
+                            </div>
+                        </div>
+
+                        <div class="print-signature-area">
+                            <div class="signature-box">
+                                <div class="signature-item">
+                                    <div class="signature-line"></div>
+                                    <div class="signature-name">Tandatangan Pemohon / Applicant's Signature</div>
+                                    <div class="signature-name">
+                                        Nama / Name: <span style="font-weight: bold;">${toUpperCase(escapeHtml(app.full_name))}</span><br>
+                                        Tarikh / Date: <span style="font-weight: bold;">${new Date().toLocaleDateString('en-GB')}</span>
+                                    </div>
                                 </div>
-                                <div style="margin-top: 1px;">
-                                    Catatan / Remarks: _____________________________________________________________________________________________
+                                
+                                <div class="signature-item">
+                                    <div class="signature-line"></div>
+                                    <div class="signature-date">Tandatangan Pegawai Temuduga / Interview Officer's Signature</div>
+                                    <div class="signature-date">
+                                        Tarikh / Date: <span style="font-weight: bold;">${new Date().toLocaleDateString('en-GB')}</span>
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Footer - OFFICE USE ONLY -->
+                    <div class="form-footer">
+                        <div class="office-use-section">
+                            <strong>UNTUK KEGUNAAN PEJABAT SAHAJA / FOR OFFICE USE ONLY</strong><br>
+                            <div style="margin-top: 2px;">
+                                <br>
+                            </div>
+                            <div style="margin-top: 2px;">
+                                Catatan / Remarks: _____________________________________________________________________________________________
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <script>
+                    // Auto print and close
                     window.onload = function() {
-                        // Remove all browser headers and footers
+                        // Remove print margins
                         const style = document.createElement('style');
                         style.innerHTML = \`
-                            @page {
-                                margin: 0 !important;
-                                size: A4 portrait;
-                                
-                                @top-left { content: none !important; }
-                                @top-center { content: none !important; }
-                                @top-right { content: none !important; }
-                                @bottom-left { content: none !important; }
-                                @bottom-center { content: none !important; }
-                                @bottom-right { content: none !important; }
-                            }
-                            
                             @media print {
+                                @page {
+                                    margin: 8mm 12mm 8mm 12mm !important;
+                                }
+                                
                                 body {
                                     margin: 0 !important;
                                     padding: 0 !important;
-                                    width: 210mm !important;
-                                    height: 297mm !important;
+                                    height: 100% !important;
                                 }
                                 
                                 /* Hide any browser-generated headers/footers */
                                 header, footer {
                                     display: none !important;
                                 }
-                                
-                                /* Force single page */
-                                .print-form {
-                                    page-break-inside: avoid !important;
-                                    break-inside: avoid !important;
-                                }
                             }
                         \`;
                         document.head.appendChild(style);
                         
-                        // Short delay before printing to ensure everything is rendered
+                        // Print after a short delay
                         setTimeout(() => {
                             window.print();
-                            
-                            // Close window after printing (if opened in new tab)
                             setTimeout(() => {
                                 if (window.opener) {
                                     window.close();
@@ -3465,7 +3536,7 @@
     }
     
     // ============================================
-    // REGISTRATION FUNCTIONS (Keep existing)
+    // REGISTRATION FUNCTIONS
     // ============================================
     
     // Open registration modal
@@ -3812,9 +3883,9 @@
     
     // Real-time stats update function
     function updateLiveStats() {
-        const eventId = {{ event.id }};
+        const eventId = {{ event.id }};  // Get event ID from template
         
-        fetch(`/attsys/event/${eventId}/live-stats/`)
+        fetch(`/attsys/event/${eventId}/live-stats/`)  // This should now work
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
