@@ -2060,6 +2060,294 @@
     const toastMessage = document.getElementById('toastMessage');
     
     // ============================================
+    // SHOW ATTENDEE DETAILS MODAL
+    // ============================================
+    window.showAttendeeDetails = async function(attendeeId) {
+        console.log('Opening attendee details for:', attendeeId);
+        
+        // Store for printing
+        currentAttendeeId = attendeeId;
+        
+        const modal = new bootstrap.Modal(document.getElementById('attendeeModal'));
+        const modalBody = document.getElementById('attendeeModalBody');
+        
+        // Show loading
+        modalBody.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Loading attendee details...</p>
+            </div>
+        `;
+        
+        // Show modal first
+        modal.show();
+        
+        try {
+            // Fetch attendee details
+            const response = await fetch(`/attsys/api/attendee/${attendeeId}/details/`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Attendee data:', data);
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Store for printing
+            currentAttendeeData = data;
+            
+            // Build HTML for attendee details
+            const attendee = data.attendee;
+            const application = data.application;
+            
+            let html = '';
+            
+            if (application) {
+                // Helper function to format display
+                function formatValue(value, label, icon = 'bi-info-circle') {
+                    if (!value || value === '-' || value === 'N/A') {
+                        return '';
+                    }
+                    return `
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                <i class="bi ${icon} me-2"></i>${label}
+                            </div>
+                            <div class="detail-value">
+                                ${value}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Format for printing (all uppercase)
+                function toUpperCase(value) {
+                    if (!value) return '';
+                    return value.toString().toUpperCase();
+                }
+                
+                html = `
+                    <!-- Personal Information -->
+                    <div class="attendee-details-section">
+                        <h6>
+                            <i class="bi bi-person-badge text-primary"></i>
+                            Personal Information
+                        </h6>
+                        
+                        <div class="detail-grid">
+                            <div class="detail-grid-item">
+                                <div class="detail-grid-title">Basic Details</div>
+                                ${formatValue(toUpperCase(application.full_name), 'Full Name', 'bi-person')}
+                                ${formatValue(application.ic_no, 'IC Number', 'bi-card-text')}
+                                ${formatValue(application.email, 'Email', 'bi-envelope')}
+                                ${formatValue(application.phone_no, 'Phone', 'bi-telephone')}
+                            </div>
+                            
+                            <div class="detail-grid-item">
+                                <div class="detail-grid-title">Address</div>
+                                ${formatValue(toUpperCase(application.address1), 'Address Line 1', 'bi-house')}
+                                ${formatValue(toUpperCase(application.city), 'City', 'bi-geo-alt')}
+                                ${formatValue(application.postcode, 'Postcode', 'bi-mailbox')}
+                                ${formatValue(toUpperCase(application.state), 'State', 'bi-map')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Family Information -->
+                    <div class="attendee-details-section">
+                        <h6>
+                            <i class="bi bi-people text-primary"></i>
+                            Family Information
+                        </h6>
+                        
+                        <div class="detail-grid">
+                            <div class="detail-grid-item">
+                                <div class="detail-grid-title">Father's Details</div>
+                                ${formatValue(toUpperCase(application.father_name), 'Name', 'bi-person')}
+                                ${formatValue(application.father_ic, 'IC Number', 'bi-card-text')}
+                                ${formatValue(application.father_phone, 'Phone', 'bi-telephone')}
+                                ${formatValue(toUpperCase(application.father_occupation), 'Occupation', 'bi-briefcase')}
+                            </div>
+                            
+                            <div class="detail-grid-item">
+                                <div class="detail-grid-title">Mother's Details</div>
+                                ${formatValue(toUpperCase(application.mother_name), 'Name', 'bi-person')}
+                                ${formatValue(application.mother_ic, 'IC Number', 'bi-card-text')}
+                                ${formatValue(application.mother_phone, 'Phone', 'bi-telephone')}
+                                ${formatValue(toUpperCase(application.mother_occupation), 'Occupation', 'bi-briefcase')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Application Details -->
+                    <div class="attendee-details-section">
+                        <h6>
+                            <i class="bi bi-file-earmark-text text-primary"></i>
+                            Application Details
+                        </h6>
+                        
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                <i class="bi bi-person-badge me-2"></i>Inviting Officer
+                            </div>
+                            <div class="detail-value">
+                                ${application.registration_officer || 'N/A'}
+                            </div>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                <i class="bi bi-mortarboard me-2"></i>Applied Programme
+                            </div>
+                            <div class="detail-value">
+                                ${application.applied_programme || 'N/A'}
+                            </div>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                <i class="bi bi-award me-2"></i>SPM Total Credit
+                            </div>
+                            <div class="detail-value">
+                                ${application.spm_total_credit || '0'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Programme Interests -->
+                    <div class="attendee-details-section">
+                        <h6>
+                            <i class="bi bi-star text-primary"></i>
+                            Programme Interests
+                        </h6>
+                        
+                        <div class="detail-grid">
+                            <div class="detail-grid-item">
+                                <div class="detail-grid-title">First Choice</div>
+                                <div class="detail-value" style="min-height: 60px;">
+                                    ${application.interest_choice1 || 'Not specified'}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-grid-item">
+                                <div class="detail-grid-title">Second Choice</div>
+                                <div class="detail-value" style="min-height: 60px;">
+                                    ${application.interest_choice2 || 'Not specified'}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-grid-item">
+                                <div class="detail-grid-title">Third Choice</div>
+                                <div class="detail-value" style="min-height: 60px;">
+                                    ${application.interest_choice3 || 'Not specified'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Check-in Information -->
+                    <div class="attendee-details-section">
+                        <h6>
+                            <i class="bi bi-clock-history text-primary"></i>
+                            Check-in Information
+                        </h6>
+                        
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                <i class="bi bi-calendar-check me-2"></i>Checked In At
+                            </div>
+                            <div class="detail-value">
+                                ${attendee.attended_at} (${attendee.attended_at_display})
+                            </div>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                <i class="bi bi-calendar-date me-2"></i>Date
+                            </div>
+                            <div class="detail-value">
+                                ${attendee.attended_date_display}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Show print button since we have application data
+                document.getElementById('printAttendeeBtn').style.display = 'inline-flex';
+                
+            } else {
+                // No application found
+                html = `
+                    <div class="no-application">
+                        <i class="bi bi-person-x display-4 text-muted"></i>
+                        <h4 class="mt-3">No Application Form Found</h4>
+                        <p>This attendee checked in but did not submit an application form.</p>
+                        
+                        <div class="attendee-details-section mt-4">
+                            <h6>Basic Information</h6>
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    <i class="bi bi-person me-2"></i>Name
+                                </div>
+                                <div class="detail-value">
+                                    ${attendee.name}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    <i class="bi bi-envelope me-2"></i>Email
+                                </div>
+                                <div class="detail-value">
+                                    ${attendee.email}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    <i class="bi bi-telephone me-2"></i>Phone
+                                </div>
+                                <div class="detail-value">
+                                    ${attendee.phone_number || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    <i class="bi bi-clock me-2"></i>Checked In At
+                                </div>
+                                <div class="detail-value">
+                                    ${attendee.attended_at} (${attendee.attended_at_display})
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Hide print button since no application data
+                document.getElementById('printAttendeeBtn').style.display = 'none';
+            }
+            
+            modalBody.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Error loading attendee details:', error);
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Error loading attendee details:</strong> ${error.message}
+                </div>
+            `;
+            document.getElementById('printAttendeeBtn').style.display = 'none';
+        }
+    };
+    
+    // ============================================
     // FORM NUMBER GENERATION FUNCTIONS
     // ============================================
     
@@ -3485,6 +3773,9 @@
     // ============================================
     
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('Event detail page loaded');
+        console.log('showAttendeeDetails function exists:', typeof showAttendeeDetails === 'function');
+        
         // QR Code Modal Setup
         if (qrImage) {
             qrImage.addEventListener('click', function() {
@@ -3627,6 +3918,22 @@
         // Start real-time stats updates (every 30 seconds)
         updateLiveStats();
         setInterval(updateLiveStats, 30000);
+        
+        // Test: Add click listener to view buttons
+        const viewButtons = document.querySelectorAll('[onclick*="showAttendeeDetails"]');
+        console.log(`Found ${viewButtons.length} view buttons`);
+        
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                console.log('View button clicked!', e.target);
+                // Extract attendee ID from onclick attribute
+                const onclickAttr = this.getAttribute('onclick');
+                const match = onclickAttr.match(/showAttendeeDetails\((\d+)\)/);
+                if (match) {
+                    console.log('Attendee ID from button:', match[1]);
+                }
+            });
+        });
     });
 </script>
 {% endblock %}
