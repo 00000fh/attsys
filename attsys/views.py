@@ -1448,34 +1448,33 @@ def save_registration(request):
         if not closer:
             return JsonResponse({'error': 'Closer name is required'}, status=400)
         
-        # Parse date - FIXED: Define register_date variable here
+        # Parse date
         register_date_str = request.POST.get('register_date', '')
         if not register_date_str:
             return JsonResponse({'error': 'Registration date is required'}, status=400)
         
         try:
             # Accept multiple date formats
-            register_date = None  # Initialize variable
+            register_date = None
             for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'):
                 try:
                     register_date = datetime.strptime(register_date_str, fmt).date()
                     break
                 except ValueError:
                     continue
-            if not register_date:  # If still None after trying all formats
+            if not register_date:
                 return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD, DD/MM/YYYY, or DD-MM-YYYY'}, status=400)
         except (ValueError, TypeError) as e:
             return JsonResponse({'error': f'Invalid date: {str(e)}'}, status=400)
         
-        # FIX: Use Malaysia time for date validation
+        # Use Malaysia time for date validation
         malaysia_today = malaysia_now().date()
         
-        # Validate date is not in future (using Malaysia time)
+        # Validate date is not in future
         if register_date > malaysia_today:
             return JsonResponse({'error': 'Registration date cannot be in the future'}, status=400)
         
-        # ALSO: Validate date is not too far in the past (optional)
-        # Let's say not more than 30 days ago
+        # Validate date is not too far in past
         thirty_days_ago = malaysia_today - timedelta(days=30)
         if register_date < thirty_days_ago:
             return JsonResponse({'error': 'Registration date cannot be more than 30 days ago'}, status=400)
@@ -1500,16 +1499,21 @@ def save_registration(request):
         payment_status = request.POST.get('payment_status', 'PENDING')
         
         # Validate amount_paid based on payment_status
-        total_fee = pre_registration_fee + registration_fee
+        total_fee_calculated = pre_registration_fee + registration_fee
         
-        if payment_status == 'DONE' and amount_paid != total_fee:
+        if payment_status == 'DONE' and amount_paid != total_fee_calculated:
             return JsonResponse({
-                'error': f'For completed payment, amount paid ({amount_paid}) must equal total fee ({total_fee})'
+                'error': f'For completed payment, amount paid ({amount_paid}) must equal total fee ({total_fee_calculated})'
             }, status=400)
         
         if payment_status == 'PENDING' and amount_paid > 0:
             return JsonResponse({
                 'error': 'For pending payment, amount paid should be 0.00'
+            }, status=400)
+        
+        if payment_status == 'PARTIAL' and (amount_paid <= 0 or amount_paid >= total_fee_calculated):
+            return JsonResponse({
+                'error': f'For partial payment, amount paid ({amount_paid}) must be between 0 and total fee ({total_fee_calculated})'
             }, status=400)
         
         # Get or create registration
@@ -1518,7 +1522,7 @@ def save_registration(request):
             defaults={
                 'course': course,
                 'college': college,
-                'register_date': register_date,  # Now properly defined
+                'register_date': register_date,
                 'pre_registration_fee': pre_registration_fee,
                 'registration_fee': registration_fee,
                 'payment_type': payment_type if payment_type else None,
@@ -1534,7 +1538,7 @@ def save_registration(request):
         if not created:
             registration.course = course
             registration.college = college
-            registration.register_date = register_date  # Now properly defined
+            registration.register_date = register_date
             registration.pre_registration_fee = pre_registration_fee
             registration.registration_fee = registration_fee
             registration.payment_type = payment_type if payment_type else None
@@ -1545,10 +1549,7 @@ def save_registration(request):
             registration.referral_number = request.POST.get('referral_number', '').strip()
             registration.save()
         
-        # Calculate total fee for response
-        total_fee = registration.total_fee()
-        
-        # Prepare response data
+        # Prepare response data - FIX: Use property without parentheses
         response_data = {
             'success': True,
             'message': 'Registration saved successfully',
@@ -1560,8 +1561,8 @@ def save_registration(request):
                 'pre_registration_fee': str(registration.pre_registration_fee),
                 'registration_fee': str(registration.registration_fee),
                 'amount_paid': str(registration.amount_paid),
-                'total_fee': str(total_fee),
-                'balance_amount': str(registration.balance_amount),
+                'total_fee': str(registration.total_fee),  # FIXED: No parentheses
+                'balance_amount': str(registration.balance_amount),  # Also a property
                 'payment_type': registration.payment_type,
                 'payment_status': registration.payment_status,
                 'closer': registration.closer,
