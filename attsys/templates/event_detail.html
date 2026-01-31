@@ -1122,6 +1122,17 @@
         color: #198754;
         border: 1px solid rgba(25, 135, 84, 0.2);
     }
+
+    /* Simplified columns for attendees list */
+    .attendee-item > .col-md-3 { /* Attendee Info */
+        max-width: 18%;
+    }
+    .attendee-item > .col-md-2 { /* Other columns */
+        max-width: 16.6667%;
+    }
+    .attendee-item > .col-md-1 { /* Actions column */
+        max-width: 8.3333%;
+    }
     
     /* Responsive Design */
     @media (max-width: 768px) {
@@ -1206,10 +1217,46 @@
         
         /* Registration table responsive */
         .attendee-item {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            padding: 1rem;
             border: 1px solid var(--gray-300);
             border-radius: 8px;
-            padding: 1rem;
             margin-bottom: 1rem;
+        }
+
+        .attendee-item > div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.25rem 0;
+        }
+        
+        .attendee-item > div::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-right: 1rem;
+        }
+
+        .attendee-item > .col-md-3::before {
+            content: "Attendee Info";
+        }
+        .attendee-item > .col-md-2:nth-of-type(1)::before {
+            content: "Referral Number";
+        }
+        .attendee-item > .col-md-2:nth-of-type(2)::before {
+            content: "Payment Type";
+        }
+        .attendee-item > .col-md-2:nth-of-type(3)::before {
+            content: "Payment Status";
+        }
+        .attendee-item > .col-md-2:nth-of-type(4)::before {
+            content: "Amount";
+        }
+        .attendee-item > .col-md-1::before {
+            content: "Actions";
         }
         
         .attendee-header {
@@ -1657,17 +1704,19 @@
                         </button>
                     </div>
                     
-                    <!-- Table Header for Desktop - UPDATED WITH NEW FIELDS -->
+                    <!-- Table Header for Desktop - SIMPLIFIED -->
                     <div class="d-none d-md-block">
                         <div class="attendee-header row fw-bold text-muted small border-bottom pb-2 mb-2">
-                            <div class="col-md-2">Attendee Info</div>
+                            <div class="col-md-3">Attendee Info</div>
                             <div class="col-md-2">Referral Number</div>
-                            <div class="col-md-1">Payment Status</div>
-                            <div class="col-md-1">Amount</div>
+                            <div class="col-md-2">Payment Type</div>
+                            <div class="col-md-2">Payment Status</div>
+                            <div class="col-md-2">Amount</div>
+                            <div class="col-md-1">Actions</div>
                         </div>
                     </div>
                     
-                    <!-- Attendees List -->
+                    <!-- Attendees List - SIMPLIFIED -->
                     {% if attendees %}
                     <div id="attendeesList">
                         {% for attendee in attendees %}
@@ -1675,8 +1724,9 @@
                             data-attendee-id="{{ attendee.id }}"
                             data-ic-number="{% if attendee.get_ic_number %}{{ attendee.get_ic_number }}{% endif %}"
                             id="attendee-{{ attendee.id }}">
-                            <!-- Attendee Info -->
-                            <div class="col-md-2 col-12 mb-2 mb-md-0">
+                            
+                            <!-- Attendee Info Column -->
+                            <div class="col-md-3 col-12 mb-2 mb-md-0">
                                 <div class="attendee-info">
                                     <div class="attendee-name fw-bold">{{ attendee.name }}</div>
                                     <div class="attendee-contact small text-muted">
@@ -1691,46 +1741,23 @@
                                 </div>
                             </div>
                             
-                            <!-- Inviting Officer & Application Status -->
+                            <!-- Referral Number Column -->
                             <div class="col-md-2 col-12 mb-2 mb-md-0">
                                 <div id="inviting-officer-{{ attendee.id }}">
                                     {% if attendee.has_application %}
                                         {% with app=attendee.application %}
                                         <div class="small">
-                                            <strong>{{ app.registration_officer }}</strong>
-                                            <br>
-                                            <span class="badge {% if attendee.has_application %}bg-success{% else %}bg-secondary{% endif %}">
-                                                {% if attendee.has_application %}Has App{% else %}No App{% endif %}
-                                            </span>
+                                            <span class="text-dark">{{ app.registration_officer|default:"—" }}</span>
                                         </div>
                                         {% endwith %}
                                     {% else %}
-                                        <span class="text-muted fst-italic">No application</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Attended With -->
-                            <div class="col-md-1 col-12 mb-2 mb-md-0">
-                                <div id="attended-with-{{ attendee.id }}">
-                                    {% if attendee.has_application %}
-                                        {% with app=attendee.application %}
-                                        {% if app.attended_with == 'PARENT' %}
-                                        <span class="badge badge-parent status-badge">Parent</span>
-                                        {% elif app.attended_with == 'GUARDIAN' %}
-                                        <span class="badge badge-guardian status-badge">Guardian</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary status-badge">{{ app.attended_with|default:"-" }}</span>
-                                        {% endif %}
-                                        {% endwith %}
-                                    {% else %}
-                                        <span class="text-muted">—</span>
+                                        <span class="text-muted fst-italic">—</span>
                                     {% endif %}
                                 </div>
                             </div>
                             
                             <!-- Payment Type Column -->
-                            <div class="col-md-1 col-12 mb-2 mb-md-0">
+                            <div class="col-md-2 col-12 mb-2 mb-md-0">
                                 <div id="payment-type-{{ attendee.id }}">
                                     {% if attendee.has_registration %}
                                         {% with reg=attendee.registration %}
@@ -1753,7 +1780,7 @@
                             </div>
 
                             <!-- Payment Status Column -->
-                            <div class="col-md-1 col-12 mb-2 mb-md-0">
+                            <div class="col-md-2 col-12 mb-2 mb-md-0">
                                 <div id="payment-status-{{ attendee.id }}">
                                     {% if attendee.has_registration %}
                                         {% with reg=attendee.registration %}
@@ -1774,14 +1801,14 @@
                             </div>
 
                             <!-- Amount Column -->
-                            <div class="col-md-1 col-12 mb-2 mb-md-0">
+                            <div class="col-md-2 col-12 mb-2 mb-md-0">
                                 <div id="payment-amount-{{ attendee.id }}">
                                     {% if attendee.has_registration %}
                                         {% with reg=attendee.registration %}
                                             <div class="small">
-                                                <div class="text-success">Paid: RM {{ reg.amount_paid|floatformat:2 }}</div>
+                                                <div class="text-success">RM {{ reg.amount_paid|floatformat:2 }}</div>
                                                 {% if reg.payment_status == 'PARTIAL' %}
-                                                    <div class="text-danger">Balance: RM {{ reg.balance_amount|floatformat:2 }}</div>
+                                                    <div class="text-danger small">Balance: RM {{ reg.balance_amount|floatformat:2 }}</div>
                                                 {% endif %}
                                             </div>
                                         {% endwith %}
@@ -1791,8 +1818,8 @@
                                 </div>
                             </div>
                             
-                            <!-- Actions -->
-                            <div class="col-md-2 col-12">
+                            <!-- Actions Column -->
+                            <div class="col-md-1 col-12">
                                 <div class="d-flex gap-2">
                                     <button class="btn btn-sm btn-outline-primary" 
                                             onclick="showAttendeeDetails({{ attendee.id }})"
@@ -1805,7 +1832,7 @@
                                             title="{% if attendee.has_registration %}Update Registration{% else %}Add Registration{% endif %}">
                                         <i class="bi bi-{% if attendee.has_registration %}pencil{% else %}plus{% endif %}"></i>
                                         <span class="d-none d-md-inline">
-                                            {% if attendee.has_registration %}Update{% else %}Register{% endif %}
+                                            {% if attendee.has_registration %}Update{% else %}Add{% endif %}
                                         </span>
                                     </button>
                                 </div>
@@ -2104,16 +2131,16 @@
                     <div class="col-md-3 col-6">
                         <div class="card border-success">
                             <div class="card-body text-center">
-                                <h3 class="card-title text-success" id="statsTotalPaid">0</h3>
-                                <p class="card-text text-muted mb-0">Payment Done</p>
+                                <h3 class="card-title text-success" id="statsPreRegAmount">RM 0.00</h3>
+                                <p class="card-text text-muted mb-0">Pre-Registration</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
                         <div class="card border-warning">
                             <div class="card-body text-center">
-                                <h3 class="card-title text-warning" id="statsTotalPartial">0</h3>
-                                <p class="card-text text-muted mb-0">Payment Partial</p>
+                                <h3 class="card-title text-warning" id="statsRegAmount">RM 0.00</h3>
+                                <p class="card-text text-muted mb-0">Registration</p>
                             </div>
                         </div>
                     </div>
@@ -2201,52 +2228,6 @@
     const toastMessage = document.getElementById('toastMessage');
     
     // ============================================
-    // HELPER FUNCTIONS
-    // ============================================
-    
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    function showToast(message, isError = false) {
-        const toastEl = document.getElementById('toast');
-        const toastMessageEl = document.getElementById('toastMessage');
-        
-        if (!toastEl || !toastMessageEl) {
-            console.error('Toast elements not found in DOM');
-            return;
-        }
-        
-        toastMessageEl.textContent = message;
-        toastEl.style.background = isError ? '#dc3545' : '#198754';
-        toastEl.classList.add('show');
-        
-        setTimeout(function() {
-            toastEl.classList.remove('show');
-        }, 3000);
-    }
-    
-    function getMaritalStatusBadge(status) {
-        if (!status) return '<span class="badge bg-secondary">-</span>';
-        
-        const statusLower = status.toLowerCase();
-        if (statusLower.includes('single')) {
-            return '<span class="badge badge-single status-badge">Single</span>';
-        } else if (statusLower.includes('married')) {
-            return '<span class="badge badge-married status-badge">Married</span>';
-        } else if (statusLower.includes('divorced')) {
-            return '<span class="badge badge-divorced status-badge">Divorced</span>';
-        } else if (statusLower.includes('widowed')) {
-            return '<span class="badge badge-widowed status-badge">Widowed</span>';
-        } else {
-            return `<span class="badge bg-secondary status-badge">${status}</span>`;
-        }
-    }
-    
-    // ============================================
     // CORE FUNCTIONS - COMPLETE VERSION
     // ============================================
     
@@ -2268,17 +2249,12 @@
         `;
         
         // Show modal
-        const modalElement = document.getElementById('attendeeModal');
-        if (!modalElement) {
-            console.error('Attendee modal element not found');
-            return;
-        }
-        const modal = new bootstrap.Modal(modalElement);
+        const modal = new bootstrap.Modal(document.getElementById('attendeeModal'));
         modal.show();
         
         // Show/hide print button
         const printBtn = document.getElementById('printAttendeeBtn');
-        if (printBtn) printBtn.style.display = 'none';
+        printBtn.style.display = 'none';
         
         // Fetch data
         fetch(`/attsys/api/attendee/${attendeeId}/details/`)
@@ -2295,7 +2271,7 @@
                     modalBody.innerHTML = buildCompleteAttendeeDetailsHTML(data);
                     
                     // Show print button if application exists
-                    if (printBtn && data.application) {
+                    if (data.application) {
                         printBtn.style.display = 'inline-flex';
                     }
                 } else {
@@ -2357,8 +2333,9 @@
             </div>
         `;
         
-        // Application Details
+        // Application Details - COMPLETE with NEW fields
         if (application) {
+            // Determine attended with badge
             let attendedWithBadge = '';
             if (application.attended_with === 'PARENT') {
                 attendedWithBadge = '<span class="badge badge-parent status-badge">With Parent(s)</span>';
@@ -2368,6 +2345,7 @@
                 attendedWithBadge = `<span class="badge bg-secondary status-badge">${application.attended_with || '-'}</span>`;
             }
             
+            // Determine programme badge
             let programmeBadge = '';
             if (application.applied_programme === 'DIPLOMA') {
                 programmeBadge = '<span class="badge badge-diploma status-badge">Diploma</span>';
@@ -2387,16 +2365,21 @@
                 <div class="attendee-details-section">
                     <h6><i class="bi bi-file-earmark-text"></i> Application Details</h6>
                     <div class="detail-grid">
+                        <!-- Programme Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Programme Information</div>
                             <div class="detail-grid-content">
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Applied Programme:</span>
-                                    <span class="detail-grid-value">${programmeBadge}</span>
+                                    <span class="detail-grid-value">
+                                        ${programmeBadge}
+                                    </span>
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Attended With:</span>
-                                    <span class="detail-grid-value">${attendedWithBadge}</span>
+                                    <span class="detail-grid-value">
+                                        ${attendedWithBadge}
+                                    </span>
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">SPM Credits:</span>
@@ -2408,11 +2391,14 @@
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Marital Status:</span>
-                                    <span class="detail-grid-value">${getMaritalStatusBadge(application.marriage_status)}</span>
+                                    <span class="detail-grid-value">
+                                        ${getMaritalStatusBadge(application.marriage_status)}
+                                    </span>
                                 </div>
                             </div>
                         </div>
                         
+                        <!-- Personal Details -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Personal Details</div>
                             <div class="detail-grid-content">
@@ -2435,6 +2421,7 @@
                             </div>
                         </div>
                         
+                        <!-- Address Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Address Details</div>
                             <div class="detail-grid-content">
@@ -2458,6 +2445,7 @@
                         </div>
                     </div>
                     
+                    <!-- Father's Information -->
                     <div class="detail-grid mt-3">
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Father's Information</div>
@@ -2489,6 +2477,7 @@
                             </div>
                         </div>
                         
+                        <!-- Mother's Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Mother's Information</div>
                             <div class="detail-grid-content">
@@ -2516,6 +2505,7 @@
                         </div>
                     </div>
                     
+                    <!-- Program Interest -->
                     <div class="mt-3">
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Programme Interest</div>
@@ -2551,8 +2541,9 @@
             `;
         }
         
-        // Registration Details
+        // Registration Details - COMPLETE with NEW fields
         if (registration) {
+            // Payment type badge
             let paymentTypeBadge = '';
             if (registration.payment_type === 'CASH') {
                 paymentTypeBadge = '<span class="badge badge-payment-cash status-badge">Cash</span>';
@@ -2568,6 +2559,7 @@
                 paymentTypeBadge = '<span class="badge bg-light text-muted">Not specified</span>';
             }
             
+            // Payment status badge
             let paymentStatusBadge = '';
             if (registration.payment_status === 'DONE') {
                 paymentStatusBadge = '<span class="badge badge-payment-done status-badge">Completed</span>';
@@ -2583,6 +2575,7 @@
                 <div class="attendee-details-section">
                     <h6><i class="bi bi-cash-coin"></i> Registration Details</h6>
                     <div class="detail-grid">
+                        <!-- Academic Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Academic Information</div>
                             <div class="detail-grid-content">
@@ -2601,16 +2594,21 @@
                             </div>
                         </div>
                         
+                        <!-- Payment Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Payment Information</div>
                             <div class="detail-grid-content">
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Payment Type:</span>
-                                    <span class="detail-grid-value">${paymentTypeBadge}</span>
+                                    <span class="detail-grid-value">
+                                        ${paymentTypeBadge}
+                                    </span>
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Payment Status:</span>
-                                    <span class="detail-grid-value">${paymentStatusBadge}</span>
+                                    <span class="detail-grid-value">
+                                        ${paymentStatusBadge}
+                                    </span>
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Amount Paid:</span>
@@ -2623,6 +2621,7 @@
                             </div>
                         </div>
                         
+                        <!-- Staff Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Staff Information</div>
                             <div class="detail-grid-content">
@@ -2646,6 +2645,7 @@
                         </div>
                     </div>
                     
+                    <!-- Fee Details -->
                     <div class="mt-3">
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Fee Breakdown</div>
@@ -2705,7 +2705,25 @@
         return html;
     }
     
-    // 2. PRINT ATTENDEE FORM
+    // Helper function to get marital status badge
+    function getMaritalStatusBadge(status) {
+        if (!status) return '<span class="badge bg-secondary">-</span>';
+        
+        const statusLower = status.toLowerCase();
+        if (statusLower.includes('single')) {
+            return '<span class="badge badge-single status-badge">Single</span>';
+        } else if (statusLower.includes('married')) {
+            return '<span class="badge badge-married status-badge">Married</span>';
+        } else if (statusLower.includes('divorced')) {
+            return '<span class="badge badge-divorced status-badge">Divorced</span>';
+        } else if (statusLower.includes('widowed')) {
+            return '<span class="badge badge-widowed status-badge">Widowed</span>';
+        } else {
+            return `<span class="badge bg-secondary status-badge">${status}</span>`;
+        }
+    }
+    
+    // 2. PRINT ATTENDEE FORM - COMPLETE VERSION
     window.printAttendeeForm = async function() {
         if (!currentAttendeeData || !currentAttendeeData.application) {
             showToast('No application data available to print', true);
@@ -2731,9 +2749,11 @@
     // 3. GENERATE UNIQUE FORM NUMBER
     async function generateUniqueFormNumber(application) {
         try {
+            // Get event state code
             const eventStateCode = "{{ event.state }}" || 'KUALA_LUMPUR';
-            let stateAbbr = 'KUL';
             
+            // Convert to abbreviation
+            let stateAbbr = 'KUL';
             switch(eventStateCode) {
                 case 'KUALA_LUMPUR': stateAbbr = 'KUL'; break;
                 case 'SELANGOR': stateAbbr = 'SEL'; break;
@@ -2754,7 +2774,10 @@
                 default: stateAbbr = eventStateCode.substring(0, 3);
             }
             
+            // Get event month
             const eventMonth = "{{ event.date|date:'m' }}" || '01';
+            
+            // Generate unique sequence
             const now = new Date();
             const timestamp = now.getTime();
             const sequence = timestamp % 1000000;
@@ -2772,8 +2795,6 @@
     }
     
     // 4. CREATE COMPLETE PRINTABLE FORM HTML - PROFESSIONAL GOVERNMENT STYLE (1 PAGE)
-    // Updated with dual language field labels (Bahasa Malaysia above English)
-    // Added print timestamp in header
     function createCompletePrintableFormHTML(app, formNumber) {
         function toUpperCase(value) {
             if (!value) return '';
@@ -2790,20 +2811,18 @@
             second: '2-digit'
         });
         
-        // Get attended with choices - Handle case-insensitive comparison
-        const attendedWith = (app.attended_with || '').toUpperCase();
+        // Get attended with choices
         const attendedWithChoices = {
-            'PARENT': attendedWith.includes('PARENT'),
-            'GUARDIAN': attendedWith.includes('GUARDIAN'),
+            'PARENT': app.attended_with === 'PARENT',
+            'GUARDIAN': app.attended_with === 'GUARDIAN',
         };
         
-        // Determine programme checkbox - Handle case-insensitive comparison
-        const appliedProgramme = (app.applied_programme || '').toUpperCase();
+        // Determine programme checkbox
         const programmeCheckboxes = {
-            'DIPLOMA': appliedProgramme.includes('DIPLOMA'),
-            'PRA_DIPLOMA': appliedProgramme.includes('PRA_DIPLOMA') || appliedProgramme.includes('PRA-DIPLOMA'),
-            'TVET': appliedProgramme.includes('TVET'),
-            'SMART_TAHFIZ': appliedProgramme.includes('SMART') || appliedProgramme.includes('TAHFIZ'),
+            'DIPLOMA': app.applied_programme === 'DIPLOMA',
+            'PRA_DIPLOMA': app.applied_programme === 'PRA_DIPLOMA',
+            'TVET': app.applied_programme === 'TVET',
+            'SMART_TAHFIZ': app.applied_programme === 'SMART_TAHFIZ',
         };
         
         return `
@@ -3454,8 +3473,8 @@
                 border-top: 0.7px solid #666;
                 font-size: 9pt !important;
                 color: #444;
-                line-height: 1.1;
-                width: 100%;
+                line-height: 1;
+                width: 99%;
             }
             
             .office-use-section {
@@ -3931,7 +3950,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <div style="margin-top: 1px;">
+
+                            <div style="margin-top: -2px;">
+                                <br>
+                            </div>
+                            <div style="margin-top: -2px;">
                                 Catatan / Remarks: _____________________________________________________________________________________________________________
                             </div>
                         </div>
@@ -3985,525 +4008,39 @@
     }
     
     // ============================================
-    // REGISTRATION FORM FUNCTIONS
+    // HELPER FUNCTIONS
     // ============================================
     
-    window.openRegistrationModal = function(attendeeId) {
-        console.log('openRegistrationModal called for:', attendeeId);
-        
-        currentAttendeeId = attendeeId;
-        const modalElement = document.getElementById('registrationModal');
-        
-        if (!modalElement) {
-            console.error('Registration modal element not found in DOM');
-            alert('Registration form is not available. Please refresh the page.');
-            return;
-        }
-        
-        if (typeof bootstrap === 'undefined') {
-            console.error('Bootstrap is not loaded');
-            alert('Please refresh the page. System components not loaded properly.');
-            return;
-        }
-        
-        const modal = new bootstrap.Modal(modalElement);
-        
-        // Reset form
-        const form = document.getElementById('registrationForm');
-        const attendeeIdField = document.getElementById('attendeeId');
-        
-        if (form) form.reset();
-        if (attendeeIdField) attendeeIdField.value = attendeeId;
-        
-        // Set default values
-        const registerDateField = document.getElementById('register_date');
-        const closerField = document.getElementById('closer');
-        const checkoutAlert = document.getElementById('checkoutTimeAlert');
-        
-        if (registerDateField) {
-            registerDateField.value = new Date().toISOString().split('T')[0];
-        }
-        
-        if (closerField) {
-            closerField.value = "{{ request.user.get_full_name|default:request.user.username }}";
-        }
-        
-        if (checkoutAlert) {
-            checkoutAlert.classList.add('d-none');
-        }
-        
-        // Set modal title
-        const modalTitle = document.getElementById('modalTitle');
-        const saveBtnText = document.getElementById('saveBtnText');
-        
-        if (modalTitle) modalTitle.textContent = 'Registration Form';
-        if (saveBtnText) saveBtnText.textContent = 'Save Registration';
-        
-        // Load attendee info
-        fetch(`/attsys/api/attendee/${attendeeId}/details/`)
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                if (data.attendee) {
-                    const attendee = data.attendee;
-                    
-                    // Update preview fields
-                    const previewName = document.getElementById('previewName');
-                    const previewEmail = document.getElementById('previewEmail');
-                    const previewPhone = document.getElementById('previewPhone');
-                    const previewCheckInTime = document.getElementById('previewCheckInTime');
-                    const previewInvitingOfficer = document.getElementById('previewInvitingOfficer');
-                    
-                    if (previewName) previewName.textContent = attendee.name;
-                    if (previewEmail) previewEmail.textContent = attendee.email;
-                    if (previewPhone) previewPhone.textContent = attendee.phone_number || 'N/A';
-                    if (previewCheckInTime) {
-                        previewCheckInTime.textContent = 
-                            `Checked in: ${attendee.attended_at_display} (${attendee.attended_date_display})`;
-                    }
-                    
-                    if (data.application && data.application.registration_officer) {
-                        if (previewInvitingOfficer) {
-                            previewInvitingOfficer.textContent = 
-                                `Referral Number: ${data.application.registration_officer}`;
-                        }
-                    }
-                    
-                    // Check if registration exists
-                    return fetch(`/attsys/api/attendee/${attendeeId}/registration/`);
-                } else {
-                    throw new Error('Attendee data not found');
-                }
-            })
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                return res.json();
-            })
-            .then(regData => {
-                if (regData.registration) {
-                    const modalTitle = document.getElementById('modalTitle');
-                    const saveBtnText = document.getElementById('saveBtnText');
-                    const alertDiv = document.getElementById('checkoutTimeAlert');
-                    const timeSpan = document.getElementById('lastUpdatedTime');
-                    
-                    if (modalTitle) modalTitle.textContent = 'Update Registration';
-                    if (saveBtnText) saveBtnText.textContent = 'Update Registration';
-                    
-                    if (alertDiv) alertDiv.classList.remove('d-none');
-                    if (timeSpan) {
-                        timeSpan.textContent = new Date().toLocaleString('en-MY', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit'
-                        });
-                    }
-                    
-                    populateRegistrationForm(regData.registration);
-                } else {
-                    updateAmountPaidField();
-                    updatePaymentSummary();
-                }
-            })
-            .catch(error => {
-                console.error('Error loading attendee/registration:', error);
-                updateAmountPaidField();
-                updatePaymentSummary();
-                
-                const previewName = document.getElementById('previewName');
-                if (previewName) previewName.textContent = 'Error loading data';
-            })
-            .finally(() => {
-                try {
-                    modal.show();
-                } catch (modalError) {
-                    console.error('Error showing modal:', modalError);
-                    alert('Unable to open registration form. Please try again.');
-                }
-            });
-    };
-    
-    function updateAmountPaidField() {
-        const paymentStatus = document.getElementById('payment_status');
-        const amountPaidInput = document.getElementById('amount_paid');
-        
-        if (!paymentStatus || !amountPaidInput) return;
-        
-        const status = paymentStatus.value;
-        const totalFeeDisplay = document.getElementById('totalFeeDisplay');
-        const totalFee = parseFloat(totalFeeDisplay ? totalFeeDisplay.textContent.replace('RM ', '') : '0') || 0;
-        
-        switch(status) {
-            case 'PENDING':
-                amountPaidInput.value = '0.00';
-                amountPaidInput.readOnly = true;
-                break;
-            case 'PARTIAL':
-                amountPaidInput.readOnly = false;
-                if (totalFee > 0) {
-                    amountPaidInput.value = (totalFee * 0.5).toFixed(2);
-                }
-                break;
-            case 'DONE':
-                amountPaidInput.readOnly = false;
-                amountPaidInput.value = totalFee.toFixed(2);
-                break;
-        }
-        
-        updatePaymentSummary();
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
     
-    function updatePaymentSummary() {
-        const preFee = parseFloat(document.getElementById('pre_registration_fee')?.value) || 0;
-        const regFee = parseFloat(document.getElementById('registration_fee')?.value) || 0;
-        const total = preFee + regFee;
-        const amountPaid = parseFloat(document.getElementById('amount_paid')?.value) || 0;
-        const balance = total - amountPaid;
-        const paymentPercentage = total > 0 ? (amountPaid / total) * 100 : 0;
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
         
-        // Update displays
-        const totalFeeDisplay = document.getElementById('totalFeeDisplay');
-        const displayAmountPaid = document.getElementById('displayAmountPaid');
-        const balanceDisplay = document.getElementById('balanceDisplay');
-        const paymentPercentageEl = document.getElementById('paymentPercentage');
-        
-        if (totalFeeDisplay) totalFeeDisplay.textContent = `RM ${total.toFixed(2)}`;
-        if (displayAmountPaid) displayAmountPaid.textContent = `RM ${amountPaid.toFixed(2)}`;
-        if (balanceDisplay) balanceDisplay.textContent = `RM ${balance.toFixed(2)}`;
-        if (paymentPercentageEl) paymentPercentageEl.textContent = `${paymentPercentage.toFixed(1)}%`;
-        
-        // Update progress bar
-        const progressBar = document.getElementById('paymentProgressBar');
-        if (progressBar) {
-            progressBar.style.width = `${paymentPercentage}%`;
-            
-            if (paymentPercentage >= 100) {
-                progressBar.className = 'payment-progress-bar bg-success';
-            } else if (paymentPercentage >= 50) {
-                progressBar.className = 'payment-progress-bar bg-warning';
-            } else if (paymentPercentage > 0) {
-                progressBar.className = 'payment-progress-bar bg-danger';
-            } else {
-                progressBar.className = 'payment-progress-bar bg-secondary';
-            }
-        }
-    }
-    
-    function populateRegistrationForm(registration) {
-        const fields = {
-            'course': document.getElementById('course'),
-            'college': document.getElementById('college'),
-            'register_date': document.getElementById('register_date'),
-            'pre_registration_fee': document.getElementById('pre_registration_fee'),
-            'registration_fee': document.getElementById('registration_fee'),
-            'payment_status': document.getElementById('payment_status'),
-            'amount_paid': document.getElementById('amount_paid'),
-            'payment_type': document.getElementById('payment_type'),
-            'closer': document.getElementById('closer'),
-            'referral_number': document.getElementById('referral_number'),
-            'remark': document.getElementById('remark')
-        };
-        
-        if (fields.course) fields.course.value = registration.course || '';
-        if (fields.college) fields.college.value = registration.college || '';
-        if (fields.register_date) {
-            fields.register_date.value = registration.register_date || new Date().toISOString().split('T')[0];
-        }
-        if (fields.pre_registration_fee) {
-            fields.pre_registration_fee.value = registration.pre_registration_fee || '0.00';
-        }
-        if (fields.registration_fee) {
-            fields.registration_fee.value = registration.registration_fee || '0.00';
-        }
-        if (fields.payment_status) {
-            fields.payment_status.value = registration.payment_status || 'PENDING';
-        }
-        if (fields.amount_paid) {
-            fields.amount_paid.value = registration.amount_paid || '0.00';
-        }
-        if (fields.payment_type) {
-            fields.payment_type.value = registration.payment_type || '';
-        }
-        if (fields.closer) {
-            fields.closer.value = registration.closer || '';
-        }
-        if (fields.referral_number) {
-            fields.referral_number.value = registration.referral_number || '';
-        }
-        if (fields.remark) {
-            fields.remark.value = registration.remark || '';
+        if (!toast || !toastMessage) {
+            console.error('Toast elements not found in DOM');
+            return; // Exit if elements don't exist
         }
         
-        updateAmountPaidField();
-        updatePaymentSummary();
-    }
-    
-    window.saveRegistration = function() {
-        const form = document.getElementById('registrationForm');
-        if (!form || !form.checkValidity()) {
-            if (form) form.reportValidity();
-            return;
-        }
+        toastMessage.textContent = message;
+        toast.style.background = isError ? '#dc3545' : 'var(--success)';
+        toast.classList.add('show');
         
-        const saveBtn = document.querySelector('#registrationModal .btn-primary');
-        const spinner = document.getElementById('saveSpinner');
-        const btnText = document.getElementById('saveBtnText');
-        
-        if (saveBtn) saveBtn.disabled = true;
-        if (spinner) spinner.classList.remove('d-none');
-        if (btnText) btnText.textContent = 'Saving...';
-        
-        const formData = new FormData(form);
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-        
-        if (!csrfToken) {
-            showToast('Security token missing. Please refresh the page.', true);
-            return;
-        }
-        
-        fetch('/attsys/api/registration/save/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': csrfToken.value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Registration saved successfully!');
-                
-                // Update UI
-                updateAttendeeRegistrationDisplay(currentAttendeeId, data.registration);
-                
-                // Update statistics
-                updateRegistrationStats();
-                
-                // Close modal
-                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('registrationModal'));
-                if (modalInstance) modalInstance.hide();
-            } else {
-                showToast(data.error || 'Failed to save registration', true);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('An error occurred. Please try again.', true);
-        })
-        .finally(() => {
-            if (saveBtn) saveBtn.disabled = false;
-            if (spinner) spinner.classList.add('d-none');
-            if (btnText) {
-                const modalTitle = document.getElementById('modalTitle');
-                btnText.textContent = modalTitle && modalTitle.textContent === 'Registration Form' ? 
-                    'Save Registration' : 'Update Registration';
-            }
-        });
-    };
-    
-    // ============================================
-    // STATISTICS FUNCTIONS
-    // ============================================
-    
-    window.showAllRegistrationStats = function() {
-        console.log('showAllRegistrationStats called');
-        
-        const modalElement = document.getElementById('statsModal');
-        if (!modalElement) {
-            console.error('Stats modal element not found');
-            return;
-        }
-        
-        const modal = new bootstrap.Modal(modalElement);
-        
-        fetch(`/attsys/api/event/{{ event.id }}/registration-full-stats/`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response is not JSON');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Registration stats data:', data);
-                if (data.success) {
-                    // Update stats cards
-                    if (document.getElementById('statsTotalRegistered')) {
-                        document.getElementById('statsTotalRegistered').textContent = data.total_registered || 0;
-                    }
-                    if (document.getElementById('statsTotalPaid')) {
-                        document.getElementById('statsTotalPaid').textContent = data.total_paid || 0;
-                    }
-                    if (document.getElementById('statsTotalPartial')) {
-                        document.getElementById('statsTotalPartial').textContent = data.total_pending || 0;
-                    }
-                    if (document.getElementById('statsTotalRevenue')) {
-                        document.getElementById('statsTotalRevenue').textContent = `RM ${data.total_revenue || '0.00'}`;
-                    }
-                    
-                    // Create charts if data exists
-                    if (data.charts) {
-                        if (data.charts.top_courses && data.charts.top_courses.length > 0) {
-                            createChart('topCoursesChart', data.charts.top_courses, 'Courses');
-                        }
-                        if (data.charts.top_closers && data.charts.top_closers.length > 0) {
-                            createChart('topClosersChart', data.charts.top_closers, 'Closers');
-                        }
-                        if (data.charts.timeline && data.charts.timeline.length > 0) {
-                            createTimelineChart('timelineChart', data.charts.timeline);
-                        }
-                    }
-                } else {
-                    console.error('API returned error:', data.error);
-                    showToast('Error loading statistics: ' + (data.error || 'Unknown error'), true);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading full stats:', error);
-                showToast('Failed to load statistics. Please try again.', true);
-            });
-        
-        modal.show();
-    };
-    
-    function updateRegistrationStats() {
-        fetch(`/attsys/api/event/{{ event.id }}/registration-stats/`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    if (document.getElementById('totalRegistered')) {
-                        document.getElementById('totalRegistered').textContent = data.total_registered || 0;
-                    }
-                    if (document.getElementById('totalPaid')) {
-                        document.getElementById('totalPaid').textContent = data.total_paid || 0;
-                    }
-                    if (document.getElementById('totalPartial')) {
-                        document.getElementById('totalPartial').textContent = data.total_pending || 0;
-                    }
-                    if (document.getElementById('totalRevenue')) {
-                        document.getElementById('totalRevenue').textContent = `RM ${data.total_revenue || '0.00'}`;
-                    }
-                }
-            })
-            .catch(error => console.error('Error loading stats:', error));
-    }
-    
-    window.exportRegistrationCSV = function() {
-        const eventId = {{ event.id }};
-        window.open(`/attsys/api/event/${eventId}/export-registrations/`, '_blank');
-        showToast('Exporting CSV file...');
-    };
-    
-    window.exportRegistrationPDF = function() {
-        const eventId = {{ event.id }};
-        const url = `/attsys/api/event/${eventId}/export-registrations-pdf/`;
-        
-        showToast('Generating PDF report... Please wait.');
-        
-        // Open in new tab
-        const newWindow = window.open(url, '_blank');
-        
-        // Fallback for popup blockers
-        if (!newWindow || newWindow.closed) {
-            const link = document.createElement('a');
-            link.href = url;
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    };
-    
-    function createChart(canvasId, data, label) {
-        const ctx = document.getElementById(canvasId);
-        if (!ctx) {
-            console.error(`Canvas element ${canvasId} not found`);
-            return;
-        }
-        
-        const chartCtx = ctx.getContext('2d');
-        
-        // Destroy existing chart if exists
-        if (window[`${canvasId}Chart`]) {
-            window[`${canvasId}Chart`].destroy();
-        }
-        
-        const labels = data.map(item => item.label);
-        const values = data.map(item => item.value);
-        
-        window[`${canvasId}Chart`] = new Chart(chartCtx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: label,
-                    data: values,
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 } }
-                }
-            }
-        });
-    }
-    
-    function createTimelineChart(canvasId, data) {
-        const ctx = document.getElementById(canvasId);
-        if (!ctx) {
-            console.error(`Canvas element ${canvasId} not found`);
-            return;
-        }
-        
-        const chartCtx = ctx.getContext('2d');
-        
-        // Destroy existing chart if exists
-        if (window[`${canvasId}Chart`]) {
-            window[`${canvasId}Chart`].destroy();
-        }
-        
-        const labels = data.map(item => item.date);
-        const values = data.map(item => item.count);
-        
-        window[`${canvasId}Chart`] = new Chart(chartCtx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Registrations',
-                    data: values,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderWidth: 2,
-                    tension: 0.1,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 } }
-                }
-            }
-        });
+        setTimeout(function() {
+            toast.classList.remove('show');
+        }, 3000);
     }
     
     // ============================================
     // SEARCH AND FILTER FUNCTIONS
     // ============================================
     
+    // Debounce function for search
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -4516,28 +4053,66 @@
         };
     }
     
+    // Search attendees
     const searchAttendees = debounce(function(searchTerm) {
         const searchLower = searchTerm.toLowerCase().trim();
         const attendees = document.querySelectorAll('.attendee-item');
         let visibleCount = 0;
         
         if (!searchTerm) {
+            // Show all if search is empty
             attendees.forEach(attendee => {
                 attendee.style.display = '';
                 visibleCount++;
             });
-            const resultsInfo = document.getElementById('searchResultsInfo');
-            if (resultsInfo) resultsInfo.classList.remove('show');
+            document.getElementById('searchResultsInfo').classList.remove('show');
             updateFilterButtons('all');
             return;
         }
         
         attendees.forEach(attendee => {
+            const attendeeId = attendee.getAttribute('data-attendee-id');
             const attendeeName = attendee.querySelector('.attendee-name')?.textContent.toLowerCase() || '';
             const attendeeEmail = attendee.querySelector('.attendee-contact')?.textContent.toLowerCase() || '';
+            const attendeePhone = attendee.querySelector('.attendee-contact')?.textContent.toLowerCase() || '';
             
+            // Check if we need to get application data for IC search
             let hasMatch = attendeeName.includes(searchLower) || 
-                           attendeeEmail.includes(searchLower);
+                           attendeeEmail.includes(searchLower) ||
+                           attendeePhone.includes(searchLower);
+            
+            // Search in inviting officer
+            const invitingOfficerDiv = document.getElementById(`inviting-officer-${attendeeId}`);
+            if (invitingOfficerDiv) {
+                const officerText = invitingOfficerDiv.textContent.toLowerCase();
+                if (officerText.includes(searchLower)) {
+                    hasMatch = true;
+                }
+            }
+            
+            // Search in registration info
+            const registrationInfo = document.getElementById(`registration-info-${attendeeId}`);
+            if (registrationInfo) {
+                const regText = registrationInfo.textContent.toLowerCase();
+                if (regText.includes(searchLower)) {
+                    hasMatch = true;
+                }
+            }
+            
+            // Search in payment type
+            const paymentTypeDiv = document.getElementById(`payment-type-${attendeeId}`);
+            if (paymentTypeDiv) {
+                const paymentTypeText = paymentTypeDiv.textContent.toLowerCase();
+                if (paymentTypeText.includes(searchLower)) {
+                    hasMatch = true;
+                }
+            }
+            
+            // Search in IC number from data attribute
+            const icNumber = attendee.getAttribute('data-ic-number');
+            if (icNumber && icNumber.toLowerCase().includes(searchLower)) {
+                hasMatch = true;
+            }
             
             if (hasMatch) {
                 attendee.style.display = '';
@@ -4547,17 +4122,20 @@
             }
         });
         
+        // Show search results info
         const resultsInfo = document.getElementById('searchResultsInfo');
         const resultsCount = document.getElementById('resultsCount');
+        const totalCount = document.getElementById('totalCount');
         
-        if (resultsInfo && searchTerm) {
-            if (resultsCount) resultsCount.textContent = visibleCount;
+        if (searchTerm) {
+            resultsCount.textContent = visibleCount;
             resultsInfo.classList.add('show');
-        } else if (resultsInfo) {
+        } else {
             resultsInfo.classList.remove('show');
         }
     }, 300);
     
+    // Filter attendees by payment status
     function filterAttendees(status) {
         const attendees = document.querySelectorAll('.attendee-item');
         let visibleCount = 0;
@@ -4594,20 +4172,25 @@
             }
         });
         
+        // Update search box to reflect filter
         const searchBox = document.getElementById('attendeeSearch');
-        if (searchBox) searchBox.value = '';
-        
-        const resultsInfo = document.getElementById('searchResultsInfo');
-        const resultsCount = document.getElementById('resultsCount');
-        
-        if (resultsInfo) {
-            if (resultsCount) resultsCount.textContent = visibleCount;
-            resultsInfo.classList.add('show');
+        if (searchBox) {
+            searchBox.value = '';
         }
         
+        // Update results info
+        const resultsInfo = document.getElementById('searchResultsInfo');
+        const resultsCount = document.getElementById('resultsCount');
+        const totalCount = document.getElementById('totalCount');
+        
+        resultsCount.textContent = visibleCount;
+        resultsInfo.classList.add('show');
+        
+        // Update filter buttons
         updateFilterButtons(status);
     }
     
+    // Update filter button states
     function updateFilterButtons(activeStatus) {
         const filterButtons = document.querySelectorAll('.filter-btn');
         filterButtons.forEach(btn => {
@@ -4622,14 +4205,614 @@
         });
     }
     
-    window.clearSearch = function() {
+    function clearSearch() {
         const searchBox = document.getElementById('attendeeSearch');
         if (searchBox) {
             searchBox.value = '';
             searchAttendees('');
         }
         filterAttendees('all');
+    }
+    
+    // ============================================
+    // UPDATED REGISTRATION FORM FUNCTIONS
+    // ============================================
+    
+    window.openRegistrationModal = function(attendeeId) {
+        console.log('openRegistrationModal called for:', attendeeId);
+        
+        currentAttendeeId = attendeeId;
+        const modalElement = document.getElementById('registrationModal');
+        
+        // Check if modal element exists
+        if (!modalElement) {
+            console.error('❌ Registration modal element not found in DOM');
+            // Use alert as fallback
+            alert('Registration form is not available. Please refresh the page.');
+            return;
+        }
+        
+        // Check if Bootstrap is available
+        if (typeof bootstrap === 'undefined') {
+            console.error('❌ Bootstrap is not loaded');
+            alert('Please refresh the page. System components not loaded properly.');
+            return;
+        }
+        
+        const modal = new bootstrap.Modal(modalElement);
+        
+        // Reset form with null checks
+        const form = document.getElementById('registrationForm');
+        const attendeeIdField = document.getElementById('attendeeId');
+        
+        if (form) {
+            form.reset();
+        }
+        
+        if (attendeeIdField) {
+            attendeeIdField.value = attendeeId;
+        }
+        
+        // Set default values with null checks
+        const registerDateField = document.getElementById('register_date');
+        const closerField = document.getElementById('closer');
+        const checkoutAlert = document.getElementById('checkoutTimeAlert');
+        
+        if (registerDateField) {
+            registerDateField.value = new Date().toISOString().split('T')[0];
+        }
+        
+        if (closerField) {
+            closerField.value = "{{ request.user.get_full_name|default:request.user.username }}";
+        }
+        
+        if (checkoutAlert && checkoutAlert.classList) {
+            checkoutAlert.classList.add('d-none');
+        }
+        
+        // Set modal title with null check
+        const modalTitle = document.getElementById('modalTitle');
+        const saveBtnText = document.getElementById('saveBtnText');
+        
+        if (modalTitle) {
+            modalTitle.textContent = 'Registration Form';
+        }
+        
+        if (saveBtnText) {
+            saveBtnText.textContent = 'Save Registration';
+        }
+        
+        // Load attendee info with better error handling
+        fetch(`/attsys/api/attendee/${attendeeId}/details/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.attendee) {
+                    const attendee = data.attendee;
+                    
+                    // Update preview fields with null checks
+                    const previewName = document.getElementById('previewName');
+                    const previewEmail = document.getElementById('previewEmail');
+                    const previewPhone = document.getElementById('previewPhone');
+                    const previewCheckInTime = document.getElementById('previewCheckInTime');
+                    const previewInvitingOfficer = document.getElementById('previewInvitingOfficer');
+                    
+                    if (previewName) previewName.textContent = attendee.name;
+                    if (previewEmail) previewEmail.textContent = attendee.email;
+                    if (previewPhone) previewPhone.textContent = attendee.phone_number || 'N/A';
+                    if (previewCheckInTime) {
+                        previewCheckInTime.textContent = 
+                            `Checked in: ${attendee.attended_at_display} (${attendee.attended_date_display})`;
+                    }
+                    
+                    // Load inviting officer if available
+                    if (data.application && data.application.registration_officer) {
+                        if (previewInvitingOfficer) {
+                            previewInvitingOfficer.textContent = 
+                                `Referral Number: ${data.application.registration_officer}`;
+                        }
+                    }
+                    
+                    // Check if registration exists
+                    return fetch(`/attsys/api/attendee/${attendeeId}/registration/`);
+                } else {
+                    throw new Error('Attendee data not found');
+                }
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(regData => {
+                if (regData.registration) {
+                    // Update modal for existing registration
+                    const modalTitle = document.getElementById('modalTitle');
+                    const saveBtnText = document.getElementById('saveBtnText');
+                    const alertDiv = document.getElementById('checkoutTimeAlert');
+                    const timeSpan = document.getElementById('lastUpdatedTime');
+                    
+                    if (modalTitle) modalTitle.textContent = 'Update Registration';
+                    if (saveBtnText) saveBtnText.textContent = 'Update Registration';
+                    
+                    if (alertDiv && alertDiv.classList) {
+                        alertDiv.classList.remove('d-none');
+                    }
+                    
+                    if (timeSpan) {
+                        timeSpan.textContent = new Date().toLocaleString('en-MY', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+                    }
+                    
+                    populateRegistrationForm(regData.registration);
+                } else {
+                    // New registration - initialize fields
+                    updateAmountPaidField();
+                    updatePaymentSummary();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading attendee/registration:', error);
+                
+                // Initialize fields even if fetch fails
+                updateAmountPaidField();
+                updatePaymentSummary();
+                
+                // Show error to user
+                const previewName = document.getElementById('previewName');
+                if (previewName) {
+                    previewName.textContent = 'Error loading data';
+                }
+            })
+            .finally(() => {
+                // Show the modal after data is loaded
+                try {
+                    modal.show();
+                } catch (modalError) {
+                    console.error('Error showing modal:', modalError);
+                    alert('Unable to open registration form. Please try again.');
+                }
+            });
     };
+    
+    function updateAmountPaidField() {
+        const paymentStatus = document.getElementById('payment_status').value;
+        const amountPaidInput = document.getElementById('amount_paid');
+        const totalFee = parseFloat(document.getElementById('totalFeeDisplay').textContent.replace('RM ', '')) || 0;
+        
+        switch(paymentStatus) {
+            case 'PENDING':
+                amountPaidInput.value = '0.00';
+                amountPaidInput.readOnly = true;
+                break;
+            case 'PARTIAL':
+                amountPaidInput.readOnly = false;
+                if (totalFee > 0) {
+                    // Suggest 50% as partial payment
+                    amountPaidInput.value = (totalFee * 0.5).toFixed(2);
+                }
+                break;
+            case 'DONE':
+                amountPaidInput.readOnly = false;
+                amountPaidInput.value = totalFee.toFixed(2);
+                break;
+        }
+        
+        updatePaymentSummary();
+    }
+    
+    function updatePaymentSummary() {
+        const preFee = parseFloat(document.getElementById('pre_registration_fee').value) || 0;
+        const regFee = parseFloat(document.getElementById('registration_fee').value) || 0;
+        const total = preFee + regFee;
+        const amountPaid = parseFloat(document.getElementById('amount_paid').value) || 0;
+        const balance = total - amountPaid;
+        const paymentPercentage = total > 0 ? (amountPaid / total) * 100 : 0;
+        
+        // Update displays
+        document.getElementById('totalFeeDisplay').textContent = `RM ${total.toFixed(2)}`;
+        document.getElementById('displayAmountPaid').textContent = `RM ${amountPaid.toFixed(2)}`;
+        document.getElementById('balanceDisplay').textContent = `RM ${balance.toFixed(2)}`;
+        document.getElementById('paymentPercentage').textContent = `${paymentPercentage.toFixed(1)}%`;
+        
+        // Update progress bar
+        const progressBar = document.getElementById('paymentProgressBar');
+        progressBar.style.width = `${paymentPercentage}%`;
+        
+        // Color code based on status
+        if (paymentPercentage >= 100) {
+            progressBar.className = 'payment-progress-bar bg-success';
+        } else if (paymentPercentage >= 50) {
+            progressBar.className = 'payment-progress-bar bg-warning';
+        } else if (paymentPercentage > 0) {
+            progressBar.className = 'payment-progress-bar bg-danger';
+        } else {
+            progressBar.className = 'payment-progress-bar bg-secondary';
+        }
+    }
+    
+    function populateRegistrationForm(registration) {
+        // Get all form fields with null checks
+        const fields = {
+            'course': document.getElementById('course'),
+            'college': document.getElementById('college'),
+            'register_date': document.getElementById('register_date'),
+            'pre_registration_fee': document.getElementById('pre_registration_fee'),
+            'registration_fee': document.getElementById('registration_fee'),
+            'payment_status': document.getElementById('payment_status'),
+            'amount_paid': document.getElementById('amount_paid'),
+            'payment_type': document.getElementById('payment_type'),
+            'closer': document.getElementById('closer'),
+            'referral_number': document.getElementById('referral_number'),
+            'remark': document.getElementById('remark')
+        };
+        
+        // Set values only if elements exist
+        if (fields.course) fields.course.value = registration.course || '';
+        if (fields.college) fields.college.value = registration.college || '';
+        if (fields.register_date) {
+            fields.register_date.value = registration.register_date || new Date().toISOString().split('T')[0];
+        }
+        if (fields.pre_registration_fee) {
+            fields.pre_registration_fee.value = registration.pre_registration_fee || '0.00';
+        }
+        if (fields.registration_fee) {
+            fields.registration_fee.value = registration.registration_fee || '0.00';
+        }
+        if (fields.payment_status) {
+            fields.payment_status.value = registration.payment_status || 'PENDING';
+        }
+        if (fields.amount_paid) {
+            fields.amount_paid.value = registration.amount_paid || '0.00';
+        }
+        if (fields.payment_type) {
+            fields.payment_type.value = registration.payment_type || '';
+        }
+        if (fields.closer) {
+            fields.closer.value = registration.closer || '';
+        }
+        if (fields.referral_number) {
+            fields.referral_number.value = registration.referral_number || '';
+        }
+        if (fields.remark) {
+            fields.remark.value = registration.remark || '';
+        }
+        
+        updateAmountPaidField();
+        updatePaymentSummary();
+    }
+    
+    window.saveRegistration = function() {
+        const form = document.getElementById('registrationForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const saveBtn = document.querySelector('#registrationModal .btn-primary');
+        const spinner = document.getElementById('saveSpinner');
+        const btnText = document.getElementById('saveBtnText');
+        
+        saveBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.textContent = 'Saving...';
+        
+        const formData = new FormData(form);
+        
+        fetch('/attsys/api/registration/save/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Registration saved successfully!');
+                
+                // Update UI
+                updateAttendeeRegistrationDisplay(currentAttendeeId, data.registration);
+                
+                // Update statistics
+                updateRegistrationStats();
+                
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('registrationModal')).hide();
+            } else {
+                showToast(data.error || 'Failed to save registration', true);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred. Please try again.', true);
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            spinner.classList.add('d-none');
+            btnText.textContent = document.getElementById('modalTitle').textContent === 'Registration Form' ? 
+                'Save Registration' : 'Update Registration';
+        });
+    };
+    
+    // ============================================
+    // UPDATE ATTENDEE REGISTRATION DISPLAY
+    // ============================================
+    
+    function updateAttendeeRegistrationDisplay(attendeeId, registration) {
+        console.log('Updating display for attendee:', attendeeId);
+        
+        const row = document.querySelector(`#attendee-${attendeeId}`);
+        if (!row) {
+            console.error(`Row for attendee ${attendeeId} not found`);
+            return;
+        }
+        
+        // Helper function to safely update element
+        function safeUpdateElement(elementId, htmlContent) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = htmlContent;
+            } else {
+                console.warn(`Element ${elementId} not found`);
+            }
+        }
+        
+        // Helper function to safely get element
+        function getElement(elementId) {
+            return document.getElementById(elementId);
+        }
+        
+        // 1. Update registration info
+        const regInfoDiv = getElement(`registration-info-${attendeeId}`);
+        if (regInfoDiv) {
+            const regDate = new Date(registration.register_date);
+            regInfoDiv.innerHTML = `
+                <div class="small">
+                    <strong>${registration.course || ''}</strong><br>
+                    <span class="text-muted">${registration.college || ''}</span><br>
+                    <small>Reg: ${regDate.toLocaleDateString('en-GB')}</small>
+                </div>
+            `;
+        }
+        
+        // 2. Update payment type
+        const paymentTypeDiv = getElement(`payment-type-${attendeeId}`);
+        if (paymentTypeDiv) {
+            let paymentTypeBadge = '';
+            if (registration.payment_type) {
+                let badgeClass = 'badge-payment-other';
+                let badgeText = registration.payment_type;
+                
+                if (registration.payment_type === 'CASH') {
+                    badgeClass = 'badge-payment-cash';
+                    badgeText = 'Cash';
+                } else if (registration.payment_type === 'ONLINE_BANKING') {
+                    badgeClass = 'badge-payment-online';
+                    badgeText = 'Online Banking';
+                } else if (registration.payment_type === 'QR_PAYMENT') {
+                    badgeClass = 'badge-payment-qr';
+                    badgeText = 'QR Payment';
+                } else if (registration.payment_type === 'CREDIT_CARD' || registration.payment_type === 'DEBIT_CARD') {
+                    badgeClass = 'badge-payment-card';
+                    badgeText = 'Card';
+                }
+                
+                paymentTypeBadge = `<span class="badge ${badgeClass} status-badge">${badgeText}</span>`;
+            } else {
+                paymentTypeBadge = '<span class="badge bg-light text-muted">—</span>';
+            }
+            paymentTypeDiv.innerHTML = paymentTypeBadge;
+        }
+        
+        // 3. Update payment status
+        const paymentDiv = getElement(`payment-status-${attendeeId}`);
+        if (paymentDiv) {
+            let statusBadge = '';
+            if (registration.payment_status === 'DONE') {
+                statusBadge = '<span class="badge badge-payment-done status-badge">Completed</span>';
+            } else if (registration.payment_status === 'PARTIAL') {
+                statusBadge = '<span class="badge badge-payment-partial status-badge">Partially Paid</span>';
+            } else if (registration.payment_status === 'PENDING') {
+                statusBadge = '<span class="badge badge-payment-pending status-badge">Pending</span>';
+            } else {
+                statusBadge = `<span class="badge bg-secondary">${registration.payment_status || ''}</span>`;
+            }
+            paymentDiv.innerHTML = statusBadge;
+        }
+        
+        // 4. Update amount
+        const amountDiv = getElement(`payment-amount-${attendeeId}`);
+        if (amountDiv) {
+            const amountPaid = parseFloat(registration.amount_paid || 0).toFixed(2);
+            const balance = registration.payment_status === 'PARTIAL' ? 
+                `<div class="text-danger small">Balance: RM ${parseFloat(registration.balance_amount || 0).toFixed(2)}</div>` : '';
+            
+            amountDiv.innerHTML = `
+                <div class="small">
+                    <div class="text-success">Paid: RM ${amountPaid}</div>
+                    ${balance}
+                </div>
+            `;
+        }
+        
+        // 5. Update button
+        const btn = row.querySelector('.btn-success, .btn-warning');
+        if (btn) {
+            // Remove both classes first
+            btn.classList.remove('btn-success', 'btn-warning');
+            // Add the correct class
+            btn.classList.add('btn-warning');
+            
+            btn.innerHTML = `
+                <i class="bi bi-pencil"></i>
+                <span class="d-none d-md-inline">Update</span>
+            `;
+            btn.title = 'Update Registration';
+        }
+        
+        // 6. Update last updated time in the row
+        const timeDiv = row.querySelector('.attendee-time');
+        if (timeDiv) {
+            const now = new Date();
+            const currentTime = timeDiv.textContent.trim();
+            
+            // Only add update time if not already there
+            if (!currentTime.includes('Updated:')) {
+                timeDiv.innerHTML += ` <br><small class="text-muted">Updated: ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>`;
+            }
+        }
+        
+        // 7. Update statistics immediately
+        updateRegistrationStats();
+        
+        console.log('Display updated successfully for attendee:', attendeeId);
+    }
+    
+    // ============================================
+    // STATISTICS FUNCTIONS
+    // ============================================
+    
+    window.showAllRegistrationStats = function() {
+        const modal = new bootstrap.Modal(document.getElementById('statsModal'));
+        
+        fetch(`/attsys/api/event/{{ event.id }}/registration-full-stats/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update stats cards
+                    document.getElementById('statsTotalRegistered').textContent = data.total_registered;
+                    document.getElementById('statsPreRegAmount').textContent = `RM ${data.total_pre_reg || '0.00'}`;
+                    document.getElementById('statsRegAmount').textContent = `RM ${data.total_reg || '0.00'}`;
+                    document.getElementById('statsTotalRevenue').textContent = `RM ${data.total_revenue}`;
+                    
+                    // Create charts
+                    if (data.charts) {
+                        createChart('topCoursesChart', data.charts.top_courses, 'Courses');
+                        createChart('topClosersChart', data.charts.top_closers, 'Closers');
+                        createTimelineChart('timelineChart', data.charts.timeline);
+                    }
+                }
+            })
+            .catch(error => console.error('Error loading full stats:', error));
+        
+        modal.show();
+    };
+    
+    function updateRegistrationStats() {
+        fetch(`/attsys/api/event/{{ event.id }}/registration-stats/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('totalRegistered').textContent = data.total_registered;
+                    document.getElementById('totalPaid').textContent = data.total_paid;
+                    document.getElementById('totalPartial').textContent = data.total_partial;
+                    document.getElementById('totalRevenue').textContent = `RM ${data.total_revenue}`;
+                }
+            })
+            .catch(error => console.error('Error loading stats:', error));
+    }
+    
+    window.exportRegistrationCSV = function() {
+        window.open(`/attsys/api/event/{{ event.id }}/export-registrations/`, '_blank');
+        showToast('Exporting CSV file...');
+    };
+    
+    window.exportRegistrationPDF = function() {
+        const eventId = {{ event.id }};
+        const url = `/attsys/api/event/${eventId}/export-registrations-pdf/`;
+        
+        showToast('Generating PDF report... Please wait.');
+        
+        const newWindow = window.open(url, '_blank');
+        
+        if (!newWindow || newWindow.closed) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('PDF download started. Check your downloads folder.');
+        }
+    };
+    
+    function createChart(canvasId, data, label) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        if (window[`${canvasId}Chart`]) {
+            window[`${canvasId}Chart`].destroy();
+        }
+        
+        const labels = data.map(item => item.label);
+        const values = data.map(item => item.value);
+        
+        window[`${canvasId}Chart`] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: values,
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
+    
+    function createTimelineChart(canvasId, data) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        if (window[`${canvasId}Chart`]) {
+            window[`${canvasId}Chart`].destroy();
+        }
+        
+        const labels = data.map(item => item.date);
+        const values = data.map(item => item.count);
+        
+        window[`${canvasId}Chart`] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Registrations',
+                    data: values,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
     
     // ============================================
     // QR CODE FUNCTIONS
@@ -4652,10 +4835,10 @@
         const modalContent = document.querySelector('.modal-content');
         if (document.fullscreenElement) {
             document.exitFullscreen();
-            if (fullscreenIcon) fullscreenIcon.className = 'bi bi-fullscreen';
+            fullscreenIcon.className = 'bi bi-fullscreen';
         } else {
             modalContent.requestFullscreen();
-            if (fullscreenIcon) fullscreenIcon.className = 'bi bi-fullscreen-exit';
+            fullscreenIcon.className = 'bi bi-fullscreen-exit';
         }
     };
     
@@ -4705,7 +4888,9 @@
         
         // QR Code Modal Setup
         if (qrImage) {
-            qrImage.addEventListener('click', openQRModal);
+            qrImage.addEventListener('click', function() {
+                openQRModal();
+            });
         }
         
         if (qrModal) {
@@ -4745,7 +4930,9 @@
             if ((e.key === 'd' || e.key === 'D') && qrModal && qrModal.classList.contains('active')) {
                 e.preventDefault();
                 const downloadLink = document.querySelector('[href*="download-qr"]');
-                if (downloadLink) downloadLink.click();
+                if (downloadLink) {
+                    downloadLink.click();
+                }
             }
             
             if ((e.key === 'c' || e.key === 'C') && qrModal && qrModal.classList.contains('active')) {
@@ -4754,68 +4941,71 @@
             }
         });
         
-        // Add search event listener
-        const searchInput = document.getElementById('attendeeSearch');
-        if (searchInput) {
-            searchInput.addEventListener('input', function(e) {
-                searchAttendees(e.target.value);
-            });
-        }
+        // Update fee display when fee inputs change
+        document.getElementById('pre_registration_fee')?.addEventListener('input', updatePaymentSummary);
+        document.getElementById('registration_fee')?.addEventListener('input', updatePaymentSummary);
+        document.getElementById('amount_paid')?.addEventListener('input', updatePaymentSummary);
+        document.getElementById('payment_status')?.addEventListener('change', updatePaymentSummary);
         
-        // Add filter button event listeners
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        filterButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const status = this.textContent.toLowerCase().trim();
-                filterAttendees(status);
-            });
+        // Add search event listener
+        document.getElementById('attendeeSearch')?.addEventListener('input', function(e) {
+            searchAttendees(e.target.value);
         });
         
-        // Add event listeners for registration form
-        const preRegFee = document.getElementById('pre_registration_fee');
-        const regFee = document.getElementById('registration_fee');
-        const amountPaid = document.getElementById('amount_paid');
-        const paymentStatus = document.getElementById('payment_status');
-        
-        if (preRegFee) preRegFee.addEventListener('input', updatePaymentSummary);
-        if (regFee) regFee.addEventListener('input', updatePaymentSummary);
-        if (amountPaid) amountPaid.addEventListener('input', updatePaymentSummary);
-        if (paymentStatus) paymentStatus.addEventListener('change', updateAmountPaidField);
-        
-        // Initialize stats
+        // Load initial registration statistics
         updateRegistrationStats();
         
-        // Initialize attendance chart if exists
+        // Initialize Attendance Chart
         const chartEl = document.getElementById('attendanceChart');
-        if (chartEl && window.attendanceData) {
-            try {
-                const ctx = chartEl.getContext('2d');
-                window.attendanceChart = new Chart(ctx, {
-                    type: 'line',
-                    data: window.attendanceData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: {
-                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                                ticks: { font: { size: 11 } }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                                ticks: { font: { size: 11 }, precision: 0 }
-                            }
+        if (chartEl) {
+            const ctx = chartEl.getContext('2d');
+            
+            const labels = [
+                {% for row in attendance_by_hour %}
+                    "{{ row.hour|date:'H:i' }}",
+                {% endfor %}
+            ];
+            
+            const data = [
+                {% for row in attendance_by_hour %}
+                    {{ row.count }},
+                {% endfor %}
+            ];
+            
+            window.attendanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Check-ins per Hour',
+                        data: data,
+                        borderColor: '#212529',
+                        backgroundColor: 'rgba(33, 37, 41, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            ticks: { font: { size: 11 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            ticks: { font: { size: 11 }, precision: 0 }
                         }
                     }
-                });
-            } catch (error) {
-                console.error('Error initializing attendance chart:', error);
-            }
+                }
+            });
         }
         
-        // Auto-update stats every 30 seconds
+        // Real-time stats updates
         setInterval(updateRegistrationStats, 30000);
         
         console.log('✅ All functions initialized successfully');

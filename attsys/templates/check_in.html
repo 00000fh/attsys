@@ -589,6 +589,113 @@
             to { transform: rotate(360deg); }
         }
         
+        /* Validation error styling */
+        .is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+        }
+        
+        .is-invalid:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
+        }
+        
+        .programme-label.is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+            background-color: rgba(220, 53, 69, 0.05) !important;
+        }
+        
+        .interest-simple-textarea.is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+            background-color: rgba(220, 53, 69, 0.05) !important;
+        }
+        
+        .validation-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: block;
+        }
+        
+        .textarea-error {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(220, 53, 69, 0.05);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            border-radius: 4px;
+            color: #dc3545;
+            font-size: 0.875rem;
+        }
+        
+        /* Print Styles */
+        @media print {
+            .form-card {
+                box-shadow: none;
+                border: 1px solid var(--gray-300);
+            }
+            
+            .form-section,
+            .guardian-section,
+            .interest-simple-box {
+                box-shadow: none;
+                border: 1px solid var(--gray-300);
+            }
+            
+            .btn-submit {
+                display: none;
+            }
+            
+            .optional-tag {
+                background: none;
+                border: 1px solid var(--gray-300);
+            }
+            
+            .mobile-header,
+            .desktop-header {
+                page-break-inside: avoid;
+            }
+        }
+        
+        /* Accessibility Improvements */
+        .form-control:focus-visible,
+        .form-select:focus-visible,
+        .interest-simple-textarea:focus-visible,
+        .btn-submit:focus-visible {
+            outline: 2px solid var(--black);
+            outline-offset: 2px;
+        }
+        
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            .form-section:hover,
+            .guardian-section:hover,
+            .interest-simple-box:hover,
+            .btn-submit:hover {
+                transform: none;
+            }
+            
+            .section-icon:hover {
+                transform: none;
+            }
+            
+            .programme-label:hover {
+                transform: none;
+            }
+            
+            .mobile-logo:hover,
+            .desktop-logo:hover {
+                transform: none;
+            }
+        }
+        
         /* Responsive Design - Tablet */
         @media (min-width: 768px) {
             .mobile-header {
@@ -801,113 +908,6 @@
             
             .mobile-detail-item {
                 font-size: 0.85rem;
-            }
-        }
-        
-        /* Validation error styling */
-        .is-invalid {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
-        }
-        
-        .is-invalid:focus {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
-        }
-        
-        .programme-label.is-invalid {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
-            background-color: rgba(220, 53, 69, 0.05) !important;
-        }
-        
-        .interest-simple-textarea.is-invalid {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
-            background-color: rgba(220, 53, 69, 0.05) !important;
-        }
-        
-        .validation-message {
-            color: #dc3545;
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-            display: block;
-        }
-        
-        .textarea-error {
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            background: rgba(220, 53, 69, 0.05);
-            border: 1px solid rgba(220, 53, 69, 0.2);
-            border-radius: 4px;
-            color: #dc3545;
-            font-size: 0.875rem;
-        }
-        
-        /* Print Styles */
-        @media print {
-            .form-card {
-                box-shadow: none;
-                border: 1px solid var(--gray-300);
-            }
-            
-            .form-section,
-            .guardian-section,
-            .interest-simple-box {
-                box-shadow: none;
-                border: 1px solid var(--gray-300);
-            }
-            
-            .btn-submit {
-                display: none;
-            }
-            
-            .optional-tag {
-                background: none;
-                border: 1px solid var(--gray-300);
-            }
-            
-            .mobile-header,
-            .desktop-header {
-                page-break-inside: avoid;
-            }
-        }
-        
-        /* Accessibility Improvements */
-        .form-control:focus-visible,
-        .form-select:focus-visible,
-        .interest-simple-textarea:focus-visible,
-        .btn-submit:focus-visible {
-            outline: 2px solid var(--black);
-            outline-offset: 2px;
-        }
-        
-        /* Reduced Motion Support */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-            
-            .form-section:hover,
-            .guardian-section:hover,
-            .interest-simple-box:hover,
-            .btn-submit:hover {
-                transform: none;
-            }
-            
-            .section-icon:hover {
-                transform: none;
-            }
-            
-            .programme-label:hover {
-                transform: none;
-            }
-            
-            .mobile-logo:hover,
-            .desktop-logo:hover {
-                transform: none;
             }
         }
     </style>
@@ -1150,13 +1150,12 @@
 
                         <div class="field-group">
                             <label class="form-label required">City</label>
-                            <input type="text" 
-                                class="form-control" 
-                                placeholder="Enter city name" 
-                                name="city" 
-                                required
-                                value="{% if form_data.city %}{{ form_data.city }}{% endif %}">
-                            <small class="optional-note">Enter the name of your city</small>
+                            <input type="text" class="form-control" 
+                                   placeholder="Enter city name" 
+                                   name="city" 
+                                   id="cityInput"
+                                   required
+                                   value="{% if form_data.city %}{{ form_data.city }}{% endif %}">
                         </div>
 
                         <div class="field-group">
@@ -1393,98 +1392,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Malaysia Cities and States Data
-        const malaysiaCities = [
-            { city: "Johor Bahru", state: "Johor" },
-            { city: "Batu Pahat", state: "Johor" },
-            { city: "Muar", state: "Johor" },
-            { city: "Segamat", state: "Johor" },
-            { city: "Kluang", state: "Johor" },
-            { city: "Pontian", state: "Johor" },
-            { city: "Kota Tinggi", state: "Johor" },
-            { city: "Mersing", state: "Johor" },
-            { city: "Alor Setar", state: "Kedah" },
-            { city: "Sungai Petani", state: "Kedah" },
-            { city: "Kulim", state: "Kedah" },
-            { city: "Langkawi", state: "Kedah" },
-            { city: "Jitra", state: "Kedah" },
-            { city: "Pokok Sena", state: "Kedah" },
-            { city: "Kota Bharu", state: "Kelantan" },
-            { city: "Pasir Mas", state: "Kelantan" },
-            { city: "Tumpat", state: "Kelantan" },
-            { city: "Tanah Merah", state: "Kelantan" },
-            { city: "Gua Musang", state: "Kelantan" },
-            { city: "Melaka", state: "Melaka" },
-            { city: "Alor Gajah", state: "Melaka" },
-            { city: "Jasin", state: "Melaka" },
-            { city: "Bandaraya Melaka", state: "Melaka" },
-            { city: "Seremban", state: "Negeri Sembilan" },
-            { city: "Port Dickson", state: "Negeri Sembilan" },
-            { city: "Nilai", state: "Negeri Sembilan" },
-            { city: "Rembau", state: "Negeri Sembilan" },
-            { city: "Jelebu", state: "Negeri Sembilan" },
-            { city: "Kuantan", state: "Pahang" },
-            { city: "Temerloh", state: "Pahang" },
-            { city: "Bentong", state: "Pahang" },
-            { city: "Raub", state: "Pahang" },
-            { city: "Jerantut", state: "Pahang" },
-            { city: "Cameron Highlands", state: "Pahang" },
-            { city: "Ipoh", state: "Perak" },
-            { city: "Taiping", state: "Perak" },
-            { city: "Teluk Intan", state: "Perak" },
-            { city: "Sungai Siput", state: "Perak" },
-            { city: "Kuala Kangsar", state: "Perak" },
-            { city: "Lumut", state: "Perak" },
-            { city: "Kangar", state: "Perlis" },
-            { city: "Arau", state: "Perlis" },
-            { city: "Georgetown", state: "Pulau Pinang" },
-            { city: "Butterworth", state: "Pulau Pinang" },
-            { city: "Bukit Mertajam", state: "Pulau Pinang" },
-            { city: "Bayan Baru", state: "Pulau Pinang" },
-            { city: "Bayan Lepas", state: "Pulau Pinang" },
-            { city: "Kota Kinabalu", state: "Sabah" },
-            { city: "Sandakan", state: "Sabah" },
-            { city: "Tawau", state: "Sabah" },
-            { city: "Lahad Datu", state: "Sabah" },
-            { city: "Keningau", state: "Sabah" },
-            { city: "Semporna", state: "Sabah" },
-            { city: "Kuching", state: "Sarawak" },
-            { city: "Miri", state: "Sarawak" },
-            { city: "Sibu", state: "Sarawak" },
-            { city: "Bintulu", state: "Sarawak" },
-            { city: "Limbang", state: "Sarawak" },
-            { city: "Sri Aman", state: "Sarawak" },
-            { city: "Shah Alam", state: "Selangor" },
-            { city: "Petaling Jaya", state: "Selangor" },
-            { city: "Subang Jaya", state: "Selangor" },
-            { city: "Klang", state: "Selanyor" },
-            { city: "Ampang", state: "Selangor" },
-            { city: "Kajang", state: "Selangor" },
-            { city: "Rawang", state: "Selangor" },
-            { city: "Selayang", state: "Selangor" },
-            { city: "Sungai Buloh", state: "Selangor" },
-            { city: "Puchong", state: "Selangor" },
-            { city: "Kuala Terengganu", state: "Terengganu" },
-            { city: "Kemaman", state: "Terengganu" },
-            { city: "Dungun", state: "Terengganu" },
-            { city: "Besut", state: "Terengganu" },
-            { city: "Marang", state: "Terengganu" },
-            { city: "Kuala Lumpur", state: "Wilayah Persekutuan Kuala Lumpur" },
-            { city: "Labuan", state: "Wilayah Persekutuan Labuan" },
-            { city: "Putrajaya", state: "Wilayah Persekutuan Putrajaya" },
-            { city: "Cheras", state: "Wilayah Persekutuan Kuala Lumpur" },
-            { city: "Kepong", state: "Wilayah Persekutuan Kuala Lumpur" },
-            { city: "Setapak", state: "Wilayah Persekutuan Kuala Lumpur" },
-            { city: "Wangsa Maju", state: "Wilayah Persekutuan Kuala Lumpur" }
-        ];
-
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize variables
             const form = document.getElementById('dataEntryForm');
             const submitBtn = document.getElementById('submitBtn');
-            const cityInput = document.getElementById('cityInput');
-            const stateSelect = document.getElementById('stateSelect');
-            const citySuggestions = document.getElementById('citySuggestions');
             
             // ============================================
             // FORM VALIDATION & SUBMISSION

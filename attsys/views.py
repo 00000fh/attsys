@@ -720,7 +720,7 @@ def check_in(request, event_id, token):
         try:
             # Required fields
             required_fields = [
-                'registration_officer', 'applied_programme', 'full_name',
+                'registration_officer', 'applied_programme', 'attended_with', 'full_name',
                 'city', 'postcode', 'state', 'ic_no', 'email',
                 'phone_no', 'marriage_status', 'father_name', 'father_ic',
                 'father_phone', 'father_occupation', 'mother_name', 'mother_ic',
@@ -763,12 +763,6 @@ def check_in(request, event_id, token):
                 father_dependants = int(father_dependants_str) if father_dependants_str.isdigit() else 0
             except ValueError:
                 father_dependants = 0
-            
-            mother_dependants_str = request.POST.get('mother_dependants', '0').strip()
-            try:
-                mother_dependants = int(mother_dependants_str) if mother_dependants_str.isdigit() else 0
-            except ValueError:
-                mother_dependants = 0
             
             # Format empty values as dash for optional fields
             def format_optional_value(value):
@@ -828,6 +822,7 @@ def check_in(request, event_id, token):
                 event=event,
                 registration_officer=request.POST['registration_officer'].strip(),
                 applied_programme=request.POST['applied_programme'],
+                attended_with=request.POST['attended_with'],
                 full_name=request.POST['full_name'].strip(),
                 address1=request.POST['address1'].strip(),
                 city=request.POST['city'].strip(),
@@ -849,7 +844,6 @@ def check_in(request, event_id, token):
                 mother_phone=request.POST['mother_phone'].strip(),
                 mother_occupation=mother_occupation,
                 mother_income=mother_income,
-                mother_dependants=mother_dependants,
                 interest_choice1=interest_choice1,
                 interest_choice2=interest_choice2,
                 interest_choice3=interest_choice3,
@@ -994,7 +988,6 @@ def export_attendees_csv(request, event_id):
         'Mother Phone',
         'Mother Occupation',
         'Mother Income',
-        'Mother Dependants',
         'First Choice Programme',
         'Second Choice Programme',
         'Third Choice Programme'
@@ -1012,7 +1005,7 @@ def export_attendees_csv(request, event_id):
              'father_ic', 'father_phone', 'father_occupation',
              'father_income', 'father_dependants', 'mother_name',
              'mother_ic', 'mother_phone', 'mother_occupation',
-             'mother_income', 'mother_dependants', 'interest_choice1',
+             'mother_income', 'interest_choice1',
              'interest_choice2', 'interest_choice3')
     
     # Create a dictionary for quick lookup of applications by email
@@ -1052,7 +1045,6 @@ def export_attendees_csv(request, event_id):
                 app_data['mother_phone'],
                 app_data['mother_occupation'],
                 app_data['mother_income'] or '',
-                app_data['mother_dependants'],
                 app_data['interest_choice1'],
                 app_data['interest_choice2'] or '',
                 app_data['interest_choice3'] or ''
@@ -1077,12 +1069,18 @@ def export_attendees_csv(request, event_id):
 @require_GET
 def get_attendee_details(request, attendee_id):
     """Get detailed information about an attendee including application form data"""
+    attendee = get_object_or_404(Attendee, id=attendee_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and attendee.event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
     try:
-        attendee = get_object_or_404(Attendee, id=attendee_id)
-        
-        # Check permissions
-        if request.user.role == 'STAFF' and attendee.event.created_by != request.user:
-            return JsonResponse({'error': 'Permission denied'}, status=403)
+        # Try to get the corresponding application
+        application = Application.objects.get(
+            event=attendee.event,
+            email__iexact=attendee.email
+        )
         
         # Helper function to format empty values as dash
         def format_value(value):
@@ -1090,108 +1088,67 @@ def get_attendee_details(request, attendee_id):
                 return '-'
             return str(value).strip()
         
-        # Build attendee data
-        attendee_data = {
-            'id': attendee.id,
-            'name': attendee.name,
-            'email': attendee.email,
-            'phone_number': attendee.phone_number,
-            'attended_at': timezone.localtime(attendee.attended_at).strftime('%Y-%m-%d %H:%M:%S'),
-            'attended_at_display': timezone.localtime(attendee.attended_at).strftime('%I:%M %p'),
-            'attended_date_display': timezone.localtime(attendee.attended_at).strftime('%b %d'),
+        # Build application data
+        app_data = {
+            'registration_officer': format_value(application.registration_officer),
+            'applied_programme': format_value(application.applied_programme),
+            'full_name': format_value(application.full_name),
+            'address1': format_value(application.address1),
+            'city': format_value(application.city),
+            'postcode': format_value(application.postcode),
+            'state': format_value(application.state),
+            'ic_no': format_value(application.ic_no),
+            'email': format_value(application.email),
+            'phone_no': format_value(application.phone_no),
+            'marriage_status': format_value(application.marriage_status),
+            'spm_total_credit': format_value(application.spm_total_credit),
+            'father_name': format_value(application.father_name),
+            'father_ic': format_value(application.father_ic),
+            'father_phone': format_value(application.father_phone),
+            'father_occupation': format_value(application.father_occupation),
+            'father_income': format_value(application.father_income),
+            'father_dependants': format_value(application.father_dependants),
+            'mother_name': format_value(application.mother_name),
+            'mother_ic': format_value(application.mother_ic),
+            'mother_phone': format_value(application.mother_phone),
+            'mother_occupation': format_value(application.mother_occupation),
+            'mother_income': format_value(application.mother_income),
+            'interest_choice1': format_value(application.interest_choice1),
+            'interest_choice2': format_value(application.interest_choice2),
+            'interest_choice3': format_value(application.interest_choice3),
+            'submitted_at': timezone.localtime(application.submitted_at).strftime('%Y-%m-%d %H:%M:%S'),
         }
         
-        response_data = {
-            'attendee': attendee_data
+        data = {
+            'attendee': {
+                'id': attendee.id,
+                'name': attendee.name,
+                'email': attendee.email,
+                'phone_number': attendee.phone_number,
+                'attended_at': timezone.localtime(attendee.attended_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'attended_at_display': timezone.localtime(attendee.attended_at).strftime('%I:%M %p'),
+                'attended_date_display': timezone.localtime(attendee.attended_at).strftime('%b %d'),
+            },
+            'application': app_data
         }
         
-        # Try to get the corresponding application
-        try:
-            application = Application.objects.get(
-                event=attendee.event,
-                email__iexact=attendee.email
-            )
-            
-            # Build application data
-            app_data = {
-                'registration_officer': format_value(application.registration_officer),
-                'applied_programme': format_value(application.applied_programme),
-                'full_name': format_value(application.full_name),
-                'address1': format_value(application.address1),
-                'city': format_value(application.city),
-                'postcode': format_value(application.postcode),
-                'state': format_value(application.state),
-                'ic_no': format_value(application.ic_no),
-                'email': format_value(application.email),
-                'phone_no': format_value(application.phone_no),
-                'marriage_status': format_value(application.marriage_status),
-                'spm_total_credit': format_value(application.spm_total_credit),
-                'father_name': format_value(application.father_name),
-                'father_ic': format_value(application.father_ic),
-                'father_phone': format_value(application.father_phone),
-                'father_occupation': format_value(application.father_occupation),
-                'father_income': format_value(application.father_income),
-                'father_dependants': format_value(application.father_dependants),
-                'mother_name': format_value(application.mother_name),
-                'mother_ic': format_value(application.mother_ic),
-                'mother_phone': format_value(application.mother_phone),
-                'mother_occupation': format_value(application.mother_occupation),
-                'mother_income': format_value(application.mother_income),
-                'mother_dependants': format_value(application.mother_dependants),
-                'interest_choice1': format_value(application.interest_choice1),
-                'interest_choice2': format_value(application.interest_choice2),
-                'interest_choice3': format_value(application.interest_choice3),
-                'submitted_at': timezone.localtime(application.submitted_at).strftime('%Y-%m-%d %H:%M:%S'),
-                'attended_with': application.attended_with,  # Add this field
-            }
-            
-            response_data['application'] = app_data
-            
-        except Application.DoesNotExist:
-            # If no application found, add null to response
-            response_data['application'] = None
+        return JsonResponse(data)
         
-        # Try to get registration data
-        try:
-            registration = Registration.objects.get(attendee=attendee)
-            
-            reg_data = {
-                'id': registration.id,
-                'course': format_value(registration.course),
-                'college': format_value(registration.college),
-                'register_date': registration.register_date.strftime('%Y-%m-%d') if registration.register_date else '-',
-                'pre_registration_fee': str(registration.pre_registration_fee or '0.00'),
-                'registration_fee': str(registration.registration_fee or '0.00'),
-                'payment_status': registration.payment_status,
-                'payment_type': registration.payment_type,
-                'amount_paid': str(registration.amount_paid or '0.00'),
-                'balance_amount': str(registration.balance_amount or '0.00'),
-                'total_fee': str(registration.total_fee()),
-                'payment_percentage': str(registration.payment_percentage()),
-                'closer': format_value(registration.closer),
-                'referral_number': format_value(registration.referral_number),
-                'remark': format_value(registration.remark),
-                'created_at': timezone.localtime(registration.created_at).strftime('%Y-%m-%d %H:%M:%S'),
-                'updated_at': timezone.localtime(registration.updated_at).strftime('%Y-%m-%d %H:%M:%S')
-            }
-            
-            response_data['registration'] = reg_data
-            
-        except Registration.DoesNotExist:
-            # If no registration found, add null to response
-            response_data['registration'] = None
-        
-        return JsonResponse(response_data)
-        
-    except Exception as e:
-        print(f"Error in get_attendee_details: {e}")
-        import traceback
-        traceback.print_exc()
-        
-        return JsonResponse({
-            'error': str(e),
-            'message': 'An error occurred while fetching attendee details'
-        }, status=500)
+    except Application.DoesNotExist:
+        # If no application found, return basic attendee info
+        data = {
+            'attendee': {
+                'id': attendee.id,
+                'name': attendee.name,
+                'email': attendee.email,
+                'phone_number': attendee.phone_number,
+                'attended_at': timezone.localtime(attendee.attended_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'attended_at_display': timezone.localtime(attendee.attended_at).strftime('%I:%M %p'),
+                'attended_date_display': timezone.localtime(attendee.attended_at).strftime('%b %d'),
+            },
+            'application': None
+        }
+        return JsonResponse(data)
 
 
 @login_required
@@ -1622,69 +1579,267 @@ def get_registration_stats(request, event_id):
 @login_required
 @require_GET
 def get_full_registration_stats(request, event_id):
-    """Get comprehensive registration statistics with charts data"""
-    event = get_object_or_404(Event, id=event_id)
+    """Get comprehensive registration statistics with fee breakdowns"""
+    try:
+        event = get_object_or_404(Event, id=event_id)
+        
+        # Check permissions
+        if request.user.role == 'STAFF' and event.created_by != request.user:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+        
+        # Get all registrations for this event
+        registrations = Registration.objects.filter(attendee__event=event)
+        
+        # Basic stats with safe defaults
+        total_registered = registrations.count()
+        
+        # Calculate separate fee totals safely
+        try:
+            pre_reg_result = registrations.aggregate(
+                total=Sum('pre_registration_fee')
+            )
+            total_pre_reg = pre_reg_result['total'] or Decimal('0.00')
+        except Exception as e:
+            print(f"Pre-registration fee calculation error: {e}")
+            total_pre_reg = Decimal('0.00')
+        
+        try:
+            reg_result = registrations.aggregate(
+                total=Sum('registration_fee')
+            )
+            total_reg = reg_result['total'] or Decimal('0.00')
+        except Exception as e:
+            print(f"Registration fee calculation error: {e}")
+            total_reg = Decimal('0.00')
+        
+        total_revenue = total_pre_reg + total_reg
+        
+        # Payment status counts
+        total_completed = registrations.filter(payment_status='DONE').count()
+        total_partial = registrations.filter(payment_status='PARTIAL').count()
+        total_pending = registrations.filter(payment_status='PENDING').count()
+        
+        # Top courses with safe handling
+        try:
+            top_courses = registrations.values('course').annotate(
+                count=models.Count('id'),
+                pre_reg_amount=Sum('pre_registration_fee'),
+                reg_amount=Sum('registration_fee'),
+                total_amount=Sum(F('pre_registration_fee') + F('registration_fee'))
+            ).order_by('-count')[:5]
+            
+            courses_data = []
+            for item in top_courses:
+                try:
+                    courses_data.append({
+                        'label': str(item['course']) if item['course'] else 'Unknown',
+                        'value': item['count'] or 0,
+                        'pre_reg_amount': float(item['pre_reg_amount'] or 0),
+                        'reg_amount': float(item['reg_amount'] or 0),
+                        'total_amount': float(item['total_amount'] or 0)
+                    })
+                except Exception as e:
+                    print(f"Course data error: {e}")
+                    continue
+        except Exception as e:
+            print(f"Top courses query error: {e}")
+            courses_data = []
+        
+        # Top closers with fee breakdowns
+        try:
+            top_closers = registrations.values('closer').annotate(
+                attendee_count=models.Count('id'),
+                pre_reg_amount=Sum('pre_registration_fee'),
+                reg_amount=Sum('registration_fee'),
+                total_amount=Sum(F('pre_registration_fee') + F('registration_fee')),
+                completed_count=Count('id', filter=Q(payment_status='DONE')),
+                partial_count=Count('id', filter=Q(payment_status='PARTIAL')),
+                pending_count=Count('id', filter=Q(payment_status='PENDING'))
+            ).order_by('-attendee_count')[:5]
+            
+            closers_data = []
+            for item in top_closers:
+                try:
+                    closers_data.append({
+                        'label': str(item['closer']) if item['closer'] else 'Unknown',
+                        'value': item['attendee_count'] or 0,
+                        'pre_reg_amount': float(item['pre_reg_amount'] or 0),
+                        'reg_amount': float(item['reg_amount'] or 0),
+                        'total_amount': float(item['total_amount'] or 0),
+                        'completed': item['completed_count'] or 0,
+                        'partial': item['partial_count'] or 0,
+                        'pending': item['pending_count'] or 0
+                    })
+                except Exception as e:
+                    print(f"Closer data error: {e}")
+                    continue
+        except Exception as e:
+            print(f"Top closers query error: {e}")
+            closers_data = []
+        
+        # Timeline data for last 7 days with fee breakdown
+        try:
+            seven_days_ago = timezone.now() - timedelta(days=7)
+            
+            # Use Django's TruncDate for database compatibility
+            from django.db.models.functions import TruncDate
+            
+            timeline_queryset = registrations.filter(
+                created_at__gte=seven_days_ago
+            ).annotate(
+                date_trunc=TruncDate('created_at')
+            ).values('date_trunc').annotate(
+                count=Count('id'),
+                pre_reg_amount=Sum('pre_registration_fee'),
+                reg_amount=Sum('registration_fee'),
+                total_amount=Sum(F('pre_registration_fee') + F('registration_fee'))
+            ).order_by('date_trunc')
+            
+            timeline_data = []
+            for item in timeline_queryset:
+                try:
+                    timeline_data.append({
+                        'date': item['date_trunc'].strftime('%Y-%m-%d') if item['date_trunc'] else '',
+                        'count': item['count'] or 0,
+                        'pre_reg_amount': float(item['pre_reg_amount'] or 0),
+                        'reg_amount': float(item['reg_amount'] or 0),
+                        'total_amount': float(item['total_amount'] or 0)
+                    })
+                except Exception as e:
+                    print(f"Timeline item error: {e}")
+                    continue
+        except Exception as e:
+            print(f"Timeline query error: {e}")
+            timeline_data = []
+        
+        # Payment type analysis with fee breakdowns
+        try:
+            payment_type_stats = registrations.values('payment_type').annotate(
+                count=Count('id'),
+                pre_reg_amount=Sum('pre_registration_fee'),
+                reg_amount=Sum('registration_fee'),
+                total_amount=Sum(F('pre_registration_fee') + F('registration_fee'))
+            ).order_by('-count')
+            
+            payment_types_data = []
+            for item in payment_type_stats:
+                try:
+                    payment_types_data.append({
+                        'type': item['payment_type'] or 'UNSPECIFIED',
+                        'count': item['count'] or 0,
+                        'pre_reg_amount': float(item['pre_reg_amount'] or 0),
+                        'reg_amount': float(item['reg_amount'] or 0),
+                        'total_amount': float(item['total_amount'] or 0)
+                    })
+                except Exception as e:
+                    print(f"Payment type data error: {e}")
+                    continue
+        except Exception as e:
+            print(f"Payment type query error: {e}")
+            payment_types_data = []
+        
+        # Payment status analysis with fee breakdowns
+        try:
+            payment_status_stats = registrations.values('payment_status').annotate(
+                count=Count('id'),
+                pre_reg_amount=Sum('pre_registration_fee'),
+                reg_amount=Sum('registration_fee'),
+                total_amount=Sum(F('pre_registration_fee') + F('registration_fee'))
+            ).order_by('-count')
+            
+            payment_status_data = []
+            for item in payment_status_stats:
+                try:
+                    payment_status_data.append({
+                        'status': item['payment_status'] or 'UNKNOWN',
+                        'count': item['count'] or 0,
+                        'pre_reg_amount': float(item['pre_reg_amount'] or 0),
+                        'reg_amount': float(item['reg_amount'] or 0),
+                        'total_amount': float(item['total_amount'] or 0)
+                    })
+                except Exception as e:
+                    print(f"Payment status data error: {e}")
+                    continue
+        except Exception as e:
+            print(f"Payment status query error: {e}")
+            payment_status_data = []
+        
+        # Calculate performance metrics
+        conversion_rate = 0
+        if event.attendees.count() > 0:
+            conversion_rate = (total_registered / event.attendees.count()) * 100
+        
+        avg_pre_reg = total_pre_reg / total_registered if total_registered > 0 else 0
+        avg_reg = total_reg / total_registered if total_registered > 0 else 0
+        avg_total = total_revenue / total_registered if total_registered > 0 else 0
+        
+        # Find peak registration day
+        try:
+            daily_stats = registrations.annotate(
+                date_trunc=TruncDate('created_at')
+            ).values('date_trunc').annotate(
+                count=Count('id'),
+                amount=Sum(F('pre_registration_fee') + F('registration_fee'))
+            ).order_by('-count')
+            
+            peak_day = daily_stats.first() if daily_stats else None
+            peak_day_info = None
+            if peak_day and peak_day['date_trunc']:
+                peak_day_info = {
+                    'date': peak_day['date_trunc'].strftime('%Y-%m-%d'),
+                    'count': peak_day['count'] or 0,
+                    'amount': float(peak_day['amount'] or 0)
+                }
+        except Exception as e:
+            print(f"Peak day calculation error: {e}")
+            peak_day_info = None
+        
+        return JsonResponse({
+            'success': True,
+            'basic_stats': {
+                'total_registered': total_registered,
+                'total_pre_reg': float(total_pre_reg),
+                'total_reg': float(total_reg),
+                'total_revenue': float(total_revenue),
+                'total_completed': total_completed,
+                'total_partial': total_partial,
+                'total_pending': total_pending
+            },
+            'performance_metrics': {
+                'conversion_rate': round(conversion_rate, 1),
+                'avg_pre_reg_per_reg': round(float(avg_pre_reg), 2),
+                'avg_reg_per_reg': round(float(avg_reg), 2),
+                'avg_total_per_reg': round(float(avg_total), 2),
+                'completion_rate': round((total_completed / total_registered * 100) if total_registered > 0 else 0, 1),
+                'peak_day': peak_day_info
+            },
+            'charts': {
+                'top_courses': courses_data,
+                'top_closers': closers_data,
+                'timeline': timeline_data,
+                'payment_types': payment_types_data,
+                'payment_statuses': payment_status_data
+            },
+            'summary': {
+                'event_title': event.title,
+                'report_generated': timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M:%S'),
+                'total_attendees': event.attendees.count(),
+                'total_applications': Application.objects.filter(event=event).count()
+            }
+        })
     
-    # Check permissions
-    if request.user.role == 'STAFF' and event.created_by != request.user:
-        return JsonResponse({'error': 'Permission denied'}, status=403)
-    
-    # Get all registrations for this event
-    registrations = Registration.objects.filter(attendee__event=event)
-    
-    # Basic stats
-    total_registered = registrations.count()
-    total_paid = registrations.filter(payment_status='DONE').count()
-    total_pending = registrations.filter(payment_status='PENDING').count()
-    
-    # Calculate total revenue
-    total_revenue = registrations.aggregate(
-        total=Sum(models.F('pre_registration_fee') + models.F('registration_fee'))
-    )['total'] or Decimal('0.00')
-    
-    # Top courses
-    top_courses = registrations.values('course').annotate(
-        count=models.Count('id'),
-        revenue=Sum(models.F('pre_registration_fee') + models.F('registration_fee'))
-    ).order_by('-count')[:5]
-    
-    # Top closers
-    top_closers = registrations.values('closer').annotate(
-        count=models.Count('id'),
-        revenue=Sum(models.F('pre_registration_fee') + models.F('registration_fee'))
-    ).order_by('-count')[:5]
-    
-    # Timeline (last 7 days)
-    seven_days_ago = timezone.now() - timedelta(days=7)
-    timeline_data = registrations.filter(
-        created_at__gte=seven_days_ago
-    ).extra({
-        'date': "DATE(created_at)"
-    }).values('date').annotate(
-        count=models.Count('id')
-    ).order_by('date')
-    
-    return JsonResponse({
-        'success': True,
-        'total_registered': total_registered,
-        'total_paid': total_paid,
-        'total_pending': total_pending,
-        'total_revenue': f"{total_revenue:.2f}",
-        'charts': {
-            'top_courses': [
-                {'label': item['course'] or 'Unknown', 'value': item['count'], 'revenue': float(item['revenue'] or 0)}
-                for item in top_courses
-            ],
-            'top_closers': [
-                {'label': item['closer'] or 'Unknown', 'value': item['count'], 'revenue': float(item['revenue'] or 0)}
-                for item in top_closers
-            ],
-            'timeline': [
-                {'date': item['date'].strftime('%Y-%m-%d'), 'count': item['count']}
-                for item in timeline_data
-            ]
-        }
-    })
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in get_full_registration_stats: {e}")
+        print(f"Error details: {error_details}")
+        
+        # Return a safe error response
+        return JsonResponse({
+            'success': False,
+            'error': 'Failed to load statistics',
+            'details': str(e)[:200]
+        }, status=500)
 
 @login_required
 def export_registrations_csv(request, event_id):
@@ -1703,7 +1858,7 @@ def export_registrations_csv(request, event_id):
         'Attendee Name', 'Email', 'Phone', 
         'Course', 'College', 'Registration Date',
         'Pre-Registration Fee (RM)', 'Registration Fee (RM)', 'Total Fee (RM)',
-        'Status', 'Closer', 'Referral Number', 'Remarks',
+        'Payment Status', 'Closer', 'Referral Number', 'Remarks',
         'Registered At', 'Last Updated'
     ])
     
@@ -1730,15 +1885,45 @@ def export_registrations_csv(request, event_id):
     
     return response
 
-
 @login_required
 def export_registrations_pdf(request, event_id):
-    """Modern dashboard-style PDF report with black/gray theme - UPDATED with 3 pages"""
+    """Professional PDF report with lightened white-gray-black color scheme and uppercase text"""
     event = get_object_or_404(Event, id=event_id)
     
     # Check permissions
     if request.user.role == 'STAFF' and event.created_by != request.user:
-        return HttpResponseForbidden("You don't have permission to export this event's data.")
+        return HttpResponseForbidden()
+    
+    # Helper function to convert text to uppercase
+    def uppercase_text(text):
+        """Convert text to uppercase for all output"""
+        if text is None:
+            return ""
+        return str(text).upper()
+    
+    # Helper function to get payment type display name
+    def get_payment_type_display(payment_type):
+        """Get display name for payment type"""
+        if payment_type == 'CASH':
+            return 'CASH'
+        elif payment_type == 'ONLINE_BANKING':
+            return 'ONLINE BANKING'
+        elif payment_type == 'QR_PAYMENT':
+            return 'QR PAYMENT'
+        else:
+            return uppercase_text(payment_type or 'UNSPECIFIED')
+    
+    # Helper function to get payment status display name
+    def get_payment_status_display(payment_status):
+        """Get display name for payment status"""
+        if payment_status == 'DONE':
+            return 'COMPLETED'
+        elif payment_status == 'PARTIAL':
+            return 'PARTIALLY PAID'
+        elif payment_status == 'PENDING':
+            return 'PENDING'
+        else:
+            return uppercase_text(payment_status or 'UNKNOWN')
     
     try:
         # Get all registrations with related data
@@ -1748,750 +1933,1277 @@ def export_registrations_pdf(request, event_id):
         
         # Calculate statistics
         total_registered = registrations.count()
-        total_paid = registrations.filter(payment_status='DONE').count()
+        
+        # Calculate payment status counts for DONE, PARTIAL, PENDING
+        total_completed = registrations.filter(payment_status='DONE').count()
         total_partial = registrations.filter(payment_status='PARTIAL').count()
         total_pending = registrations.filter(payment_status='PENDING').count()
         
-        # Calculate revenue
+        # Calculate revenue with separate totals for pre-reg and reg fees
+        total_pre_registration_fee = Decimal('0.00')
+        total_registration_fee = Decimal('0.00')
         total_revenue = Decimal('0.00')
-        paid_revenue = Decimal('0.00')
+        completed_revenue = Decimal('0.00')
+        partial_revenue = Decimal('0.00')
         pending_revenue = Decimal('0.00')
         
+        # Calculate payment type statistics
+        payment_type_counts = {}
+        payment_type_revenue = {}
+        
+        # Calculate payment status revenue
+        payment_status_revenue = {
+            'DONE': Decimal('0.00'),
+            'PARTIAL': Decimal('0.00'),
+            'PENDING': Decimal('0.00')
+        }
+        
+        # Calculate daily registration trends
+        daily_registrations = {}
+        daily_revenue = {}
+        
         for reg in registrations:
-            reg_total = (reg.pre_registration_fee or Decimal('0.00')) + (reg.registration_fee or Decimal('0.00'))
+            pre_reg_fee = reg.pre_registration_fee or Decimal('0.00')
+            reg_fee = reg.registration_fee or Decimal('0.00')
+            reg_total = pre_reg_fee + reg_fee
+            
+            total_pre_registration_fee += pre_reg_fee
+            total_registration_fee += reg_fee
             total_revenue += reg_total
-            if reg.payment_status == 'DONE':
-                paid_revenue += reg_total
-            elif reg.payment_status == 'PARTIAL':
-                # For partial payments, add amount_paid to paid_revenue
-                paid_revenue += (reg.amount_paid or Decimal('0.00'))
-                pending_revenue += (reg.balance_amount or Decimal('0.00'))
-            else:  # PENDING
-                pending_revenue += reg_total
+            
+            # Track revenue by payment status
+            if reg.payment_status in payment_status_revenue:
+                payment_status_revenue[reg.payment_status] += reg_total
+            
+            # Count payment types and revenue by type
+            payment_type = reg.payment_type or 'UNSPECIFIED'
+            if payment_type not in payment_type_counts:
+                payment_type_counts[payment_type] = 0
+                payment_type_revenue[payment_type] = Decimal('0.00')
+            payment_type_counts[payment_type] += 1
+            payment_type_revenue[payment_type] += reg_total
+            
+            # Track daily registrations
+            reg_date = reg.register_date
+            if hasattr(reg_date, 'date'):
+                # It's a datetime, extract date
+                reg_date = reg_date.date()
+            
+            if reg_date not in daily_registrations:
+                daily_registrations[reg_date] = {'count': 0, 'revenue': Decimal('0.00')}
+            daily_registrations[reg_date]['count'] += 1
+            daily_registrations[reg_date]['revenue'] += reg_total
+        
+        # Sort daily registrations by date
+        sorted_daily_reg = sorted(daily_registrations.items())
+        
+        # Calculate peak registration day
+        peak_day = max(daily_registrations.items(), key=lambda x: x[1]['count']) if daily_registrations else None
         
         # Get applications data for inviting officers
         email_to_inviting_officer = {}
         try:
             applications = Application.objects.filter(event=event)
             for app in applications:
-                email_to_inviting_officer[app.email.lower()] = app.registration_officer
+                email_to_inviting_officer[app.email.lower()] = uppercase_text(app.registration_officer)
         except Exception as e:
             print(f"Error getting applications: {e}")
-            # Continue without inviting officer data
         
-        # Get course and closer statistics WITH FEE CALCULATIONS
+        # Get ALL courses (not just top 5)
         try:
-            # Group registrations by course
-            from collections import defaultdict
-            course_data_dict = defaultdict(lambda: {
-                'count': 0,
-                'pre_reg_fee_total': Decimal('0.00'),
-                'reg_fee_total': Decimal('0.00'),
-                'total_fee': Decimal('0.00')
-            })
-            
-            for reg in registrations:
-                if reg.course:
-                    course = reg.course.upper()
-                    course_data_dict[course]['count'] += 1
-                    course_data_dict[course]['pre_reg_fee_total'] += (reg.pre_registration_fee or Decimal('0.00'))
-                    course_data_dict[course]['reg_fee_total'] += (reg.registration_fee or Decimal('0.00'))
-                    course_data_dict[course]['total_fee'] += (reg.pre_registration_fee or Decimal('0.00')) + (reg.registration_fee or Decimal('0.00'))
-            
-            # Convert to list and sort by count descending
-            course_data = []
-            for course, data in course_data_dict.items():
-                course_data.append({
-                    'label': course,
-                    'count': data['count'],
-                    'pre_reg_fee_total': data['pre_reg_fee_total'],
-                    'reg_fee_total': data['reg_fee_total'],
-                    'total_fee': data['total_fee']
-                })
-            
-            # Sort by count descending
-            course_data.sort(key=lambda x: x['count'], reverse=True)
-            
+            all_courses = registrations.values('course').annotate(
+                count=Count('id'),
+                revenue=Sum(F('pre_registration_fee') + F('registration_fee'))
+            ).order_by('-count')
         except Exception as e:
             print(f"Error getting courses: {e}")
-            course_data = []
+            all_courses = []
         
+        # Get ALL closers based on attendee count AND total payment with pre-reg and reg fee breakdown
         try:
-            # Group registrations by closer WITH FEE CALCULATIONS
-            closer_data_dict = defaultdict(lambda: {
-                'count': 0,
-                'pre_reg_fee_total': Decimal('0.00'),
-                'reg_fee_total': Decimal('0.00'),
-                'total_fee': Decimal('0.00')
-            })
-            
-            for reg in registrations:
-                if reg.closer:
-                    closer = reg.closer.upper()
-                    closer_data_dict[closer]['count'] += 1
-                    closer_data_dict[closer]['pre_reg_fee_total'] += (reg.pre_registration_fee or Decimal('0.00'))
-                    closer_data_dict[closer]['reg_fee_total'] += (reg.registration_fee or Decimal('0.00'))
-                    closer_data_dict[closer]['total_fee'] += (reg.pre_registration_fee or Decimal('0.00')) + (reg.registration_fee or Decimal('0.00'))
-            
-            # Convert to list and sort by count descending
-            closer_data = []
-            for closer, data in closer_data_dict.items():
-                closer_data.append({
-                    'label': closer,
-                    'count': data['count'],
-                    'pre_reg_fee_total': data['pre_reg_fee_total'],
-                    'reg_fee_total': data['reg_fee_total'],
-                    'total_fee': data['total_fee']
-                })
-            
-            # Sort by count descending
-            closer_data.sort(key=lambda x: x['count'], reverse=True)
-            
+            all_closers = registrations.values('closer').annotate(
+                attendee_count=Count('id'),
+                total_payment=Sum(F('pre_registration_fee') + F('registration_fee')),
+                pre_reg_amount=Sum('pre_registration_fee'),
+                reg_amount=Sum('registration_fee'),
+                completed_count=Count('id', filter=Q(payment_status='DONE')),
+                partial_count=Count('id', filter=Q(payment_status='PARTIAL')),
+                pending_count=Count('id', filter=Q(payment_status='PENDING'))
+            ).order_by('-attendee_count', '-total_payment')
         except Exception as e:
             print(f"Error getting closers: {e}")
-            closer_data = []
+            all_closers = []
         
         # ============================
-        # PDF GENERATION SETUP
+        # PDF GENERATION - LIGHTENED WHITE-GRAY-BLACK COLOR SCHEME
         # ============================
-        import io
-        from reportlab.lib.pagesizes import landscape, A4
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib import colors
-        from reportlab.lib.units import cm
-        
-        # Create PDF buffer
-        buffer = io.BytesIO()
-        
-        # ============================
-        # COLOR PALETTE (Black/Gray Theme)
-        # ============================
-        COLORS = {
-            'black': '#000000',
-            'white': '#ffffff',
-            'gray_50': '#fafafa',
-            'gray_100': '#f5f5f5',
-            'gray_200': '#e5e5e5',
-            'gray_300': '#d4d4d4',
-            'gray_400': '#a3a3a3',
-            'gray_500': '#737373',
-            'gray_600': '#525252',
-            'gray_700': '#404040',
-            'gray_800': '#262626',
-            'gray_900': '#171717',
-            'success': '#27ae60',
-            'warning': '#e67e22',
-            'danger': '#e74c3c',
-            'info': '#3498db',
-        }
-        
-        # ============================
-        # TYPOGRAPHY SYSTEM
-        # ============================
-        styles = getSampleStyleSheet()
-        
-        # Title style
-        title_style = ParagraphStyle(
-            'Title',
-            parent=styles['Heading1'],
-            fontSize=20,
-            spaceAfter=0.5*cm,
-            alignment=1,
-            textColor=colors.HexColor(COLORS['black']),
-            fontName='Helvetica-Bold'
-        )
-        
-        # Subtitle style
-        subtitle_style = ParagraphStyle(
-            'Subtitle',
-            parent=styles['Normal'],
-            fontSize=11,
-            spaceAfter=0.5*cm,
-            textColor=colors.HexColor(COLORS['gray_600']),
-            alignment=1
-        )
-        
-        # Section header style
-        section_style = ParagraphStyle(
-            'Section',
-            parent=styles['Heading2'],
-            fontSize=13,
-            spaceBefore=0.3*cm,
-            spaceAfter=0.2*cm,
-            textColor=colors.HexColor(COLORS['black']),
-            fontName='Helvetica-Bold'
-        )
-        
-        # Table header style
-        table_header_style = ParagraphStyle(
-            'TableHeader',
-            parent=styles['Normal'],
-            fontSize=9,
-            textColor=colors.white,
-            fontName='Helvetica-Bold',
-            alignment=1
-        )
-        
-        # Table cell style (UPPERCASE)
-        table_cell_style = ParagraphStyle(
-            'TableCell',
-            parent=styles['Normal'],
-            fontSize=8,
-            textColor=colors.HexColor(COLORS['gray_800']),
-            fontName='Helvetica'
-        )
-        
-        # Table cell center style (UPPERCASE)
-        table_cell_center = ParagraphStyle(
-            'TableCellCenter',
-            parent=table_cell_style,
-            alignment=1
-        )
-        
-        # Table cell right style (UPPERCASE)
-        table_cell_right = ParagraphStyle(
-            'TableCellRight',
-            parent=table_cell_style,
-            alignment=2
-        )
-        
-        # Footer style
-        footer_style = ParagraphStyle(
-            'Footer',
-            parent=styles['Normal'],
-            fontSize=8,
-            textColor=colors.HexColor(COLORS['gray_500']),
-            alignment=1
-        )
-        
-        # ============================
-        # HELPER FUNCTION: UPPERCASE ALL TEXT
-        # ============================
-        def to_uppercase(value):
-            """Convert value to uppercase string"""
-            if value is None:
-                return ''
-            return str(value).upper()
-        
-        # ============================
-        # BUILD PDF STORY
-        # ============================
-        story = []
-        
-        # ============================
-        # PAGE 1: EXECUTIVE SUMMARY
-        # ============================
-        
-        # Header Section
-        story.append(Spacer(1, 0.5*cm))
-        story.append(Paragraph(to_uppercase("REGISTRATION REPORT"), title_style))
-        story.append(Paragraph(to_uppercase(f"{event.title}"), subtitle_style))
-        story.append(Paragraph(
-            to_uppercase(f"EVENT DATE: {event.date.strftime('%d %B %Y')} | GENERATED: {malaysia_now().strftime('%d/%m/%Y %H:%M')}"), 
-            ParagraphStyle('ReportInfo', parent=subtitle_style, fontSize=9)
-        ))
-        story.append(Spacer(1, 0.5*cm))
-        
-        # ============================
-        # SECTION 1: KEY METRICS
-        # ============================
-        
-        # Create metrics table
-        metrics_data = [
-            [to_uppercase('METRIC'), to_uppercase('VALUE'), to_uppercase('DESCRIPTION')],
-            [to_uppercase('Total Registrations'), to_uppercase(str(total_registered)), to_uppercase('All registered attendees')],
-            [to_uppercase('Payment Completed'), to_uppercase(str(total_paid)), to_uppercase(f'Fully paid registrations (RM {paid_revenue:,.2f})')],
-            [to_uppercase('Partial Payments'), to_uppercase(str(total_partial)), to_uppercase('Partially paid registrations')],
-            [to_uppercase('Pending Payments'), to_uppercase(str(total_pending)), to_uppercase(f'Awaiting payment (RM {pending_revenue:,.2f})')],
-            [to_uppercase('Total Revenue'), to_uppercase(f'RM {total_revenue:,.2f}'), to_uppercase('Sum of all registration fees')],
-            [to_uppercase('Payment Rate'), to_uppercase(f'{((total_paid/total_registered)*100 if total_registered > 0 else 0):.1f}%'), to_uppercase('Percentage of completed payments')],
-        ]
-        
-        metrics_table = Table(metrics_data, colWidths=[5*cm, 4*cm, 8*cm])
-        
-        metrics_table.setStyle(TableStyle([
-            # Header
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('PADDING', (0, 0), (-1, 0), 8),
+        try:
+            from reportlab.lib.pagesizes import landscape, A4
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            from reportlab.lib.units import cm
+            from reportlab.pdfgen import canvas
+            import io
             
-            # Body
-            ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('PADDING', (0, 1), (-1, -1), 6),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor(COLORS['gray_300'])),
+            # Create PDF buffer
+            buffer = io.BytesIO()
             
-            # Column alignments
-            ('ALIGN', (1, 1), (1, -1), 'CENTER'),
-            ('ALIGN', (2, 1), (2, -1), 'LEFT'),
+            # ============================
+            # LIGHTENED WHITE-GRAY-BLACK COLOR SCHEME
+            # ============================
+            COLORS = {
+                'black': '#000000',
+                'white': '#ffffff',
+                'gray_ultralight': '#f9f9f9',    # Background - Lightened
+                'gray_light': '#f0f0f0',         # Alternate rows - Lightened
+                'gray_medium': '#cccccc',        # Borders - Lightened
+                'gray_dark': '#666666',          # Text - Lightened
+                'gray_darker': '#444444',        # Headers - Lightened
+                'gray_charcoal': '#222222',      # Titles - Lightened
+                'red': '#d32f2f',                # For warnings/important
+                'green': '#388e3c',              # For success/paid
+                'blue': '#1976d2',               # For information
+                'orange': '#f57c00',             # For warnings
+                'border': '#aaaaaa',             # Border - Lightened
+                'yellow': '#fbc02d',             # For partial payments
+                'purple': '#7b1fa2',             # For QR payments
+                'cyan': '#0097a7',               # For online banking
+            }
             
-            # Alternating row colors
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), 
-             [colors.white, colors.HexColor(COLORS['gray_50'])]),
-        ]))
-        
-        story.append(metrics_table)
-        story.append(Spacer(1, 0.5*cm))
-        
-        # ============================
-        # PAGE BREAK (to Page 2)
-        # ============================
-        story.append(PageBreak())
-        
-        # ============================
-        # PAGE 2: TOP PERFORMERS
-        # ============================
-        
-        # Header for Page 2
-        story.append(Spacer(1, 0.5*cm))
-        story.append(Paragraph(to_uppercase("TOP PERFORMERS ANALYSIS"), title_style))
-        story.append(Paragraph(
-            to_uppercase(f"Event: {event.title} | Total Registrations: {total_registered}"), 
-            subtitle_style
-        ))
-        story.append(Spacer(1, 0.5*cm))
-        
-        # ============================
-        # SECTION 2: TOP CLOSERS (ALL CLOSERS)
-        # ============================
-        
-        if closer_data and len(closer_data) > 0:
-            story.append(Paragraph(to_uppercase("ALL CLOSERS PERFORMANCE"), section_style))
+            # ============================
+            # STYLES - PROFESSIONAL LIGHTENED WHITE-GRAY-BLACK
+            # ============================
+            styles = getSampleStyleSheet()
             
-            # Create closers table with all columns
-            closers_table_data = [[
-                to_uppercase('RANK'),
-                to_uppercase('CLOSER'),
-                to_uppercase('REGISTRATIONS'),
-                to_uppercase('PRE-REG FEE'),
-                to_uppercase('REG FEE'),
-                to_uppercase('TOTAL'),
-                to_uppercase('PERCENTAGE')
-            ]]
+            # Main title style - UPPERCASE
+            title_style = ParagraphStyle(
+                'ProfessionalTitle',
+                parent=styles['Heading1'],
+                fontSize=20,
+                spaceAfter=0.2*cm,
+                alignment=1,
+                textColor=colors.HexColor(COLORS['gray_charcoal']),
+                fontName='Helvetica-Bold',
+                leading=22
+            )
             
-            for idx, item in enumerate(closer_data, 1):
-                percentage = (item['count'] / total_registered * 100) if total_registered > 0 else 0
-                closers_table_data.append([
-                    str(idx),
-                    to_uppercase(item['label'][:35] + ('...' if len(item['label']) > 35 else '')),
-                    str(item['count']),
-                    f"{item['pre_reg_fee_total']:,.2f}",
-                    f"{item['reg_fee_total']:,.2f}",
-                    f"{item['total_fee']:,.2f}",
-                    f"{percentage:.1f}%"
+            # Subtitle style - UPPERCASE
+            subtitle_style = ParagraphStyle(
+                'ProfessionalSubtitle',
+                parent=styles['Normal'],
+                fontSize=12,
+                spaceAfter=0.3*cm,
+                textColor=colors.HexColor(COLORS['gray_dark']),
+                alignment=1,
+                fontName='Helvetica'
+            )
+            
+            # Event info style - UPPERCASE
+            event_info_style = ParagraphStyle(
+                'EventInfo',
+                parent=styles['Normal'],
+                fontSize=10,
+                spaceAfter=0.4*cm,
+                textColor=colors.HexColor(COLORS['gray_dark']),
+                alignment=1,
+                fontName='Helvetica'
+            )
+            
+            # Section header style - UPPERCASE
+            section_style = ParagraphStyle(
+                'ProfessionalSection',
+                parent=styles['Heading2'],
+                fontSize=14,
+                spaceBefore=0.2*cm,
+                spaceAfter=0.15*cm,
+                textColor=colors.HexColor(COLORS['gray_charcoal']),
+                fontName='Helvetica-Bold',
+                leftIndent=0,
+                borderWidth=1,
+                borderColor=colors.HexColor(COLORS['gray_medium']),
+                borderPadding=3,
+                borderRadius=2
+            )
+            
+            # Table header style - UPPERCASE - REDUCED SIZE
+            table_header_style = ParagraphStyle(
+                'ProfessionalTableHeader',
+                parent=styles['Normal'],
+                fontSize=9,  # Reduced from 10
+                textColor=colors.HexColor(COLORS['white']),
+                fontName='Helvetica-Bold',
+                alignment=1,
+                spaceBefore=1,
+                spaceAfter=1,
+                leading=10  # Reduced from 12
+            )
+            
+            # Table cell style - UPPERCASE - REDUCED SIZE
+            table_cell_style = ParagraphStyle(
+                'ProfessionalTableCell',
+                parent=styles['Normal'],
+                fontSize=8.5,  # Reduced from 9.5
+                textColor=colors.HexColor(COLORS['gray_charcoal']),
+                fontName='Helvetica',
+                alignment=0,
+                leading=9.5  # Reduced from 11
+            )
+            
+            # Table cell center style - UPPERCASE - REDUCED SIZE
+            table_cell_center = ParagraphStyle(
+                'ProfessionalTableCellCenter',
+                parent=table_cell_style,
+                alignment=1
+            )
+            
+            # Table cell right style - UPPERCASE - REDUCED SIZE
+            table_cell_right = ParagraphStyle(
+                'ProfessionalTableCellRight',
+                parent=table_cell_style,
+                alignment=2
+            )
+            
+            # Status Paid style - UPPERCASE - REDUCED SIZE
+            status_completed_style = ParagraphStyle(
+                'ProfessionalStatusCompleted',
+                parent=table_cell_center,
+                fontSize=8,  # Reduced from 9
+                fontName='Helvetica-Bold',
+                textColor=colors.HexColor(COLORS['green'])
+            )
+            
+            # Status Partial style - UPPERCASE - REDUCED SIZE
+            status_partial_style = ParagraphStyle(
+                'ProfessionalStatusPartial',
+                parent=table_cell_center,
+                fontSize=8,  # Reduced from 9
+                fontName='Helvetica-Bold',
+                textColor=colors.HexColor(COLORS['yellow'])
+            )
+            
+            # Status Pending style - UPPERCASE - REDUCED SIZE
+            status_pending_style = ParagraphStyle(
+                'ProfessionalStatusPending',
+                parent=table_cell_center,
+                fontSize=8,  # Reduced from 9
+                fontName='Helvetica-Bold',
+                textColor=colors.HexColor(COLORS['red'])
+            )
+            
+            # Key metric style - UPPERCASE
+            key_metric_style = ParagraphStyle(
+                'KeyMetric',
+                parent=styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor(COLORS['gray_charcoal']),
+                fontName='Helvetica-Bold',
+                alignment=1,
+                leading=13
+            )
+            
+            # Key metric value style
+            key_metric_value_style = ParagraphStyle(
+                'KeyMetricValue',
+                parent=styles['Normal'],
+                fontSize=16,
+                textColor=colors.HexColor(COLORS['black']),
+                fontName='Helvetica-Bold',
+                alignment=1,
+                leading=18
+            )
+            
+            # Key metric sub-value style
+            key_metric_subvalue_style = ParagraphStyle(
+                'KeyMetricSubValue',
+                parent=styles['Normal'],
+                fontSize=10,
+                textColor=colors.HexColor(COLORS['gray_dark']),
+                alignment=1,
+                leading=12
+            )
+            
+            # Footer style
+            footer_style = ParagraphStyle(
+                'ProfessionalFooter',
+                parent=styles['Normal'],
+                fontSize=8,
+                textColor=colors.HexColor(COLORS['gray_dark']),
+                alignment=1,
+                fontName='Helvetica'
+            )
+            
+            # ============================
+            # BUILD PDF STORY
+            # ============================
+            story = []
+            
+            # ============================
+            # PAGE 1: EXECUTIVE SUMMARY
+            # ============================
+            
+            # Create header with event title in UPPERCASE
+            header_data = [
+                [
+                    Paragraph(f"<b>{uppercase_text('REGISTRATION ANALYSIS REPORT')}</b>", title_style),
+                ],
+                [
+                    Paragraph(f"{uppercase_text(event.title)}", subtitle_style),
+                ],
+                [
+                    Paragraph(f"{uppercase_text('EVENT DATE')}: {event.date.strftime('%d %B %Y')} | {uppercase_text('REPORT GENERATED')}: {malaysia_now().strftime('%d/%m/%Y %H:%M')}", 
+                             event_info_style),
+                ]
+            ]
+            
+            header_table = Table(header_data, colWidths=[19*cm])
+            header_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 5),
+                ('TOPPADDING', (0, 1), (-1, 1), 2),
+            ]))
+            
+            story.append(header_table)
+            story.append(Spacer(1, 0.5*cm))
+            
+            # ============================
+            # SECTION 1: KEY PERFORMANCE INDICATORS
+            # ============================
+            
+            story.append(Paragraph(f"<b>{uppercase_text('KEY PERFORMANCE INDICATORS')}</b>", 
+                        ParagraphStyle('SectionCenter', parent=section_style, fontSize=13, alignment=1)))
+            story.append(Spacer(1, 0.3*cm))
+            
+            # Calculate metrics
+            payment_completion_rate = (total_completed/total_registered*100) if total_registered > 0 else 0
+            avg_revenue_per_reg = (total_revenue/total_registered) if total_registered > 0 else 0
+            
+            # Calculate additional meaningful metrics
+            pre_reg_percentage = (total_pre_registration_fee / total_revenue * 100) if total_revenue > 0 else 0
+            reg_percentage = (total_registration_fee / total_revenue * 100) if total_revenue > 0 else 0
+            
+            # Peak day metrics - FIXED DATE FORMATTING
+            peak_day_text = "N/A"
+            peak_day_revenue = "RM 0.00"
+            if peak_day:
+                peak_day_date, peak_day_data = peak_day
+                # Format date safely
+                if hasattr(peak_day_date, 'strftime'):
+                    peak_day_text = f"{peak_day_date.strftime('%d/%m')}"
+                else:
+                    # If it's already a string or other format
+                    peak_day_text = str(peak_day_date)
+                peak_day_revenue = f"RM {peak_day_data['revenue']:,.2f}"
+            
+            # Create specific styles for KPI headers with WHITE text
+            kpi_header_white_style = ParagraphStyle(
+                'KpiHeaderWhite',
+                parent=key_metric_style,
+                textColor=colors.white,
+                fontSize=11,
+                fontName='Helvetica-Bold',
+                alignment=1
+            )
+            
+            # Updated KPI boxes to show all 3 payment statuses
+            kpi_data = [
+                [
+                    Paragraph(uppercase_text('TOTAL REGISTRATIONS'), kpi_header_white_style),
+                    Paragraph(uppercase_text('PAYMENT COMPLETION'), kpi_header_white_style),
+                ],
+                [
+                    Paragraph(f"<font size='16'><b>{total_registered}</b></font>", key_metric_value_style),
+                    Paragraph(f"<font size='16'><b>{payment_completion_rate:.1f}%</b></font>", key_metric_value_style),
+                ],
+                [
+                    Paragraph(f"{uppercase_text(f'{total_completed} completed')} • {uppercase_text(f'{total_partial} partial')} • {uppercase_text(f'{total_pending} pending')}", 
+                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=9, alignment=1)),
+                    Paragraph(f"{total_completed} {uppercase_text('of')} {total_registered}", 
+                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=9, alignment=1)),
+                ],
+                [
+                    Paragraph(uppercase_text('TOTAL REVENUE'), kpi_header_white_style),
+                    Paragraph(uppercase_text('REVENUE BY STATUS'), kpi_header_white_style),
+                ],
+                [
+                    Paragraph(f"<font size='16'><b>RM {total_revenue:,.2f}</b></font>", key_metric_value_style),
+                    Paragraph(f"<font size='16'><b>{pre_reg_percentage:.0f}% / {reg_percentage:.0f}%</b></font>", key_metric_value_style),
+                ],
+                [
+                    Paragraph(f"{uppercase_text('pre-reg')}: RM {total_pre_registration_fee:,.2f} • {uppercase_text('reg')}: RM {total_registration_fee:,.2f}", 
+                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=9, alignment=1)),
+                    Paragraph(f"{uppercase_text('pre-registration')} / {uppercase_text('registration')} {uppercase_text('split')}", 
+                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=9, alignment=1)),
+                ]
+            ]
+            
+            kpi_table = Table(kpi_data, colWidths=[9*cm, 9*cm])
+            
+            kpi_table.setStyle(TableStyle([
+                # KPI Box borders
+                ('BOX', (0, 0), (0, 2), 1, colors.HexColor(COLORS['border'])),
+                ('BOX', (1, 0), (1, 2), 1, colors.HexColor(COLORS['border'])),
+                ('BOX', (0, 3), (0, 5), 1, colors.HexColor(COLORS['border'])),
+                ('BOX', (1, 3), (1, 5), 1, colors.HexColor(COLORS['border'])),
+                
+                # Background for headers - Dark gray with WHITE TEXT
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_darker'])),
+                ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor(COLORS['gray_darker'])),
+                
+                # Text colors - White for header rows
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('TEXTCOLOR', (0, 3), (-1, 3), colors.white),
+                
+                # Padding
+                ('PADDING', (0, 0), (-1, -1), 6),
+                ('TOPPADDING', (0, 1), (-1, 1), 4),
+                ('BOTTOMPADDING', (0, 1), (-1, 1), 2),
+                ('TOPPADDING', (0, 4), (-1, 4), 4),
+                ('BOTTOMPADDING', (0, 4), (-1, 4), 2),
+                
+                # Alignment
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            
+            story.append(kpi_table)
+            story.append(Spacer(1, 0.6*cm))
+            
+            # ============================
+            # SECTION 2: EXECUTIVE SUMMARY INSIGHTS
+            # ============================
+            
+            story.append(Paragraph(f"<b>{uppercase_text('EXECUTIVE SUMMARY')}</b>", 
+                        ParagraphStyle('SectionCenter', parent=section_style, fontSize=13, alignment=1)))
+            story.append(Spacer(1, 0.2*cm))
+            
+            insights_content = []
+            
+            if total_registered > 0:
+                total_attendees = Attendee.objects.filter(event=event).count()
+                applications_count = Application.objects.filter(event=event).count()
+                
+                # Create bullet point insights in UPPERCASE
+                if total_attendees > 0:
+                    registration_rate = (total_registered / total_attendees * 100)
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('REGISTRATION RATE')}:</b> {registration_rate:.1f}% {uppercase_text('OF TOTAL ATTENDEES')} ({total_registered} {uppercase_text('OF')} {total_attendees})", 
+                                 table_cell_style)
+                    ])
+                
+                if applications_count > 0:
+                    application_conversion = (total_registered / applications_count * 100)
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('APPLICATION CONVERSION')}:</b> {application_conversion:.1f}% ({total_registered} {uppercase_text('REGISTRATIONS FROM')} {applications_count} {uppercase_text('APPLICATIONS')})", 
+                                 table_cell_style)
+                    ])
+                
+                # Payment status breakdown
+                insights_content.append([
+                    Paragraph(f"• <b>{uppercase_text('PAYMENT STATUS BREAKDOWN')}:</b> {total_completed} {uppercase_text('COMPLETED')} ({payment_completion_rate:.1f}%) • {total_partial} {uppercase_text('PARTIAL')} • {total_pending} {uppercase_text('PENDING')}", 
+                             table_cell_style)
+                ])
+                
+                # Revenue composition insight (enhanced)
+                insights_content.append([
+                    Paragraph(f"• <b>{uppercase_text('REVENUE COMPOSITION')}:</b> {uppercase_text('PRE-REGISTRATION')}: {pre_reg_percentage:.1f}% (RM {total_pre_registration_fee:,.2f}) • {uppercase_text('REGISTRATION')}: {reg_percentage:.1f}% (RM {total_registration_fee:,.2f})", 
+                             table_cell_style)
+                ])
+                
+                # Payment type statistics (updated for 3 types)
+                if payment_type_counts:
+                    payment_insights = []
+                    for payment_type, count in payment_type_counts.items():
+                        percentage = (count / total_registered * 100) if total_registered > 0 else 0
+                        revenue = payment_type_revenue.get(payment_type, 0)
+                        
+                        payment_type_name = get_payment_type_display(payment_type)
+                        payment_insights.append(f"{payment_type_name}: {count} ({percentage:.1f}%)")
+                    
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('PAYMENT METHODS')}:</b> {', '.join(payment_insights[:3])}", 
+                                 table_cell_style)
+                    ])
+                
+                # Peak registration day insight - FIXED DATE FORMATTING
+                if peak_day:
+                    peak_day_date, peak_day_data = peak_day
+                    peak_percentage = (peak_day_data['count'] / total_registered * 100) if total_registered > 0 else 0
+                    
+                    # Format date safely
+                    if hasattr(peak_day_date, 'strftime'):
+                        formatted_date = peak_day_date.strftime('%d %b %Y')
+                    else:
+                        formatted_date = str(peak_day_date)
+                    
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('PEAK REGISTRATION DAY')}:</b> {formatted_date} {uppercase_text('WITH')} {peak_day_data['count']} {uppercase_text('REGISTRATIONS')} ({peak_percentage:.1f}%) {uppercase_text('GENERATING')} RM {peak_day_data['revenue']:,.2f}", 
+                                 table_cell_style)
+                    ])
+                
+                # Top performer insight
+                if all_closers and len(all_closers) > 0:
+                    top_closer = all_closers[0]
+                    top_closer_name = uppercase_text(top_closer.get('closer', 'UNKNOWN') or 'UNKNOWN')
+                    top_closer_count = top_closer.get('attendee_count', 0)
+                    top_closer_revenue = top_closer.get('total_payment', 0) or 0
+                    
+                    if len(top_closer_name) > 25:
+                        top_closer_name = top_closer_name[:23] + "..."
+                    
+                    closer_percentage = (top_closer_count / total_registered * 100) if total_registered > 0 else 0
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('TOP PERFORMER')}:</b> {top_closer_name} {uppercase_text('ACHIEVED')} {top_closer_count} {uppercase_text('REGISTRATIONS')} ({closer_percentage:.1f}%) {uppercase_text('GENERATING')} RM {top_closer_revenue:,.2f}", 
+                                 table_cell_style)
+                    ])
+                
+                # Top course insight
+                if all_courses and len(all_courses) > 0:
+                    top_course = all_courses[0]
+                    top_course_name = uppercase_text(top_course.get('course', 'UNKNOWN') or 'UNKNOWN')
+                    top_course_count = top_course.get('count', 0)
+                    
+                    if len(top_course_name) > 25:
+                        top_course_name = top_course_name[:23] + "..."
+                    
+                    course_percentage = (top_course_count / total_registered * 100) if total_registered > 0 else 0
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('MOST POPULAR COURSE')}:</b> {top_course_name} {uppercase_text('WITH')} {top_course_count} {uppercase_text('REGISTRATIONS')} ({course_percentage:.1f}% {uppercase_text('SHARE')})", 
+                                 table_cell_style)
+                    ])
+            else:
+                insights_content.append([
+                    Paragraph(f"• {uppercase_text('NO REGISTRATIONS RECORDED FOR THIS EVENT')}", table_cell_style)
                 ])
             
-            # Add total row
-            total_closer_reg = sum(item['count'] for item in closer_data)
-            total_pre_reg = sum(item['pre_reg_fee_total'] for item in closer_data)
-            total_reg_fee = sum(item['reg_fee_total'] for item in closer_data)
-            total_all_fees = sum(item['total_fee'] for item in closer_data)
+            insights_table = Table(insights_content, colWidths=[18*cm])
+            insights_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(COLORS['gray_ultralight'])),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('PADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 0), (-1, -1), 15),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor(COLORS['gray_darker'])),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor(COLORS['gray_medium'])),
+            ]))
             
-            closers_table_data.append([
-                '',
-                to_uppercase('TOTAL'),
-                str(total_closer_reg),
-                f"{total_pre_reg:,.2f}",
-                f"{total_reg_fee:,.2f}",
-                f"{total_all_fees:,.2f}",
-                f"{(total_closer_reg/total_registered*100) if total_registered > 0 else 0:.1f}%"
+            story.append(insights_table)
+            story.append(Spacer(1, 0.4*cm))
+            
+            # ============================
+            # NEW SECTION: PAYMENT ANALYSIS
+            # ============================
+            
+            if payment_type_counts:
+                story.append(Paragraph(f"<b>{uppercase_text('PAYMENT METHOD ANALYSIS')}</b>", 
+                            ParagraphStyle('SectionCenter', parent=section_style, fontSize=13, alignment=1)))
+                story.append(Spacer(1, 0.2*cm))
+                
+                # Create payment analysis table with updated payment types
+                payment_data = []
+                
+                # Headers
+                payment_data.append([
+                    Paragraph(f'<b>{uppercase_text("PAYMENT METHOD")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("TRANSACTIONS")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("% SHARE")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("REVENUE (RM)")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("AVG. PER TXN (RM)")}</b>', table_header_style),
+                ])
+                
+                # Data rows - process all payment types
+                payment_types_to_show = []
+                
+                # Add specific payment types in order
+                for pt in ['CASH', 'ONLINE_BANKING', 'QR_PAYMENT']:
+                    if pt in payment_type_counts:
+                        payment_types_to_show.append(pt)
+                
+                # Add any other payment types
+                for payment_type in payment_type_counts.keys():
+                    if payment_type not in payment_types_to_show:
+                        payment_types_to_show.append(payment_type)
+                
+                # Now create rows
+                for payment_type in payment_types_to_show:
+                    count = payment_type_counts.get(payment_type, 0)
+                    revenue = payment_type_revenue.get(payment_type, 0)
+                    percentage = (count / total_registered * 100) if total_registered > 0 else 0
+                    avg_per_txn = revenue / count if count > 0 else 0
+                    
+                    payment_type_name = get_payment_type_display(payment_type)
+                    if len(payment_type_name) > 25:
+                        payment_type_name = payment_type_name[:23] + "..."
+                    
+                    payment_data.append([
+                        Paragraph(payment_type_name, table_cell_style),
+                        Paragraph(str(count), table_cell_center),
+                        Paragraph(f"{percentage:.1f}%", table_cell_center),
+                        Paragraph(f"{revenue:,.2f}", table_cell_right),
+                        Paragraph(f"{avg_per_txn:,.2f}", table_cell_right),
+                    ])
+                
+                # Summary row
+                summary_white_style = ParagraphStyle(
+                    'SummaryWhite',
+                    parent=table_cell_style,
+                    fontSize=9,
+                    fontName='Helvetica-Bold',
+                    textColor=colors.white,
+                    alignment=1
+                )
+                
+                summary_white_right = ParagraphStyle(
+                    'SummaryWhiteRight',
+                    parent=table_cell_style,
+                    fontSize=9,
+                    fontName='Helvetica-Bold',
+                    textColor=colors.white,
+                    alignment=2
+                )
+                
+                payment_data.append([
+                    Paragraph(f'<b>{uppercase_text("TOTAL")}</b>', summary_white_style),
+                    Paragraph(f'<b>{total_registered}</b>', summary_white_style),
+                    Paragraph(f'<b>100%</b>', summary_white_style),
+                    Paragraph(f'<b>{total_revenue:,.2f}</b>', summary_white_right),
+                    Paragraph(f'<b>{avg_revenue_per_reg:,.2f}</b>', summary_white_right),
+                ])
+                
+                payment_table = Table(payment_data, colWidths=[5*cm, 3*cm, 3*cm, 4*cm, 4*cm], repeatRows=1)
+                
+                payment_table.setStyle(TableStyle([
+                    # Header - Dark gray background
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_darker'])),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 9),
+                    ('PADDING', (0, 0), (-1, 0), 6),
+                    ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    
+                    # Body
+                    ('FONTSIZE', (0, 1), (-1, -2), 8.5),
+                    ('PADDING', (0, 1), (-1, -2), 5),
+                    ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
+                    
+                    # Grid lines
+                    ('GRID', (0, 0), (-1, -2), 0.5, colors.HexColor(COLORS['gray_medium'])),
+                    ('LINEBELOW', (0, -2), (-1, -2), 1, colors.HexColor(COLORS['gray_darker'])),
+                    
+                    # Column alignments
+                    ('ALIGN', (1, 1), (2, -1), 'CENTER'),
+                    ('ALIGN', (3, 1), (-1, -1), 'RIGHT'),
+                    
+                    # Alternating rows
+                    ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
+                     [colors.white, colors.HexColor(COLORS['gray_light'])]),
+                    
+                    # Total row
+                    ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_darker'])),
+                    ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
+                    ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, -1), (-1, -1), 9),
+                    ('PADDING', (0, -1), (-1, -1), 5),
+                ]))
+                
+                story.append(payment_table)
+                story.append(Spacer(1, 0.3*cm))
+            
+            # Add Payment Status Analysis Section
+            story.append(Paragraph(f"<b>{uppercase_text('PAYMENT STATUS ANALYSIS')}</b>", 
+                        ParagraphStyle('SectionCenter', parent=section_style, fontSize=13, alignment=1)))
+            story.append(Spacer(1, 0.2*cm))
+            
+            # Payment status analysis table
+            payment_status_data = []
+            
+            # Headers
+            payment_status_data.append([
+                Paragraph(f'<b>{uppercase_text("PAYMENT STATUS")}</b>', table_header_style),
+                Paragraph(f'<b>{uppercase_text("REGISTRATIONS")}</b>', table_header_style),
+                Paragraph(f'<b>{uppercase_text("% SHARE")}</b>', table_header_style),
+                Paragraph(f'<b>{uppercase_text("REVENUE (RM)")}</b>', table_header_style),
+                Paragraph(f'<b>{uppercase_text("AVG. PER REG (RM)")}</b>', table_header_style),
             ])
             
-            # Column widths - adjust for new columns
-            closers_table = Table(closers_table_data, colWidths=[
-                1.5*cm,  # RANK
-                6.0*cm,  # CLOSER (wider)
-                3.0*cm,  # REGISTRATIONS MADE
-                3.0*cm,  # PRE-REG FEE
-                3.0*cm,  # REG FEE
-                3.0*cm,  # TOTAL
-                2.5*cm   # PERCENTAGE
+            # Status data in order: COMPLETED, PARTIAL, PENDING
+            status_order = ['DONE', 'PARTIAL', 'PENDING']
+            status_display = {
+                'DONE': 'COMPLETED',
+                'PARTIAL': 'PARTIALLY PAID',
+                'PENDING': 'PENDING'
+            }
+            
+            for status_code in status_order:
+                count = 0
+                revenue = Decimal('0.00')
+                
+                if status_code == 'DONE':
+                    count = total_completed
+                    revenue = payment_status_revenue.get('DONE', Decimal('0.00'))
+                elif status_code == 'PARTIAL':
+                    count = total_partial
+                    revenue = payment_status_revenue.get('PARTIAL', Decimal('0.00'))
+                elif status_code == 'PENDING':
+                    count = total_pending
+                    revenue = payment_status_revenue.get('PENDING', Decimal('0.00'))
+                
+                percentage = (count / total_registered * 100) if total_registered > 0 else 0
+                avg_per_reg = revenue / count if count > 0 else 0
+                
+                # Choose style based on status
+                if status_code == 'DONE':
+                    status_cell_style = status_completed_style
+                elif status_code == 'PARTIAL':
+                    status_cell_style = status_partial_style
+                else:
+                    status_cell_style = status_pending_style
+                
+                payment_status_data.append([
+                    Paragraph(uppercase_text(status_display[status_code]), status_cell_style),
+                    Paragraph(str(count), table_cell_center),
+                    Paragraph(f"{percentage:.1f}%", table_cell_center),
+                    Paragraph(f"{revenue:,.2f}", table_cell_right),
+                    Paragraph(f"{avg_per_reg:,.2f}", table_cell_right),
+                ])
+            
+            # Summary row
+            payment_status_data.append([
+                Paragraph(f'<b>{uppercase_text("TOTAL")}</b>', summary_white_style),
+                Paragraph(f'<b>{total_registered}</b>', summary_white_style),
+                Paragraph(f'<b>100%</b>', summary_white_style),
+                Paragraph(f'<b>{total_revenue:,.2f}</b>', summary_white_right),
+                Paragraph(f'<b>{avg_revenue_per_reg:,.2f}</b>', summary_white_right),
             ])
             
-            closers_table.setStyle(TableStyle([
-                # Header
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
+            payment_status_table = Table(payment_status_data, colWidths=[5*cm, 3*cm, 3*cm, 4*cm, 4*cm], repeatRows=1)
+            
+            payment_status_table.setStyle(TableStyle([
+                # Header - Dark gray background
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_darker'])),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('PADDING', (0, 0), (-1, 0), 8),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('PADDING', (0, 0), (-1, 0), 6),
+                ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                 
                 # Body
-                ('FONTSIZE', (0, 1), (-1, -2), 9),
-                ('PADDING', (0, 1), (-1, -2), 6),
-                ('GRID', (0, 0), (-1, -2), 0.5, colors.HexColor(COLORS['gray_300'])),
+                ('FONTSIZE', (0, 1), (-1, -2), 8.5),
+                ('PADDING', (0, 1), (-1, -2), 5),
+                ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
+                
+                # Grid lines
+                ('GRID', (0, 0), (-1, -2), 0.5, colors.HexColor(COLORS['gray_medium'])),
+                ('LINEBELOW', (0, -2), (-1, -2), 1, colors.HexColor(COLORS['gray_darker'])),
                 
                 # Column alignments
-                ('ALIGN', (0, 1), (0, -2), 'CENTER'),   # Rank
-                ('ALIGN', (2, 1), (2, -2), 'CENTER'),   # Registrations
-                ('ALIGN', (3, 1), (5, -2), 'RIGHT'),    # Fee columns
-                ('ALIGN', (6, 1), (6, -2), 'CENTER'),   # Percentage
-                ('ALIGN', (1, 1), (1, -2), 'LEFT'),     # Closer name
+                ('ALIGN', (1, 1), (2, -1), 'CENTER'),
+                ('ALIGN', (3, 1), (-1, -1), 'RIGHT'),
                 
                 # Alternating rows
                 ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
-                 [colors.white, colors.HexColor(COLORS['gray_50'])]),
+                 [colors.white, colors.HexColor(COLORS['gray_light'])]),
                 
                 # Total row
-                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_200'])),
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_darker'])),
+                ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
                 ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, -1), (-1, -1), 9),
-                ('PADDING', (0, -1), (-1, -1), 6),
-                ('LINEABOVE', (0, -1), (-1, -1), 1, colors.HexColor(COLORS['black'])),
-                ('ALIGN', (2, -1), (2, -1), 'CENTER'),   # Total registrations
-                ('ALIGN', (3, -1), (5, -1), 'RIGHT'),    # Total fees
-                ('ALIGN', (6, -1), (6, -1), 'CENTER'),   # Total percentage
-                
-                # Remove grid for total row
-                ('GRID', (0, -1), (-1, -1), 0, colors.white),
+                ('PADDING', (0, -1), (-1, -1), 5),
             ]))
             
-            story.append(closers_table)
-            story.append(Spacer(1, 0.5*cm))
-        else:
-            story.append(Paragraph(to_uppercase("NO CLOSER DATA AVAILABLE"), 
-                                 ParagraphStyle('NoData', parent=styles['Normal'], 
-                                              fontSize=10, alignment=1, 
-                                              textColor=colors.HexColor(COLORS['gray_500']))))
-            story.append(Spacer(1, 0.5*cm))
-        
-        # ============================
-        # SECTION 3: COURSES ANALYSIS (ALL COURSES)
-        # ============================
-        
-        if course_data and len(course_data) > 0:
-            story.append(Paragraph(to_uppercase("COURSES ANALYSIS"), section_style))
+            story.append(payment_status_table)
+            story.append(Spacer(1, 0.3*cm))
             
-            # Create courses table with all columns
-            courses_table_data = [[
-                to_uppercase('RANK'),
-                to_uppercase('COURSE'),
-                to_uppercase('REGISTRATIONS'),
-                to_uppercase('PRE-REG FEE'),
-                to_uppercase('REG FEE'),
-                to_uppercase('TOTAL'),
-                to_uppercase('PERCENTAGE')
-            ]]
+            # Footer for page 1
+            story.append(Paragraph(
+                f"{uppercase_text('PAGE 1 OF 3')} | {uppercase_text('REPORT ID')}: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')} | {uppercase_text('GENERATED BY ATTSYS')}",
+                footer_style
+            ))
             
-            for idx, item in enumerate(course_data, 1):
-                percentage = (item['count'] / total_registered * 100) if total_registered > 0 else 0
-                courses_table_data.append([
-                    str(idx),
-                    to_uppercase(item['label'][:40] + ('...' if len(item['label']) > 40 else '')),
-                    str(item['count']),
-                    f"{item['pre_reg_fee_total']:,.2f}",
-                    f"{item['reg_fee_total']:,.2f}",
-                    f"{item['total_fee']:,.2f}",
-                    f"{percentage:.1f}%"
+            # ============================
+            # PAGE BREAK
+            # ============================
+            story.append(PageBreak())
+            
+            # ============================
+            # PAGE 2: CLOSER PERFORMANCE ANALYSIS
+            # ============================
+            
+            story.append(Paragraph(f"{uppercase_text('PERFORMANCE ANALYSIS BY CLOSER')}", title_style))
+            story.append(Paragraph(
+                f"{uppercase_text('EVENT')}: {uppercase_text(event.title)} | {uppercase_text('TOTAL CLOSERS')}: {len(all_closers) if all_closers else 0}", 
+                subtitle_style
+            ))
+            story.append(Spacer(1, 0.5*cm))
+            
+            if all_closers and len(all_closers) > 0:
+                story.append(Paragraph(f"<b>{uppercase_text('CLOSER PERFORMANCE RANKING')}</b>", 
+                            ParagraphStyle('SectionCenter', parent=section_style, fontSize=13, alignment=1)))
+                story.append(Spacer(1, 0.3*cm))
+                
+                # Create ALL closers table with payment status breakdown
+                closers_data = []
+                
+                # Headers in UPPERCASE
+                closers_data.append([
+                    Paragraph(f'<b>{uppercase_text("RANK")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("CLOSER NAME")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("TOTAL")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("COMPLETED")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("PARTIAL")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("PENDING")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("TOTAL REVENUE (RM)")}</b>', table_header_style),
                 ])
-            
-            # Add total row
-            total_course_reg = sum(item['count'] for item in course_data)
-            total_pre_reg = sum(item['pre_reg_fee_total'] for item in course_data)
-            total_reg_fee = sum(item['reg_fee_total'] for item in course_data)
-            total_all_fees = sum(item['total_fee'] for item in course_data)
-            
-            courses_table_data.append([
-                '',
-                to_uppercase('TOTAL'),
-                str(total_course_reg),
-                f"{total_pre_reg:,.2f}",
-                f"{total_reg_fee:,.2f}",
-                f"{total_all_fees:,.2f}",
-                f"{(total_course_reg/total_registered*100) if total_registered > 0 else 0:.1f}%"
-            ])
-            
-            # Column widths
-            courses_table = Table(courses_table_data, colWidths=[
-                1.5*cm,  # RANK
-                7.0*cm,  # COURSE (wider)
-                3.0*cm,  # REGISTRATIONS
-                3.0*cm,  # PRE-REG FEE
-                3.0*cm,  # REG FEE
-                3.0*cm,  # TOTAL
-                2.5*cm   # PERCENTAGE
-            ])
-            
-            courses_table.setStyle(TableStyle([
-                # Header
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('PADDING', (0, 0), (-1, 0), 8),
-                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                 
-                # Body
-                ('FONTSIZE', (0, 1), (-1, -2), 9),
-                ('PADDING', (0, 1), (-1, -2), 6),
-                ('GRID', (0, 0), (-1, -2), 0.5, colors.HexColor(COLORS['gray_300'])),
+                # Data rows for ALL closers
+                for i, closer in enumerate(all_closers, 1):
+                    closer_name = uppercase_text(closer.get('closer', 'UNKNOWN') or 'UNKNOWN')
+                    if len(closer_name) > 25:
+                        closer_name = closer_name[:23] + "..."
+                    
+                    closer_count = closer.get('attendee_count', 0)
+                    closer_completed = closer.get('completed_count', 0) or 0
+                    closer_partial = closer.get('partial_count', 0) or 0
+                    closer_pending = closer.get('pending_count', 0) or 0
+                    closer_revenue = closer.get('total_payment', 0) or 0
+                    
+                    closers_data.append([
+                        Paragraph(str(i), table_cell_center),
+                        Paragraph(closer_name, table_cell_style),
+                        Paragraph(str(closer_count), table_cell_center),
+                        Paragraph(str(closer_completed), table_cell_center),
+                        Paragraph(str(closer_partial), table_cell_center),
+                        Paragraph(str(closer_pending), table_cell_center),
+                        Paragraph(f"{closer_revenue:,.2f}", table_cell_right),
+                    ])
                 
-                # Column alignments
-                ('ALIGN', (0, 1), (0, -2), 'CENTER'),   # Rank
-                ('ALIGN', (2, 1), (2, -2), 'CENTER'),   # Registrations
-                ('ALIGN', (3, 1), (5, -2), 'RIGHT'),    # Fee columns
-                ('ALIGN', (6, 1), (6, -2), 'CENTER'),   # Percentage
-                ('ALIGN', (1, 1), (1, -2), 'LEFT'),     # Course name
+                # Add summary row
+                summary_white_style = ParagraphStyle(
+                    'SummaryWhite',
+                    parent=table_cell_style,
+                    fontSize=9,
+                    fontName='Helvetica-Bold',
+                    textColor=colors.white,
+                    alignment=1
+                )
                 
-                # Alternating rows
-                ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
-                 [colors.white, colors.HexColor(COLORS['gray_50'])]),
+                summary_white_right = ParagraphStyle(
+                    'SummaryWhiteRight',
+                    parent=table_cell_style,
+                    fontSize=9,
+                    fontName='Helvetica-Bold',
+                    textColor=colors.white,
+                    alignment=2
+                )
                 
-                # Total row
-                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_200'])),
-                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, -1), (-1, -1), 9),
-                ('PADDING', (0, -1), (-1, -1), 6),
-                ('LINEABOVE', (0, -1), (-1, -1), 1, colors.HexColor(COLORS['black'])),
-                ('ALIGN', (2, -1), (2, -1), 'CENTER'),   # Total registrations
-                ('ALIGN', (3, -1), (5, -1), 'RIGHT'),    # Total fees
-                ('ALIGN', (6, -1), (6, -1), 'CENTER'),   # Total percentage
+                closers_data.append([
+                    Paragraph(f'<b>{uppercase_text("TOTAL")}</b>', summary_white_style),
+                    '',
+                    Paragraph(f'<b>{total_registered}</b>', summary_white_style),
+                    Paragraph(f'<b>{total_completed}</b>', summary_white_style),
+                    Paragraph(f'<b>{total_partial}</b>', summary_white_style),
+                    Paragraph(f'<b>{total_pending}</b>', summary_white_style),
+                    Paragraph(f'<b>{total_revenue:,.2f}</b>', summary_white_right),
+                ])
                 
-                # Remove grid for total row
-                ('GRID', (0, -1), (-1, -1), 0, colors.white),
-            ]))
+                # Column widths
+                closers_col_widths = [1.5*cm, 5.5*cm, 1.5*cm, 1.5*cm, 1.5*cm, 1.5*cm, 3.0*cm]
+                
+                closers_table = Table(closers_data, colWidths=closers_col_widths, repeatRows=1)
+                
+                # Styling
+                closers_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_darker'])),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 9),
+                    ('PADDING', (0, 0), (-1, 0), 6),
+                    ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor(COLORS['gray_dark'])),
+                    
+                    ('FONTSIZE', (0, 1), (-1, -2), 8.5),
+                    ('PADDING', (0, 1), (-1, -2), 5),
+                    ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
+                    
+                    ('GRID', (0, 0), (-1, -2), 0.5, colors.HexColor(COLORS['gray_medium'])),
+                    ('LINEBELOW', (0, -2), (-1, -2), 1, colors.HexColor(COLORS['gray_darker'])),
+                    
+                    ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+                    ('ALIGN', (2, 1), (5, -1), 'CENTER'),
+                    ('ALIGN', (6, 1), (-1, -1), 'RIGHT'),
+                    
+                    ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
+                     [colors.white, colors.HexColor(COLORS['gray_light'])]),
+                    
+                    ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_darker'])),
+                    ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
+                    ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, -1), (-1, -1), 9),
+                    ('PADDING', (0, -1), (-1, -1), 5),
+                    ('SPAN', (1, -1), (1, -1)),
+                    ('ALIGN', (0, -1), (-1, -1), 'CENTER'),
+                ]))
+                
+                story.append(closers_table)
+                story.append(Spacer(1, 0.5*cm))
+                
+                # Performance insights
+                if len(all_closers) > 1:
+                    story.append(Paragraph(f"<b>{uppercase_text('PERFORMANCE INSIGHTS')}</b>", 
+                                ParagraphStyle('SectionCenter', parent=section_style, fontSize=12, alignment=1)))
+                    story.append(Spacer(1, 0.2*cm))
+                    
+                    # Calculate top 3 performance
+                    top_performers = all_closers[:3]
+                    top_performers_count = sum(c.get('attendee_count', 0) for c in top_performers)
+                    top_performers_percentage = (top_performers_count / total_registered * 100) if total_registered > 0 else 0
+                    
+                    # Calculate completion rate for top performer
+                    top_closer = all_closers[0]
+                    top_closer_completed = top_closer.get('completed_count', 0) or 0
+                    top_closer_total = top_closer.get('attendee_count', 0) or 0
+                    top_closer_completion_rate = (top_closer_completed / top_closer_total * 100) if top_closer_total > 0 else 0
+                    
+                    insights_text = f"""
+                    • {uppercase_text('TOP 3 CLOSERS ACCOUNT FOR')} {top_performers_percentage:.1f}% {uppercase_text('OF ALL REGISTRATIONS')}
+                    • {uppercase_text('AVERAGE REGISTRATIONS PER CLOSER')}: {total_registered / len(all_closers):.1f}
+                    • {len([c for c in all_closers if c.get('attendee_count', 0) > 0])} {uppercase_text('ACTIVE CLOSERS OUT OF')} {len(all_closers)} {uppercase_text('TOTAL')}
+                    • {uppercase_text('TOP CLOSER COMPLETION RATE')}: {top_closer_completion_rate:.1f}% ({top_closer_completed} {uppercase_text('OF')} {top_closer_total})
+                    """
+                    
+                    story.append(Paragraph(insights_text, 
+                                ParagraphStyle('InsightText', parent=styles['Normal'], fontSize=10, 
+                                              textColor=colors.HexColor(COLORS['gray_charcoal']),
+                                              spaceAfter=0.2*cm)))
+                    
+            else:
+                story.append(Paragraph(f"{uppercase_text('NO CLOSER PERFORMANCE DATA AVAILABLE')}", 
+                            ParagraphStyle('NoData', parent=section_style, fontSize=12, alignment=1)))
             
-            story.append(courses_table)
+            # Footer for page 2
+            story.append(Spacer(1, 0.3*cm))
+            story.append(Paragraph(
+                f"{uppercase_text('PAGE 2 OF 3')} | {uppercase_text('REPORT ID')}: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')}",
+                footer_style
+            ))
+            
+            # ============================
+            # PAGE BREAK
+            # ============================
+            story.append(PageBreak())
+            
+            # ============================
+            # PAGE 3: DETAILED REGISTRATIONS REGISTER
+            # ============================
+            
+            story.append(Paragraph(f"{uppercase_text('REGISTRATION DETAILS REGISTER')}", title_style))
+            story.append(Paragraph(
+                f"{uppercase_text('EVENT')}: {uppercase_text(event.title)} | {uppercase_text('TOTAL REGISTRATIONS')}: {total_registered}", 
+                subtitle_style
+            ))
             story.append(Spacer(1, 0.5*cm))
-        else:
-            story.append(Paragraph(to_uppercase("NO COURSE DATA AVAILABLE"), 
-                                 ParagraphStyle('NoData', parent=styles['Normal'], 
-                                              fontSize=10, alignment=1, 
-                                              textColor=colors.HexColor(COLORS['gray_500']))))
-            story.append(Spacer(1, 0.5*cm))
-        
-        # ============================
-        # PAGE BREAK (to Page 3)
-        # ============================
-        story.append(PageBreak())
-        
-        # ============================
-        # PAGE 3: DETAILED REGISTRATION LIST
-        # ============================
-        
-        # Header for Page 3
-        story.append(Spacer(1, 0.5*cm))
-        story.append(Paragraph(to_uppercase("DETAILED REGISTRATION LIST"), title_style))
-        story.append(Paragraph(
-            to_uppercase(f"Event: {event.title} | Total: {total_registered} registration(s)"), 
-            subtitle_style
-        ))
-        story.append(Spacer(1, 0.5*cm))
-        
-        if total_registered > 0:
-            # Create detailed registration table with ALL requested columns
+            
+            # Column widths - UPDATED FOR PAYMENT TYPE AND STATUS
+            headers = [
+                (uppercase_text('NO.'), 1.2*cm),
+                (uppercase_text('ATTENDEE NAME'), 3.5*cm),
+                (uppercase_text('EMAIL'), 3.0*cm),
+                (uppercase_text('REF. CODE'), 2.0*cm),
+                (uppercase_text('COURSE'), 2.5*cm),
+                (uppercase_text('PAYMENT TYPE'), 2.0*cm),
+                (uppercase_text('PAYMENT STATUS'), 2.0*cm),
+                (uppercase_text('PRE REG. (RM)'), 2.0*cm),
+                (uppercase_text('REG. (RM)'), 2.0*cm),
+                (uppercase_text('TOTAL (RM)'), 2.0*cm),
+                (uppercase_text('CLOSER'), 2.5*cm),
+            ]
+            
+            # Create table data
             table_data = []
             
-            # Headers (UPPERCASE) - EXACTLY like your image
-            headers = [
-                to_uppercase('NO'),
-                to_uppercase('NAME'),
-                to_uppercase('REFERRAL NO'),
-                to_uppercase('COURSE'),
-                to_uppercase('COLLEGE'),
-                to_uppercase('PRE-REG FEE'),
-                to_uppercase('REG FEE'),
-                to_uppercase('TOTAL'),
-                to_uppercase('STATUS'),
-                to_uppercase('CLOSER')
-            ]
+            # Headers
+            header_row = []
+            for header_text, width in headers:
+                header_row.append(Paragraph(f'<b>{header_text}</b>', table_header_style))
+            table_data.append(header_row)
             
-            # WIDER column widths for better readability
-            col_widths = [
-                1.2*cm,    # NO (increased)
-                4.0*cm,    # NAME (increased)
-                2.5*cm,    # REFERRAL NO (increased)
-                3.5*cm,    # COURSE (increased)
-                3.0*cm,    # COLLEGE (increased)
-                2.5*cm,    # PRE-REG FEE (increased)
-                2.5*cm,    # REG FEE (increased)
-                2.5*cm,    # TOTAL (increased)
-                3.0*cm,    # PAYMENT STATUS (increased)
-                3.0*cm     # CLOSER (increased)
-            ]
-            
-            table_data.append(headers)
-            
-            # Registration rows (sorted by date, then name)
+            # Registration rows
             sorted_registrations = registrations.order_by('-register_date', 'attendee__name')
             for i, reg in enumerate(sorted_registrations, 1):
-                # Get attendee name (UPPERCASE and truncate if needed)
-                attendee_name = to_uppercase(reg.attendee.name)
-                if len(attendee_name) > 30:
-                    attendee_name = attendee_name[:28] + "..."
+                # Get inviting officer
+                inviting_officer = email_to_inviting_officer.get(
+                    reg.attendee.email.lower(), uppercase_text('N/A')
+                )
                 
-                # Get referral number (UPPERCASE)
-                referral_no = to_uppercase(reg.referral_number or '')
-                if len(referral_no) > 15:
-                    referral_no = referral_no[:13] + "..."
+                # Truncate long text and convert to UPPERCASE
+                attendee_name = uppercase_text(reg.attendee.name)
+                if len(attendee_name) > 25:
+                    attendee_name = attendee_name[:23] + "..."
                 
-                # Get course (UPPERCASE and truncate)
-                course = to_uppercase(reg.course or 'N/A')
-                if len(course) > 30:
-                    course = course[:28] + "..."
+                email = (reg.attendee.email)
+                if len(email) > 25:
+                    email = email[:23] + "..."
                 
-                # Get college (UPPERCASE and truncate)
-                college = to_uppercase(reg.college or 'N/A')
-                if len(college) > 25:
-                    college = college[:23] + "..."
+                officer = uppercase_text(inviting_officer)
+                if len(officer) > 15:
+                    officer = officer[:13] + "..."
                 
-                # Format fees (pre-registration fee)
+                course = uppercase_text(reg.course or 'N/A')
+                if len(course) > 20:
+                    course = course[:18] + "..."
+                
+                closer = uppercase_text(reg.closer or 'N/A')
+                if len(closer) > 15:
+                    closer = closer[:13] + "..."
+                
+                # Payment Type
+                payment_type = get_payment_type_display(reg.payment_type)
+                if len(payment_type) > 15:
+                    payment_type = payment_type[:13] + "..."
+                
+                # Payment Status - Use correct style
+                payment_status = get_payment_status_display(reg.payment_status)
+                
+                # Choose status style based on payment status
+                if reg.payment_status == 'DONE':
+                    status_cell = Paragraph(payment_status, status_completed_style)
+                elif reg.payment_status == 'PARTIAL':
+                    status_cell = Paragraph(payment_status, status_partial_style)
+                else:  # PENDING
+                    status_cell = Paragraph(payment_status, status_pending_style)
+                
+                # Format fees
                 pre_reg_fee = reg.pre_registration_fee or Decimal('0.00')
-                pre_reg_str = f"{pre_reg_fee:,.2f}" if pre_reg_fee > 0 else "-"
-                
-                # Format fees (registration fee)
                 reg_fee = reg.registration_fee or Decimal('0.00')
-                reg_str = f"{reg_fee:,.2f}" if reg_fee > 0 else "-"
-                
-                # Calculate total
                 total_fee = pre_reg_fee + reg_fee
-                total_str = f"{total_fee:,.2f}" if total_fee > 0 else "-"
                 
-                # Get payment status (UPPERCASE)
-                payment_status = to_uppercase(reg.get_payment_status_display())
-                
-                # Get closer (UPPERCASE and truncate)
-                closer = to_uppercase(reg.closer or 'N/A')
-                if len(closer) > 20:
-                    closer = closer[:18] + "..."
-                
-                # Build row with all columns
+                # Build row
                 row = [
-                    str(i),
-                    attendee_name,
-                    referral_no,
-                    course,
-                    college,
-                    pre_reg_str,
-                    reg_str,
-                    total_str,
-                    payment_status,
-                    closer
+                    Paragraph(str(i), table_cell_center),
+                    Paragraph(attendee_name, table_cell_style),
+                    Paragraph(email, table_cell_style),
+                    Paragraph(officer, table_cell_style),
+                    Paragraph(course, table_cell_style),
+                    Paragraph(payment_type, table_cell_center),
+                    status_cell,
+                    Paragraph(f"{pre_reg_fee:,.2f}", table_cell_right),
+                    Paragraph(f"{reg_fee:,.2f}", table_cell_right),
+                    Paragraph(f"{total_fee:,.2f}", table_cell_right),
+                    Paragraph(closer, table_cell_style),
                 ]
                 
                 table_data.append(row)
             
-            # Add total row for fees - SIMPLIFIED like your image
-            total_pre_reg = sum(r.pre_registration_fee or Decimal('0.00') for r in sorted_registrations)
-            total_reg_fee = sum(r.registration_fee or Decimal('0.00') for r in sorted_registrations)
+            # Financial summary row
+            financial_summary_white_style = ParagraphStyle(
+                'FinancialSummaryWhite',
+                parent=table_cell_style,
+                fontSize=9,
+                fontName='Helvetica-Bold',
+                textColor=colors.white,
+                alignment=0
+            )
             
-            # Calculate totals for each payment status
-            done_count = registrations.filter(payment_status='DONE').count()
-            partial_count = registrations.filter(payment_status='PARTIAL').count()
-            pending_count = registrations.filter(payment_status='PENDING').count()
+            financial_summary_white_center = ParagraphStyle(
+                'FinancialSummaryWhiteCenter',
+                parent=table_cell_style,
+                fontSize=9,
+                fontName='Helvetica-Bold',
+                textColor=colors.white,
+                alignment=1
+            )
             
-            # Create summary line like your image
+            financial_summary_white_right = ParagraphStyle(
+                'FinancialSummaryWhiteRight',
+                parent=table_cell_style,
+                fontSize=9,
+                fontName='Helvetica-Bold',
+                textColor=colors.white,
+                alignment=2
+            )
+            
             summary_row = [
-                '', 
-                '', 
-                '', 
-                '', 
-                'TOTAL:',
-                f"RM {total_pre_reg:,.2f}",
-                f"RM {total_reg_fee:,.2f}",
-                f"RM {total_revenue:,.2f}",
-                ''
+                Paragraph(f'<b>{uppercase_text("FINANCIAL SUMMARY")}</b>', financial_summary_white_style),
+                '', '', '',
+                Paragraph(f'<b>{uppercase_text("TOTAL")}:</b>', financial_summary_white_center),
+                '', '',
+                Paragraph(f'<b>{total_pre_registration_fee:,.2f}</b>', financial_summary_white_right),
+                Paragraph(f'<b>{total_registration_fee:,.2f}</b>', financial_summary_white_right),
+                Paragraph(f'<b>{total_revenue:,.2f}</b>', financial_summary_white_right),
+                '',
             ]
             
             table_data.append(summary_row)
+            
+            # Extract column widths
+            col_widths = [width for _, width in headers]
             
             # Create table
             table = Table(table_data, colWidths=col_widths, repeatRows=1)
             
             # Apply styling
             table.setStyle(TableStyle([
-                # Header - Black background
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['black'])),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_darker'])),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),  # Increased font
-                ('PADDING', (0, 0), (-1, 0), 8),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('PADDING', (0, 0), (-1, 0), 6),
                 ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor(COLORS['gray_dark'])),
                 
-                # Body
-                ('FONTSIZE', (0, 1), (-1, -2), 9),  # Increased font
-                ('PADDING', (0, 1), (-1, -2), 6),   # Increased padding
+                ('FONTSIZE', (0, 1), (-1, -2), 8.5),
+                ('PADDING', (0, 1), (-1, -2), 5),
                 ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
-                ('GRID', (0, 0), (-1, -2), 0.25, colors.HexColor(COLORS['gray_300'])),
+                ('GRID', (0, 0), (-1, -2), 0.5, colors.HexColor(COLORS['gray_medium'])),
                 
-                # Column alignments
-                ('ALIGN', (0, 1), (0, -2), 'CENTER'),      # No column
-                ('ALIGN', (5, 1), (7, -2), 'RIGHT'),       # Fee columns (5-7): Pre-reg, Reg, Total
-                ('ALIGN', (8, 1), (8, -2), 'CENTER'),      # Payment Status column
-                ('ALIGN', (2, 1), (4, -2), 'LEFT'),        # Referral, Course, College columns
-                ('ALIGN', (1, 1), (1, -2), 'LEFT'),        # Name column
-                ('ALIGN', (9, 1), (9, -2), 'LEFT'),        # Closer column
-                
-                # Alternating rows
                 ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
-                 [colors.white, colors.HexColor(COLORS['gray_50'])]),
+                 [colors.white, colors.HexColor(COLORS['gray_light'])]),
                 
-                # Summary row - highlight
-                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_200'])),
+                ('ALIGN', (0, 1), (0, -2), 'CENTER'),
+                ('ALIGN', (5, 1), (6, -2), 'CENTER'),
+                ('ALIGN', (7, 1), (9, -2), 'RIGHT'),
+                ('ALIGN', (10, 1), (10, -2), 'LEFT'),
+                
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_darker'])),
+                ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
                 ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, -1), (-1, -1), 9),
-                ('PADDING', (0, -1), (-1, -1), 8),
-                ('LINEABOVE', (0, -1), (-1, -1), 1.5, colors.HexColor(COLORS['black'])),
-                ('ALIGN', (5, -1), (7, -1), 'RIGHT'),  # Align totals right
-                ('ALIGN', (8, -1), (8, -1), 'CENTER'), # Center payment summary
+                ('PADDING', (0, -1), (-1, -1), 5),
+                ('LINEABOVE', (0, -1), (-1, -1), 1.5, colors.HexColor(COLORS['gray_medium'])),
+                ('VALIGN', (0, -1), (-1, -1), 'MIDDLE'),
                 
-                # Remove grid for summary row
+                ('SPAN', (0, -1), (3, -1)),
+                ('SPAN', (4, -1), (6, -1)),
+                ('SPAN', (7, -1), (7, -1)),
+                ('SPAN', (8, -1), (8, -1)),
+                ('SPAN', (9, -1), (9, -1)),
+                
                 ('GRID', (0, -1), (-1, -1), 0, colors.white),
             ]))
             
             story.append(table)
+            story.append(Spacer(1, 0.5*cm))
             
-        else:
-            # No registrations message
-            story.append(Paragraph(to_uppercase("NO REGISTRATIONS FOUND FOR THIS EVENT."), 
-                                 ParagraphStyle('NoData', parent=styles['Normal'], 
-                                              fontSize=12, alignment=1, 
-                                              textColor=colors.HexColor(COLORS['gray_500']))))
-        
-        # Footer for Page 3
-        story.append(Spacer(1, 0.5*cm))
-        story.append(Paragraph(
-            to_uppercase(f"REPORT ID: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')} | © ATTSYS DASHBOARD"),
-            footer_style
-        ))
-        
-        # ============================
-        # BUILD PDF DOCUMENT
-        # ============================
-        # Use landscape A4 for more horizontal space
-        doc = SimpleDocTemplate(
-            buffer, 
-            pagesize=landscape(A4),
-            rightMargin=1.0*cm,    # Reduced margins
-            leftMargin=1.0*cm,     # Reduced margins
-            topMargin=1.5*cm,
-            bottomMargin=1.5*cm,
-        )
-        
-        # Build the story
-        doc.build(story)
-        buffer.seek(0)
-        
-        # Create response
-        response = HttpResponse(buffer, content_type='application/pdf')
-        filename = f"REGISTRATION_REPORT_{to_uppercase(event.title.replace(' ', '_')[:30])}_{malaysia_now().strftime('%Y%m%d')}.PDF"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        
-        return response
-        
+            # Payment Legend
+            legend_data = [
+                [
+                    Paragraph('<b>PAYMENT TYPE LEGEND</b>', ParagraphStyle('LegendHeader', parent=table_header_style, fontSize=8)),
+                    Paragraph('<b>PAYMENT STATUS LEGEND</b>', ParagraphStyle('LegendHeader', parent=table_header_style, fontSize=8)),
+                ],
+                [
+                    Paragraph('• <font color="#1976d2">CASH</font> - Cash Payment', 
+                             ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
+                    Paragraph('• <font color="#388e3c">COMPLETED</font> - Fully Paid', 
+                             ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
+                ],
+                [
+                    Paragraph('• <font color="#0097a7">ONLINE BANKING</font> - Online Transfer', 
+                             ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
+                    Paragraph('• <font color="#fbc02d">PARTIALLY PAID</font> - Partial Payment', 
+                             ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
+                ],
+                [
+                    Paragraph('• <font color="#7b1fa2">QR PAYMENT</font> - QR Code Payment', 
+                             ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
+                    Paragraph('• <font color="#d32f2f">PENDING</font> - Payment Pending', 
+                             ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
+                ],
+            ]
+            
+            legend_table = Table(legend_data, colWidths=[9*cm, 9*cm])
+            legend_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_light'])),
+                ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor(COLORS['gray_medium'])),
+                ('PADDING', (0, 0), (-1, -1), 4),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            
+            story.append(legend_table)
+            story.append(Spacer(1, 0.3*cm))
+            
+            # Final footer
+            disclaimer = Paragraph(
+                f"""<b>{uppercase_text("OFFICIAL REPORT - CONFIDENTIAL")}</b><br/>
+                {uppercase_text("REPORT ID")}: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')} | 
+                {uppercase_text("GENERATED BY ATTSYS DASHBOARD")} | 
+                {uppercase_text("PAGE 3 OF 3")} | 
+                {malaysia_now().strftime('%d/%m/%Y %H:%M')}<br/>
+                <i>{uppercase_text("THIS DOCUMENT CONTAINS CONFIDENTIAL INFORMATION AND IS INTENDED FOR OFFICIAL USE ONLY")}.</i>""",
+                ParagraphStyle('FinalFooter', parent=footer_style, fontSize=8, textColor=colors.HexColor(COLORS['gray_dark'])))
+            
+            story.append(disclaimer)
+            
+            # ============================
+            # BUILD PDF DOCUMENT
+            # ============================
+            doc = SimpleDocTemplate(
+                buffer, 
+                pagesize=landscape(A4),
+                rightMargin=2.5*cm,
+                leftMargin=2.5*cm,
+                topMargin=2.0*cm,
+                bottomMargin=1.5*cm,
+                title=f"Registration Report - {event.title}",
+                author="ATTSYS Dashboard",
+                subject="Registration Analysis",
+                creator="ATTSYS Professional Reporting System"
+            )
+            
+            # Build the story
+            doc.build(story)
+            buffer.seek(0)
+            
+            # Create response
+            response = HttpResponse(buffer, content_type='application/pdf')
+            filename = f"REGISTRATION_REPORT_{event.title.replace(' ', '_')[:50]}_{malaysia_now().strftime('%Y%m%d_%H%M')}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            return response
+            
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"PDF generation error: {str(e)}")
+            print(f"Error details: {error_details}")
+            
+            # Return simple error PDF
+            buffer = io.BytesIO()
+            c = canvas.Canvas(buffer, pagesize=landscape(A4))
+            
+            c.setFont("Helvetica-Bold", 16)
+            c.drawString(50, 400, uppercase_text("Registration Report"))
+            
+            c.setFont("Helvetica", 12)
+            c.drawString(50, 370, f"{uppercase_text('Event')}: {uppercase_text(event.title)}")
+            c.drawString(50, 350, f"{uppercase_text('Total Registrations')}: {total_registered}")
+            c.drawString(50, 330, f"{uppercase_text('Total Revenue')}: RM {total_revenue:,.2f}")
+            c.drawString(50, 310, f"{uppercase_text('Generated')}: {malaysia_now().strftime('%d/%m/%Y %H:%M')}")
+            
+            # Show payment status summary
+            c.drawString(50, 280, f"{uppercase_text('Completed')}: {total_completed}")
+            c.drawString(50, 260, f"{uppercase_text('Partially Paid')}: {total_partial}")
+            c.drawString(50, 240, f"{uppercase_text('Pending')}: {total_pending}")
+            
+            c.save()
+            buffer.seek(0)
+            
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="SIMPLE_REPORT_{event.id}.pdf"'
+            return response
+            
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        print(f"PDF generation error: {str(e)}")
+        print(f"Overall PDF generation error: {str(e)}")
         print(f"Error details: {error_details}")
         
-        # Return error message
         return HttpResponse(
-            to_uppercase(f"ERROR GENERATING PDF REPORT. DETAILS: {str(e)[:200]}"),
+            f"{uppercase_text('Error generating PDF:')} {str(e)[:200]}",
             status=500,
             content_type='text/plain'
         )
@@ -2571,7 +3283,7 @@ def export_comprehensive_report(request, event_id):
                         'Applied Programme': applied_programme,
                         'Has Registration': has_registration,
                         'Course': course,
-                        'Status': payment_status
+                        'Payment Status': payment_status
                     })
                 
                 attendees_df = pd.DataFrame(attendees_data)
@@ -2609,7 +3321,7 @@ def export_comprehensive_report(request, event_id):
                         'Pre-Reg Fee (RM)': float(reg.pre_registration_fee or 0),
                         'Reg Fee (RM)': float(reg.registration_fee or 0),
                         'Total Fee (RM)': float(reg.total_fee()),
-                        'Status': reg.get_payment_status_display(),
+                        'Payment Status': reg.get_payment_status_display(),
                         'Closer': reg.closer,
                         'Referral Number': reg.referral_number or '',
                         'Remarks': reg.remark or ''
@@ -2894,7 +3606,6 @@ def get_printable_attendee_details(request, attendee_id):
                     'phone': format_print_value(application.mother_phone, 'phone'),
                     'occupation': format_print_value(application.mother_occupation),
                     'income': format_print_value(application.mother_income, 'money'),
-                    'dependants': format_print_value(application.mother_dependants),
                 },
                 'application_info': {
                     'inviting_officer': format_print_value(application.registration_officer),
