@@ -2790,18 +2790,20 @@
             second: '2-digit'
         });
         
-        // Get attended with choices
+        // Get attended with choices - Handle case-insensitive comparison
+        const attendedWith = (app.attended_with || '').toUpperCase();
         const attendedWithChoices = {
-            'PARENT': app.attended_with === 'PARENT',
-            'GUARDIAN': app.attended_with === 'GUARDIAN',
+            'PARENT': attendedWith.includes('PARENT'),
+            'GUARDIAN': attendedWith.includes('GUARDIAN'),
         };
         
-        // Determine programme checkbox
+        // Determine programme checkbox - Handle case-insensitive comparison
+        const appliedProgramme = (app.applied_programme || '').toUpperCase();
         const programmeCheckboxes = {
-            'DIPLOMA': app.applied_programme === 'DIPLOMA',
-            'PRA_DIPLOMA': app.applied_programme === 'PRA_DIPLOMA',
-            'TVET': app.applied_programme === 'TVET',
-            'SMART_TAHFIZ': app.applied_programme === 'SMART_TAHFIZ',
+            'DIPLOMA': appliedProgramme.includes('DIPLOMA'),
+            'PRA_DIPLOMA': appliedProgramme.includes('PRA_DIPLOMA') || appliedProgramme.includes('PRA-DIPLOMA'),
+            'TVET': appliedProgramme.includes('TVET'),
+            'SMART_TAHFIZ': appliedProgramme.includes('SMART') || appliedProgramme.includes('TAHFIZ'),
         };
         
         return `
