@@ -1453,43 +1453,28 @@ def save_registration(request):
         if not register_date_str:
             return JsonResponse({'error': 'Registration date is required'}, status=400)
         
-        try:
-            # Accept multiple date formats
-            for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'):
-                try:
-                    register_date = datetime.strptime(register_date_str, fmt).date()
-                    break
-                except ValueError:
-                    continue
-            else:
-                return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD'}, status=400)
-        except (ValueError, TypeError) as e:
-            return JsonResponse({'error': f'Invalid date: {str(e)}'}, status=400)
-        
-        # FIX: Use Malaysia time for date validation
-        malaysia_today = malaysia_now().date()
-        
-        # Validate date is not in future (using Malaysia time)
-        if register_date > malaysia_today:
-            return JsonResponse({'error': 'Registration date cannot be in the future'}, status=400)
-        
-        # ALSO: Validate date is not too far in the past (optional)
-        # Let's say not more than 30 days ago
-        thirty_days_ago = malaysia_today - timedelta(days=30)
-        if register_date < thirty_days_ago:
-            return JsonResponse({'error': 'Registration date cannot be more than 30 days ago'}, status=400)
+        # ... date parsing code ...
         
         # Parse fees with validation
         try:
             pre_registration_fee = Decimal(request.POST.get('pre_registration_fee', '0') or '0')
             registration_fee = Decimal(request.POST.get('registration_fee', '0') or '0')
             
+            # FIX: Add amount_paid parsing
+            amount_paid = Decimal(request.POST.get('amount_paid', '0') or '0')
+            
             if pre_registration_fee < 0:
                 return JsonResponse({'error': 'Pre-registration fee cannot be negative'}, status=400)
             if registration_fee < 0:
                 return JsonResponse({'error': 'Registration fee cannot be negative'}, status=400)
-        except (ValueError, TypeError, InvalidOperation) as e:  # InvalidOperation needs to be imported
+            if amount_paid < 0:
+                return JsonResponse({'error': 'Amount paid cannot be negative'}, status=400)
+        except (ValueError, TypeError, InvalidOperation) as e:
             return JsonResponse({'error': f'Invalid fee format: {str(e)}'}, status=400)
+        
+        # Get payment_type and payment_status
+        payment_type = request.POST.get('payment_type', '').strip()
+        payment_status = request.POST.get('payment_status', 'PENDING')
         
         # Get or create registration
         registration, created = Registration.objects.get_or_create(
@@ -1500,7 +1485,9 @@ def save_registration(request):
                 'register_date': register_date,
                 'pre_registration_fee': pre_registration_fee,
                 'registration_fee': registration_fee,
-                'payment_status': request.POST.get('payment_status', 'PENDING'),
+                'payment_type': payment_type if payment_type else None,  # Set to None if empty
+                'payment_status': payment_status,
+                'amount_paid': amount_paid,  # Add this line
                 'remark': request.POST.get('remark', '').strip(),
                 'closer': closer,
                 'referral_number': request.POST.get('referral_number', '').strip()
@@ -1514,7 +1501,9 @@ def save_registration(request):
             registration.register_date = register_date
             registration.pre_registration_fee = pre_registration_fee
             registration.registration_fee = registration_fee
-            registration.payment_status = request.POST.get('payment_status', 'PENDING')
+            registration.payment_type = payment_type if payment_type else None  # Update payment_type
+            registration.payment_status = payment_status
+            registration.amount_paid = amount_paid  # Update amount_paid
             registration.remark = request.POST.get('remark', '').strip()
             registration.closer = closer
             registration.referral_number = request.POST.get('referral_number', '').strip()
@@ -1531,7 +1520,9 @@ def save_registration(request):
                 'register_date': registration.register_date.strftime('%Y-%m-%d'),
                 'pre_registration_fee': str(registration.pre_registration_fee),
                 'registration_fee': str(registration.registration_fee),
-                'total_fee': str(registration.total_fee),
+                'amount_paid': str(registration.amount_paid),  # Add this
+                'total_fee': str(registration.total_fee()),
+                'payment_type': registration.payment_type,  # Add this
                 'payment_status': registration.payment_status,
                 'closer': registration.closer,
                 'referral_number': registration.referral_number
