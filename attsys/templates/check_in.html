@@ -1061,7 +1061,7 @@
                         </div>
                         <div>
                             <h3 class="section-title">1. Applicant Information</h3>
-                            <p class="section-subtitle">Personal details of the applicant</p>
+                            <p class="section-subtitle">Referral, programme selection and attendance details</p>
                         </div>
                     </div>
 
@@ -1072,6 +1072,15 @@
                                 placeholder="Referral number" 
                                 name="registration_officer" required
                                 value="{% if form_data.registration_officer %}{{ form_data.registration_officer }}{% endif %}">
+                        </div>
+
+                        <div class="field-group">
+                            <label class="form-label required">Attended With</label>
+                            <select class="form-select" name="attended_with" required>
+                                <option value="">-- Select --</option>
+                                <option value="PARENT" {% if form_data.attended_with == 'PARENT' %}selected{% endif %}>With Parent(s)</option>
+                                <option value="GUARDIAN" {% if form_data.attended_with == 'GUARDIAN' %}selected{% endif %}>With Guardian</option>
+                            </select>
                         </div>
 
                         <div class="field-group">
@@ -1111,25 +1120,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="field-group">
-                            <label class="form-label required">Full Name (as per IC)</label>
-                            <input type="text" class="form-control" 
-                                   placeholder="Enter full name as per IC" 
-                                   name="full_name" required
-                                   value="{% if form_data.full_name %}{{ form_data.full_name }}{% endif %}">
-                        </div>
-
-                        <div class="field-group">
-                            <label class="form-label">SPM Total Credit</label>
-                            <div class="spm-input-group">
-                                <input type="number" class="form-control spm-input" 
-                                       placeholder="e.g., 12" 
-                                       name="spm_total_credit" 
-                                       min="0" max="100" 
-                                       value="{% if form_data.spm_total_credit %}{{ form_data.spm_total_credit }}{% else %}0{% endif %}">
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -1141,17 +1131,37 @@
                         </div>
                         <div>
                             <h3 class="section-title">2. Personal Details</h3>
-                            <p class="section-subtitle">Identification and contact information</p>
+                            <p class="section-subtitle">Personal identification</p>
                         </div>
                     </div>
 
                     <div class="form-grid">
+                        <div class="field-group">
+                            <label class="form-label required">Full Name (as per IC)</label>
+                            <input type="text" class="form-control" 
+                                   placeholder="Enter full name as per IC" 
+                                   name="full_name" required
+                                   value="{% if form_data.full_name %}{{ form_data.full_name }}{% endif %}">
+                        </div>
+
                         <div class="field-group">
                             <label class="form-label required">IC / Passport No.</label>
                             <input type="text" class="form-control" 
                                    placeholder="e.g. 900101-01-1234" 
                                    name="ic_no" required
                                    value="{% if form_data.ic_no %}{{ form_data.ic_no }}{% endif %}">
+                        </div>
+
+                        <div class="field-group">
+                            <label class="form-label">SPM Total Credit</label>
+                            <div class="spm-input-group">
+                                <input type="number" class="form-control spm-input" 
+                                       placeholder="e.g., 12" 
+                                       name="spm_total_credit" 
+                                       min="0" max="100" 
+                                       value="{% if form_data.spm_total_credit %}{{ form_data.spm_total_credit }}{% else %}0{% endif %}">
+                            </div>
+                            <span class="optional-note">Optional</span>
                         </div>
 
                         <div class="field-group">
@@ -1303,7 +1313,6 @@
                                    placeholder="e.g. 5000.00" 
                                    name="father_income"
                                    value="{% if form_data.father_income %}{{ form_data.father_income }}{% endif %}">
-                            <span class="optional-note">Optional</span>
                         </div>
 
                         <div class="field-group">
@@ -1312,7 +1321,6 @@
                                    placeholder="0" min="0" 
                                    name="father_dependants" 
                                    value="{% if form_data.father_dependants %}{{ form_data.father_dependants }}{% else %}0{% endif %}">
-                            <span class="optional-note">Optional</span>
                         </div>
                     </div>
                 </div>
@@ -1368,17 +1376,9 @@
                                    placeholder="e.g. 4000.00" 
                                    name="mother_income"
                                    value="{% if form_data.mother_income %}{{ form_data.mother_income }}{% endif %}">
-                            <span class="optional-note">Optional</span>
                         </div>
 
-                        <div class="field-group">
-                            <label class="form-label">Number of Dependants</label>
-                            <input type="number" class="form-control" 
-                                   placeholder="0" min="0" 
-                                   name="mother_dependants" 
-                                   value="{% if form_data.mother_dependants %}{{ form_data.mother_dependants }}{% else %}0{% endif %}">
-                            <span class="optional-note">Optional</span>
-                        </div>
+                        <!-- Removed Number of Dependants field from Mother's Information -->
                     </div>
                 </div>
 
@@ -1846,8 +1846,8 @@
                     }
                 }
                 
-                // Dependants validation
-                else if ((field.name === 'father_dependants' || field.name === 'mother_dependants') && value !== '') {
+                // Dependants validation (only for father now)
+                else if (field.name === 'father_dependants' && value !== '') {
                     const depsValue = parseInt(value);
                     if (isNaN(depsValue) || depsValue < 0) {
                         isValid = false;
@@ -1905,6 +1905,38 @@
                 }
                 
                 return true;
+            }
+            
+            // Validate select field (specifically for attended_with)
+            function validateSelectField(fieldName) {
+                const selectField = form.querySelector(`select[name="${fieldName}"]`);
+                if (!selectField) return true;
+                
+                const value = selectField.value.trim();
+                let isValid = true;
+                
+                // Clear existing error
+                selectField.classList.remove('is-invalid');
+                const existingError = selectField.nextElementSibling;
+                if (existingError && existingError.classList.contains('validation-message')) {
+                    existingError.remove();
+                }
+                
+                // Check if required field is empty
+                if (selectField.hasAttribute('required') && !value) {
+                    isValid = false;
+                    selectField.classList.add('is-invalid');
+                    
+                    const errorElement = document.createElement('small');
+                    errorElement.className = 'validation-message';
+                    errorElement.textContent = 'Please select an option';
+                    errorElement.style.display = 'block';
+                    errorElement.style.marginTop = '0.5rem';
+                    errorElement.style.color = '#dc3545';
+                    selectField.parentNode.appendChild(errorElement);
+                }
+                
+                return isValid;
             }
             
             // Show error message
@@ -1998,6 +2030,15 @@
                     if (!firstInvalidField) {
                         const radioGroup = form.querySelectorAll('input[name="applied_programme"]');
                         firstInvalidField = radioGroup[0];
+                    }
+                }
+                
+                // Validate select fields
+                const attendedWithValid = validateSelectField('attended_with');
+                if (!attendedWithValid) {
+                    isValid = false;
+                    if (!firstInvalidField) {
+                        firstInvalidField = form.querySelector('select[name="attended_with"]');
                     }
                 }
                 
@@ -2138,7 +2179,7 @@
                             });
                             
                             // INSTANT REDIRECT TO SUCCESS PAGE
-                            window.location.href = '/success/';
+                            window.location.href = '/attsys/success/';
                         } else {
                             throw new Error(`HTTP error! status: ${response.status}`);
                         }

@@ -92,11 +92,11 @@ class Event(models.Model):
     def __str__(self):
         return f"{self.title} ({self.date})"
     
-    def get_state_for_display(self):  # Renamed from get_state_display
+    def get_state_for_display(self):
         """Get the state for display purposes"""
         if self.state == 'OTHER' and self.custom_state:
             return self.custom_state
-        return self.get_state_display()  # Use Django's built-in method
+        return self.get_state_display()
     
     def get_full_location(self):
         """Get complete location string"""
@@ -110,9 +110,6 @@ class Event(models.Model):
         super().save(*args, **kwargs)
 
 
-# ==============================
-# SIMPLE ATTENDANCE (QR CHECK-IN)
-# ==============================
 class Attendee(models.Model):
     event = models.ForeignKey(
         Event,
@@ -186,25 +183,40 @@ class Attendee(models.Model):
             return hasattr(self, 'registration') and self.registration is not None
         except Registration.DoesNotExist:
             return False
+    
+    def get_ic_number(self):
+        """Get IC number from application if exists"""
+        try:
+            application = self.event.applications.get(email__iexact=self.email)
+            return application.ic_no
+        except Application.DoesNotExist:
+            return None
 
 
-# ==================================
-# FULL APPLICATION FORM (UPKB STYLE)
-# ==================================
 class Application(models.Model):
     PROGRAMME_CHOICES = (
         ('DIPLOMA', 'Diploma'),
         ('PRA_DIPLOMA', 'Pra-Diploma'),
         ('TVET', 'TVET'),
         ('SMART_TAHFIZ', 'Smart Tahfiz'),
-        ('OTHER', 'Other Programme'),
     )
 
     MARRIAGE_STATUS = (
         ('SINGLE', 'Single'),
         ('MARRIED', 'Married'),
         ('DIVORCED', 'Divorced'),
-        ('WIDOWED', 'Widowed'),
+    )
+
+    ATTENDED_WITH_CHOICES = (
+        ('PARENT', 'With Parent(s)'),
+        ('GUARDIAN', 'With Guardian'),
+    )
+
+    attended_with = models.CharField(
+        max_length=20,
+        choices=ATTENDED_WITH_CHOICES,
+        default='PARENT',
+        verbose_name="Attended With"
     )
 
     event = models.ForeignKey(
@@ -234,7 +246,6 @@ class Application(models.Model):
     full_name = models.CharField(max_length=150)
 
     address1 = models.TextField(verbose_name="Address Line 1")
-    address2 = models.TextField(blank=True, verbose_name="Address Line 2 (Optional)")
     city = models.CharField(max_length=100)
     postcode = models.CharField(max_length=10)
     state = models.CharField(max_length=100)
@@ -273,7 +284,6 @@ class Application(models.Model):
     mother_phone = models.CharField(max_length=15, verbose_name="Mother's Phone Number")
     mother_occupation = models.CharField(max_length=150, blank=True, verbose_name="Mother's Occupation")
     mother_income = models.CharField(max_length=50, blank=True, verbose_name="Mother's Monthly Income (RM)")
-    mother_dependants = models.PositiveSmallIntegerField(default=0, verbose_name="Number of Dependants")
     
     # Mother additional info
     mother_employer = models.CharField(max_length=200, blank=True, verbose_name="Mother's Employer")
@@ -538,25 +548,21 @@ class Feedback(models.Model):
         """Check if feedback is negative (1-2 stars)"""
         return self.rating <= 2
 
+
 class Registration(models.Model):
+    # UPDATED Payment Status Choices
     PAYMENT_STATUS_CHOICES = (
         ('PENDING', 'Pending'),
-        ('PAID_PARTIAL', 'Paid Partial'),
-        ('PAID_FULL', 'Paid Full'),
-        ('OVERPAID', 'Overpaid'),
-        ('REFUNDED', 'Refunded'),
-        ('CANCELLED', 'Cancelled'),
+        ('PARTIAL', 'Partially Paid'),
         ('DONE', 'Completed'),
+        ('CANCELLED', 'Cancelled'),
     )
     
-    PAYMENT_METHOD_CHOICES = (
+    # NEW Payment Type Choices
+    PAYMENT_TYPE_CHOICES = (
         ('CASH', 'Cash'),
-        ('BANK_TRANSFER', 'Bank Transfer'),
-        ('CHEQUE', 'Cheque'),
-        ('CREDIT_CARD', 'Credit Card'),
-        ('DEBIT_CARD', 'Debit Card'),
-        ('ONLINE', 'Online Payment'),
-        ('OTHER', 'Other'),
+        ('ONLINE_BANKING', 'Online Banking'),
+        ('QR_PAYMENT', 'QR Payment'),
     )
     
     attendee = models.OneToOneField(
@@ -635,11 +641,21 @@ class Registration(models.Model):
         verbose_name="Payment Status"
     )
     
-    payment_method = models.CharField(
+    # NEW: Payment Type field
+    payment_type = models.CharField(
         max_length=20,
-        choices=PAYMENT_METHOD_CHOICES,
+        choices=PAYMENT_TYPE_CHOICES,
         blank=True,
-        verbose_name="Payment Method"
+        null=True,
+        verbose_name="Payment Type"
+    )
+    
+    # NEW: Amount Paid field
+    amount_paid = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Amount Paid (RM)"
     )
     
     payment_reference = models.CharField(
@@ -728,6 +744,7 @@ class Registration(models.Model):
         indexes = [
             models.Index(fields=['attendee']),
             models.Index(fields=['payment_status']),
+            models.Index(fields=['payment_type']),
             models.Index(fields=['register_date']),
             models.Index(fields=['closer']),
         ]
@@ -736,12 +753,16 @@ class Registration(models.Model):
         return f"Registration #{self.id} - {self.attendee.name} - {self.course}"
     
     def save(self, *args, **kwargs):
+        # Auto-update payment date when payment is made
+        if self.amount_paid > 0 and not self.payment_date:
+            self.payment_date = date.today()
+        
         # Auto-set completed_at if payment status is DONE
         if self.payment_status == 'DONE' and not self.completed_at:
             self.completed_at = timezone.now()
         
         # Auto-verify if payment is completed
-        if self.payment_status in ['PAID_FULL', 'DONE', 'OVERPAID'] and not self.is_verified:
+        if self.payment_status == 'DONE' and not self.is_verified:
             self.is_verified = True
             if not self.verification_date:
                 self.verification_date = timezone.now()
@@ -766,27 +787,35 @@ class Registration(models.Model):
         return total - discount
     
     @property
-    def amount_paid(self):
-        """Calculate amount paid based on payment status"""
-        if self.payment_status == 'PAID_FULL':
-            return self.net_fee
-        elif self.payment_status == 'PAID_PARTIAL':
-            # For partial payments, you might want to add a field for amount_paid
-            return self.net_fee * Decimal('0.5')  # Assuming 50% paid
-        elif self.payment_status in ['DONE', 'OVERPAID']:
-            return self.net_fee
-        else:
-            return Decimal('0.00')
+    def balance_amount(self):
+        """Calculate balance amount"""
+        net_fee = self.net_fee
+        paid = self.amount_paid or Decimal('0.00')
+        return net_fee - paid
     
     @property
-    def balance_due(self):
-        """Calculate balance due"""
-        return self.net_fee - self.amount_paid
+    def payment_percentage(self):
+        """Calculate payment percentage"""
+        net_fee = self.net_fee
+        if net_fee > 0:
+            paid = self.amount_paid or Decimal('0.00')
+            return (paid / net_fee) * 100
+        return 0
     
     @property
     def is_fully_paid(self):
         """Check if registration is fully paid"""
-        return self.payment_status in ['PAID_FULL', 'DONE', 'OVERPAID']
+        return self.payment_status in ['DONE']
+    
+    @property
+    def is_partially_paid(self):
+        """Check if registration is partially paid"""
+        return self.payment_status == 'PARTIAL'
+    
+    @property
+    def is_pending_payment(self):
+        """Check if payment is pending"""
+        return self.payment_status == 'PENDING'
     
     @property
     def days_since_registration(self):
@@ -799,15 +828,47 @@ class Registration(models.Model):
     def get_payment_status_display_with_color(self):
         """Get payment status with CSS class for UI"""
         status_map = {
-            'PENDING': ('Pending', 'warning'),
-            'PAID_PARTIAL': ('Paid Partial', 'info'),
-            'PAID_FULL': ('Paid Full', 'success'),
-            'OVERPAID': ('Overpaid', 'success'),
-            'REFUNDED': ('Refunded', 'secondary'),
-            'CANCELLED': ('Cancelled', 'danger'),
+            'PENDING': ('Pending', 'danger'),
+            'PARTIAL': ('Partially Paid', 'warning'),
             'DONE': ('Completed', 'success'),
+            'CANCELLED': ('Cancelled', 'dark'),
         }
         return status_map.get(self.payment_status, (self.get_payment_status_display(), 'secondary'))
+    
+    def get_payment_type_display_with_color(self):
+        """Get payment type with CSS class for UI"""
+        type_map = {
+            'CASH': ('Cash', 'primary'),
+            'ONLINE_BANKING': ('Online Banking', 'info'),
+            'QR_PAYMENT': ('QR Payment', 'success'),
+        }
+        return type_map.get(self.payment_type, (self.get_payment_type_display() if self.payment_type else 'Not Specified', 'light'))
+    
+    def get_checkout_time(self):
+        """Get formatted checkout/update time"""
+        if self.updated_at:
+            return timezone.localtime(self.updated_at).strftime('%I:%M %p')
+        return None
+    
+    def get_checkout_date(self):
+        """Get formatted checkout/update date"""
+        if self.updated_at:
+            return timezone.localtime(self.updated_at).strftime('%b %d, %Y')
+        return None
+
+
+class PrintRecord(models.Model):
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='print_records')
+    form_number = models.CharField(max_length=50, unique=True)
+    printed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    printed_at = models.DateTimeField(auto_now_add=True)
+    print_count = models.IntegerField(default=1)
+    
+    class Meta:
+        ordering = ['-printed_at']
+    
+    def __str__(self):
+        return f"{self.form_number} - {self.application.full_name}"
 
 
 @receiver(post_save, sender=User)
@@ -830,17 +891,3 @@ def set_user_permissions(sender, instance, created, **kwargs):
                 is_staff=True,
                 is_superuser=False
             )
-
-
-class PrintRecord(models.Model):
-    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='print_records')
-    form_number = models.CharField(max_length=50, unique=True)
-    printed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    printed_at = models.DateTimeField(auto_now_add=True)
-    print_count = models.IntegerField(default=1)
-    
-    class Meta:
-        ordering = ['-printed_at']
-    
-    def __str__(self):
-        return f"{self.form_number} - {self.application.full_name}"
