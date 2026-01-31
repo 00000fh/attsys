@@ -1662,9 +1662,8 @@
                         <div class="attendee-header row fw-bold text-muted small border-bottom pb-2 mb-2">
                             <div class="col-md-2">Attendee Info</div>
                             <div class="col-md-2">Referral Number</div>
-                            <div class="col-md-1">Payment Type</div>
                             <div class="col-md-1">Payment Status</div>
-                            <div class="col-md-1">Amount</div>\
+                            <div class="col-md-1">Amount</div>
                         </div>
                     </div>
                     
@@ -1726,41 +1725,6 @@
                                         {% endwith %}
                                     {% else %}
                                         <span class="text-muted">—</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Programme & SPM -->
-                            <div class="col-md-2 col-12 mb-2 mb-md-0">
-                                <div id="programme-spm-{{ attendee.id }}">
-                                    {% if attendee.has_application %}
-                                        {% with app=attendee.application %}
-                                        <div class="small">
-                                            <!-- Programme Badge -->
-                                            {% if app.applied_programme == 'DIPLOMA' %}
-                                            <span class="badge badge-diploma status-badge">Diploma</span>
-                                            {% elif app.applied_programme == 'PRA_DIPLOMA' %}
-                                            <span class="badge badge-pra-diploma status-badge">Pra-Diploma</span>
-                                            {% elif app.applied_programme == 'TVET' %}
-                                            <span class="badge badge-tvet status-badge">TVET</span>
-                                            {% elif app.applied_programme == 'SMART_TAHFIZ' %}
-                                            <span class="badge badge-smart-tahfiz status-badge">Smart Tahfiz</span>
-                                            {% elif app.applied_programme == 'OTHER' %}
-                                            <span class="badge badge-other status-badge">Other</span>
-                                            {% else %}
-                                            <span class="badge bg-secondary status-badge">{{ app.applied_programme }}</span>
-                                            {% endif %}
-                                            
-                                            <!-- SPM Credits -->
-                                            {% if app.spm_total_credit and app.spm_total_credit > 0 %}
-                                            <div class="mt-1 small">
-                                                <i class="bi bi-award"></i> SPM: {{ app.spm_total_credit }} credits
-                                            </div>
-                                            {% endif %}
-                                        </div>
-                                        {% endwith %}
-                                    {% else %}
-                                        <span class="text-muted fst-italic">Not available</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -2237,6 +2201,52 @@
     const toastMessage = document.getElementById('toastMessage');
     
     // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function showToast(message, isError = false) {
+        const toastEl = document.getElementById('toast');
+        const toastMessageEl = document.getElementById('toastMessage');
+        
+        if (!toastEl || !toastMessageEl) {
+            console.error('Toast elements not found in DOM');
+            return;
+        }
+        
+        toastMessageEl.textContent = message;
+        toastEl.style.background = isError ? '#dc3545' : '#198754';
+        toastEl.classList.add('show');
+        
+        setTimeout(function() {
+            toastEl.classList.remove('show');
+        }, 3000);
+    }
+    
+    function getMaritalStatusBadge(status) {
+        if (!status) return '<span class="badge bg-secondary">-</span>';
+        
+        const statusLower = status.toLowerCase();
+        if (statusLower.includes('single')) {
+            return '<span class="badge badge-single status-badge">Single</span>';
+        } else if (statusLower.includes('married')) {
+            return '<span class="badge badge-married status-badge">Married</span>';
+        } else if (statusLower.includes('divorced')) {
+            return '<span class="badge badge-divorced status-badge">Divorced</span>';
+        } else if (statusLower.includes('widowed')) {
+            return '<span class="badge badge-widowed status-badge">Widowed</span>';
+        } else {
+            return `<span class="badge bg-secondary status-badge">${status}</span>`;
+        }
+    }
+    
+    // ============================================
     // CORE FUNCTIONS - COMPLETE VERSION
     // ============================================
     
@@ -2258,12 +2268,17 @@
         `;
         
         // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('attendeeModal'));
+        const modalElement = document.getElementById('attendeeModal');
+        if (!modalElement) {
+            console.error('Attendee modal element not found');
+            return;
+        }
+        const modal = new bootstrap.Modal(modalElement);
         modal.show();
         
         // Show/hide print button
         const printBtn = document.getElementById('printAttendeeBtn');
-        printBtn.style.display = 'none';
+        if (printBtn) printBtn.style.display = 'none';
         
         // Fetch data
         fetch(`/attsys/api/attendee/${attendeeId}/details/`)
@@ -2280,7 +2295,7 @@
                     modalBody.innerHTML = buildCompleteAttendeeDetailsHTML(data);
                     
                     // Show print button if application exists
-                    if (data.application) {
+                    if (printBtn && data.application) {
                         printBtn.style.display = 'inline-flex';
                     }
                 } else {
@@ -2342,9 +2357,8 @@
             </div>
         `;
         
-        // Application Details - COMPLETE with NEW fields
+        // Application Details
         if (application) {
-            // Determine attended with badge
             let attendedWithBadge = '';
             if (application.attended_with === 'PARENT') {
                 attendedWithBadge = '<span class="badge badge-parent status-badge">With Parent(s)</span>';
@@ -2354,7 +2368,6 @@
                 attendedWithBadge = `<span class="badge bg-secondary status-badge">${application.attended_with || '-'}</span>`;
             }
             
-            // Determine programme badge
             let programmeBadge = '';
             if (application.applied_programme === 'DIPLOMA') {
                 programmeBadge = '<span class="badge badge-diploma status-badge">Diploma</span>';
@@ -2374,21 +2387,16 @@
                 <div class="attendee-details-section">
                     <h6><i class="bi bi-file-earmark-text"></i> Application Details</h6>
                     <div class="detail-grid">
-                        <!-- Programme Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Programme Information</div>
                             <div class="detail-grid-content">
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Applied Programme:</span>
-                                    <span class="detail-grid-value">
-                                        ${programmeBadge}
-                                    </span>
+                                    <span class="detail-grid-value">${programmeBadge}</span>
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Attended With:</span>
-                                    <span class="detail-grid-value">
-                                        ${attendedWithBadge}
-                                    </span>
+                                    <span class="detail-grid-value">${attendedWithBadge}</span>
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">SPM Credits:</span>
@@ -2400,14 +2408,11 @@
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Marital Status:</span>
-                                    <span class="detail-grid-value">
-                                        ${getMaritalStatusBadge(application.marriage_status)}
-                                    </span>
+                                    <span class="detail-grid-value">${getMaritalStatusBadge(application.marriage_status)}</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Personal Details -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Personal Details</div>
                             <div class="detail-grid-content">
@@ -2430,7 +2435,6 @@
                             </div>
                         </div>
                         
-                        <!-- Address Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Address Details</div>
                             <div class="detail-grid-content">
@@ -2454,7 +2458,6 @@
                         </div>
                     </div>
                     
-                    <!-- Father's Information -->
                     <div class="detail-grid mt-3">
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Father's Information</div>
@@ -2486,7 +2489,6 @@
                             </div>
                         </div>
                         
-                        <!-- Mother's Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Mother's Information</div>
                             <div class="detail-grid-content">
@@ -2514,7 +2516,6 @@
                         </div>
                     </div>
                     
-                    <!-- Program Interest -->
                     <div class="mt-3">
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Programme Interest</div>
@@ -2550,9 +2551,8 @@
             `;
         }
         
-        // Registration Details - COMPLETE with NEW fields
+        // Registration Details
         if (registration) {
-            // Payment type badge
             let paymentTypeBadge = '';
             if (registration.payment_type === 'CASH') {
                 paymentTypeBadge = '<span class="badge badge-payment-cash status-badge">Cash</span>';
@@ -2568,7 +2568,6 @@
                 paymentTypeBadge = '<span class="badge bg-light text-muted">Not specified</span>';
             }
             
-            // Payment status badge
             let paymentStatusBadge = '';
             if (registration.payment_status === 'DONE') {
                 paymentStatusBadge = '<span class="badge badge-payment-done status-badge">Completed</span>';
@@ -2584,7 +2583,6 @@
                 <div class="attendee-details-section">
                     <h6><i class="bi bi-cash-coin"></i> Registration Details</h6>
                     <div class="detail-grid">
-                        <!-- Academic Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Academic Information</div>
                             <div class="detail-grid-content">
@@ -2603,21 +2601,16 @@
                             </div>
                         </div>
                         
-                        <!-- Payment Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Payment Information</div>
                             <div class="detail-grid-content">
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Payment Type:</span>
-                                    <span class="detail-grid-value">
-                                        ${paymentTypeBadge}
-                                    </span>
+                                    <span class="detail-grid-value">${paymentTypeBadge}</span>
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Payment Status:</span>
-                                    <span class="detail-grid-value">
-                                        ${paymentStatusBadge}
-                                    </span>
+                                    <span class="detail-grid-value">${paymentStatusBadge}</span>
                                 </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Amount Paid:</span>
@@ -2630,7 +2623,6 @@
                             </div>
                         </div>
                         
-                        <!-- Staff Information -->
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Staff Information</div>
                             <div class="detail-grid-content">
@@ -2654,7 +2646,6 @@
                         </div>
                     </div>
                     
-                    <!-- Fee Details -->
                     <div class="mt-3">
                         <div class="detail-grid-item">
                             <div class="detail-grid-title">Fee Breakdown</div>
@@ -2714,25 +2705,7 @@
         return html;
     }
     
-    // Helper function to get marital status badge
-    function getMaritalStatusBadge(status) {
-        if (!status) return '<span class="badge bg-secondary">-</span>';
-        
-        const statusLower = status.toLowerCase();
-        if (statusLower.includes('single')) {
-            return '<span class="badge badge-single status-badge">Single</span>';
-        } else if (statusLower.includes('married')) {
-            return '<span class="badge badge-married status-badge">Married</span>';
-        } else if (statusLower.includes('divorced')) {
-            return '<span class="badge badge-divorced status-badge">Divorced</span>';
-        } else if (statusLower.includes('widowed')) {
-            return '<span class="badge badge-widowed status-badge">Widowed</span>';
-        } else {
-            return `<span class="badge bg-secondary status-badge">${status}</span>`;
-        }
-    }
-    
-    // 2. PRINT ATTENDEE FORM - COMPLETE VERSION
+    // 2. PRINT ATTENDEE FORM
     window.printAttendeeForm = async function() {
         if (!currentAttendeeData || !currentAttendeeData.application) {
             showToast('No application data available to print', true);
@@ -2758,11 +2731,9 @@
     // 3. GENERATE UNIQUE FORM NUMBER
     async function generateUniqueFormNumber(application) {
         try {
-            // Get event state code
             const eventStateCode = "{{ event.state }}" || 'KUALA_LUMPUR';
-            
-            // Convert to abbreviation
             let stateAbbr = 'KUL';
+            
             switch(eventStateCode) {
                 case 'KUALA_LUMPUR': stateAbbr = 'KUL'; break;
                 case 'SELANGOR': stateAbbr = 'SEL'; break;
@@ -2783,10 +2754,7 @@
                 default: stateAbbr = eventStateCode.substring(0, 3);
             }
             
-            // Get event month
             const eventMonth = "{{ event.date|date:'m' }}" || '01';
-            
-            // Generate unique sequence
             const now = new Date();
             const timestamp = now.getTime();
             const sequence = timestamp % 1000000;
@@ -2804,6 +2772,8 @@
     }
     
     // 4. CREATE COMPLETE PRINTABLE FORM HTML - PROFESSIONAL GOVERNMENT STYLE (1 PAGE)
+    // Updated with dual language field labels (Bahasa Malaysia above English)
+    // Added print timestamp in header
     function createCompletePrintableFormHTML(app, formNumber) {
         function toUpperCase(value) {
             if (!value) return '';
@@ -4017,214 +3987,7 @@
     }
     
     // ============================================
-    // HELPER FUNCTIONS
-    // ============================================
-    
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    function showToast(message, isError = false) {
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toastMessage');
-        
-        if (!toast || !toastMessage) {
-            console.error('Toast elements not found in DOM');
-            return; // Exit if elements don't exist
-        }
-        
-        toastMessage.textContent = message;
-        toast.style.background = isError ? '#dc3545' : 'var(--success)';
-        toast.classList.add('show');
-        
-        setTimeout(function() {
-            toast.classList.remove('show');
-        }, 3000);
-    }
-    
-    // ============================================
-    // SEARCH AND FILTER FUNCTIONS
-    // ============================================
-    
-    // Debounce function for search
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-    
-    // Search attendees
-    const searchAttendees = debounce(function(searchTerm) {
-        const searchLower = searchTerm.toLowerCase().trim();
-        const attendees = document.querySelectorAll('.attendee-item');
-        let visibleCount = 0;
-        
-        if (!searchTerm) {
-            // Show all if search is empty
-            attendees.forEach(attendee => {
-                attendee.style.display = '';
-                visibleCount++;
-            });
-            document.getElementById('searchResultsInfo').classList.remove('show');
-            updateFilterButtons('all');
-            return;
-        }
-        
-        attendees.forEach(attendee => {
-            const attendeeId = attendee.getAttribute('data-attendee-id');
-            const attendeeName = attendee.querySelector('.attendee-name')?.textContent.toLowerCase() || '';
-            const attendeeEmail = attendee.querySelector('.attendee-contact')?.textContent.toLowerCase() || '';
-            const attendeePhone = attendee.querySelector('.attendee-contact')?.textContent.toLowerCase() || '';
-            
-            // Check if we need to get application data for IC search
-            let hasMatch = attendeeName.includes(searchLower) || 
-                           attendeeEmail.includes(searchLower) ||
-                           attendeePhone.includes(searchLower);
-            
-            // Search in inviting officer
-            const invitingOfficerDiv = document.getElementById(`inviting-officer-${attendeeId}`);
-            if (invitingOfficerDiv) {
-                const officerText = invitingOfficerDiv.textContent.toLowerCase();
-                if (officerText.includes(searchLower)) {
-                    hasMatch = true;
-                }
-            }
-            
-            // Search in registration info
-            const registrationInfo = document.getElementById(`registration-info-${attendeeId}`);
-            if (registrationInfo) {
-                const regText = registrationInfo.textContent.toLowerCase();
-                if (regText.includes(searchLower)) {
-                    hasMatch = true;
-                }
-            }
-            
-            // Search in payment type
-            const paymentTypeDiv = document.getElementById(`payment-type-${attendeeId}`);
-            if (paymentTypeDiv) {
-                const paymentTypeText = paymentTypeDiv.textContent.toLowerCase();
-                if (paymentTypeText.includes(searchLower)) {
-                    hasMatch = true;
-                }
-            }
-            
-            // Search in IC number from data attribute
-            const icNumber = attendee.getAttribute('data-ic-number');
-            if (icNumber && icNumber.toLowerCase().includes(searchLower)) {
-                hasMatch = true;
-            }
-            
-            if (hasMatch) {
-                attendee.style.display = '';
-                visibleCount++;
-            } else {
-                attendee.style.display = 'none';
-            }
-        });
-        
-        // Show search results info
-        const resultsInfo = document.getElementById('searchResultsInfo');
-        const resultsCount = document.getElementById('resultsCount');
-        const totalCount = document.getElementById('totalCount');
-        
-        if (searchTerm) {
-            resultsCount.textContent = visibleCount;
-            resultsInfo.classList.add('show');
-        } else {
-            resultsInfo.classList.remove('show');
-        }
-    }, 300);
-    
-    // Filter attendees by payment status
-    function filterAttendees(status) {
-        const attendees = document.querySelectorAll('.attendee-item');
-        let visibleCount = 0;
-        
-        attendees.forEach(attendee => {
-            const attendeeId = attendee.getAttribute('data-attendee-id');
-            const paymentStatusDiv = document.getElementById(`payment-status-${attendeeId}`);
-            
-            if (status === 'all') {
-                attendee.style.display = '';
-                visibleCount++;
-            } else if (paymentStatusDiv) {
-                const statusText = paymentStatusDiv.textContent.toLowerCase();
-                let shouldShow = false;
-                
-                switch(status) {
-                    case 'paid':
-                        shouldShow = statusText.includes('completed');
-                        break;
-                    case 'partial':
-                        shouldShow = statusText.includes('partial');
-                        break;
-                    case 'pending':
-                        shouldShow = statusText.includes('pending');
-                        break;
-                }
-                
-                if (shouldShow) {
-                    attendee.style.display = '';
-                    visibleCount++;
-                } else {
-                    attendee.style.display = 'none';
-                }
-            }
-        });
-        
-        // Update search box to reflect filter
-        const searchBox = document.getElementById('attendeeSearch');
-        if (searchBox) {
-            searchBox.value = '';
-        }
-        
-        // Update results info
-        const resultsInfo = document.getElementById('searchResultsInfo');
-        const resultsCount = document.getElementById('resultsCount');
-        const totalCount = document.getElementById('totalCount');
-        
-        resultsCount.textContent = visibleCount;
-        resultsInfo.classList.add('show');
-        
-        // Update filter buttons
-        updateFilterButtons(status);
-    }
-    
-    // Update filter button states
-    function updateFilterButtons(activeStatus) {
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        filterButtons.forEach(btn => {
-            btn.classList.remove('active', 'active-paid', 'active-partial', 'active-pending');
-            
-            if (btn.textContent.toLowerCase().includes(activeStatus)) {
-                btn.classList.add('active');
-                if (activeStatus === 'paid') btn.classList.add('active-paid');
-                if (activeStatus === 'partial') btn.classList.add('active-partial');
-                if (activeStatus === 'pending') btn.classList.add('active-pending');
-            }
-        });
-    }
-    
-    function clearSearch() {
-        const searchBox = document.getElementById('attendeeSearch');
-        if (searchBox) {
-            searchBox.value = '';
-            searchAttendees('');
-        }
-        filterAttendees('all');
-    }
-    
-    // ============================================
-    // UPDATED REGISTRATION FORM FUNCTIONS
+    // REGISTRATION FORM FUNCTIONS
     // ============================================
     
     window.openRegistrationModal = function(attendeeId) {
@@ -4233,36 +3996,28 @@
         currentAttendeeId = attendeeId;
         const modalElement = document.getElementById('registrationModal');
         
-        // Check if modal element exists
         if (!modalElement) {
-            console.error('❌ Registration modal element not found in DOM');
-            // Use alert as fallback
+            console.error('Registration modal element not found in DOM');
             alert('Registration form is not available. Please refresh the page.');
             return;
         }
         
-        // Check if Bootstrap is available
         if (typeof bootstrap === 'undefined') {
-            console.error('❌ Bootstrap is not loaded');
+            console.error('Bootstrap is not loaded');
             alert('Please refresh the page. System components not loaded properly.');
             return;
         }
         
         const modal = new bootstrap.Modal(modalElement);
         
-        // Reset form with null checks
+        // Reset form
         const form = document.getElementById('registrationForm');
         const attendeeIdField = document.getElementById('attendeeId');
         
-        if (form) {
-            form.reset();
-        }
+        if (form) form.reset();
+        if (attendeeIdField) attendeeIdField.value = attendeeId;
         
-        if (attendeeIdField) {
-            attendeeIdField.value = attendeeId;
-        }
-        
-        // Set default values with null checks
+        // Set default values
         const registerDateField = document.getElementById('register_date');
         const closerField = document.getElementById('closer');
         const checkoutAlert = document.getElementById('checkoutTimeAlert');
@@ -4275,35 +4030,28 @@
             closerField.value = "{{ request.user.get_full_name|default:request.user.username }}";
         }
         
-        if (checkoutAlert && checkoutAlert.classList) {
+        if (checkoutAlert) {
             checkoutAlert.classList.add('d-none');
         }
         
-        // Set modal title with null check
+        // Set modal title
         const modalTitle = document.getElementById('modalTitle');
         const saveBtnText = document.getElementById('saveBtnText');
         
-        if (modalTitle) {
-            modalTitle.textContent = 'Registration Form';
-        }
+        if (modalTitle) modalTitle.textContent = 'Registration Form';
+        if (saveBtnText) saveBtnText.textContent = 'Save Registration';
         
-        if (saveBtnText) {
-            saveBtnText.textContent = 'Save Registration';
-        }
-        
-        // Load attendee info with better error handling
+        // Load attendee info
         fetch(`/attsys/api/attendee/${attendeeId}/details/`)
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return response.json();
             })
             .then(data => {
                 if (data.attendee) {
                     const attendee = data.attendee;
                     
-                    // Update preview fields with null checks
+                    // Update preview fields
                     const previewName = document.getElementById('previewName');
                     const previewEmail = document.getElementById('previewEmail');
                     const previewPhone = document.getElementById('previewPhone');
@@ -4318,7 +4066,6 @@
                             `Checked in: ${attendee.attended_at_display} (${attendee.attended_date_display})`;
                     }
                     
-                    // Load inviting officer if available
                     if (data.application && data.application.registration_officer) {
                         if (previewInvitingOfficer) {
                             previewInvitingOfficer.textContent = 
@@ -4333,14 +4080,11 @@
                 }
             })
             .then(res => {
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}`);
-                }
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.json();
             })
             .then(regData => {
                 if (regData.registration) {
-                    // Update modal for existing registration
                     const modalTitle = document.getElementById('modalTitle');
                     const saveBtnText = document.getElementById('saveBtnText');
                     const alertDiv = document.getElementById('checkoutTimeAlert');
@@ -4349,10 +4093,7 @@
                     if (modalTitle) modalTitle.textContent = 'Update Registration';
                     if (saveBtnText) saveBtnText.textContent = 'Update Registration';
                     
-                    if (alertDiv && alertDiv.classList) {
-                        alertDiv.classList.remove('d-none');
-                    }
-                    
+                    if (alertDiv) alertDiv.classList.remove('d-none');
                     if (timeSpan) {
                         timeSpan.textContent = new Date().toLocaleString('en-MY', {
                             hour: '2-digit',
@@ -4363,26 +4104,19 @@
                     
                     populateRegistrationForm(regData.registration);
                 } else {
-                    // New registration - initialize fields
                     updateAmountPaidField();
                     updatePaymentSummary();
                 }
             })
             .catch(error => {
                 console.error('Error loading attendee/registration:', error);
-                
-                // Initialize fields even if fetch fails
                 updateAmountPaidField();
                 updatePaymentSummary();
                 
-                // Show error to user
                 const previewName = document.getElementById('previewName');
-                if (previewName) {
-                    previewName.textContent = 'Error loading data';
-                }
+                if (previewName) previewName.textContent = 'Error loading data';
             })
             .finally(() => {
-                // Show the modal after data is loaded
                 try {
                     modal.show();
                 } catch (modalError) {
@@ -4393,11 +4127,16 @@
     };
     
     function updateAmountPaidField() {
-        const paymentStatus = document.getElementById('payment_status').value;
+        const paymentStatus = document.getElementById('payment_status');
         const amountPaidInput = document.getElementById('amount_paid');
-        const totalFee = parseFloat(document.getElementById('totalFeeDisplay').textContent.replace('RM ', '')) || 0;
         
-        switch(paymentStatus) {
+        if (!paymentStatus || !amountPaidInput) return;
+        
+        const status = paymentStatus.value;
+        const totalFeeDisplay = document.getElementById('totalFeeDisplay');
+        const totalFee = parseFloat(totalFeeDisplay ? totalFeeDisplay.textContent.replace('RM ', '') : '0') || 0;
+        
+        switch(status) {
             case 'PENDING':
                 amountPaidInput.value = '0.00';
                 amountPaidInput.readOnly = true;
@@ -4405,7 +4144,6 @@
             case 'PARTIAL':
                 amountPaidInput.readOnly = false;
                 if (totalFee > 0) {
-                    // Suggest 50% as partial payment
                     amountPaidInput.value = (totalFee * 0.5).toFixed(2);
                 }
                 break;
@@ -4419,37 +4157,42 @@
     }
     
     function updatePaymentSummary() {
-        const preFee = parseFloat(document.getElementById('pre_registration_fee').value) || 0;
-        const regFee = parseFloat(document.getElementById('registration_fee').value) || 0;
+        const preFee = parseFloat(document.getElementById('pre_registration_fee')?.value) || 0;
+        const regFee = parseFloat(document.getElementById('registration_fee')?.value) || 0;
         const total = preFee + regFee;
-        const amountPaid = parseFloat(document.getElementById('amount_paid').value) || 0;
+        const amountPaid = parseFloat(document.getElementById('amount_paid')?.value) || 0;
         const balance = total - amountPaid;
         const paymentPercentage = total > 0 ? (amountPaid / total) * 100 : 0;
         
         // Update displays
-        document.getElementById('totalFeeDisplay').textContent = `RM ${total.toFixed(2)}`;
-        document.getElementById('displayAmountPaid').textContent = `RM ${amountPaid.toFixed(2)}`;
-        document.getElementById('balanceDisplay').textContent = `RM ${balance.toFixed(2)}`;
-        document.getElementById('paymentPercentage').textContent = `${paymentPercentage.toFixed(1)}%`;
+        const totalFeeDisplay = document.getElementById('totalFeeDisplay');
+        const displayAmountPaid = document.getElementById('displayAmountPaid');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const paymentPercentageEl = document.getElementById('paymentPercentage');
+        
+        if (totalFeeDisplay) totalFeeDisplay.textContent = `RM ${total.toFixed(2)}`;
+        if (displayAmountPaid) displayAmountPaid.textContent = `RM ${amountPaid.toFixed(2)}`;
+        if (balanceDisplay) balanceDisplay.textContent = `RM ${balance.toFixed(2)}`;
+        if (paymentPercentageEl) paymentPercentageEl.textContent = `${paymentPercentage.toFixed(1)}%`;
         
         // Update progress bar
         const progressBar = document.getElementById('paymentProgressBar');
-        progressBar.style.width = `${paymentPercentage}%`;
-        
-        // Color code based on status
-        if (paymentPercentage >= 100) {
-            progressBar.className = 'payment-progress-bar bg-success';
-        } else if (paymentPercentage >= 50) {
-            progressBar.className = 'payment-progress-bar bg-warning';
-        } else if (paymentPercentage > 0) {
-            progressBar.className = 'payment-progress-bar bg-danger';
-        } else {
-            progressBar.className = 'payment-progress-bar bg-secondary';
+        if (progressBar) {
+            progressBar.style.width = `${paymentPercentage}%`;
+            
+            if (paymentPercentage >= 100) {
+                progressBar.className = 'payment-progress-bar bg-success';
+            } else if (paymentPercentage >= 50) {
+                progressBar.className = 'payment-progress-bar bg-warning';
+            } else if (paymentPercentage > 0) {
+                progressBar.className = 'payment-progress-bar bg-danger';
+            } else {
+                progressBar.className = 'payment-progress-bar bg-secondary';
+            }
         }
     }
     
     function populateRegistrationForm(registration) {
-        // Get all form fields with null checks
         const fields = {
             'course': document.getElementById('course'),
             'college': document.getElementById('college'),
@@ -4464,7 +4207,6 @@
             'remark': document.getElementById('remark')
         };
         
-        // Set values only if elements exist
         if (fields.course) fields.course.value = registration.course || '';
         if (fields.college) fields.college.value = registration.college || '';
         if (fields.register_date) {
@@ -4501,8 +4243,8 @@
     
     window.saveRegistration = function() {
         const form = document.getElementById('registrationForm');
-        if (!form.checkValidity()) {
-            form.reportValidity();
+        if (!form || !form.checkValidity()) {
+            if (form) form.reportValidity();
             return;
         }
         
@@ -4510,17 +4252,23 @@
         const spinner = document.getElementById('saveSpinner');
         const btnText = document.getElementById('saveBtnText');
         
-        saveBtn.disabled = true;
-        spinner.classList.remove('d-none');
-        btnText.textContent = 'Saving...';
+        if (saveBtn) saveBtn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+        if (btnText) btnText.textContent = 'Saving...';
         
         const formData = new FormData(form);
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        
+        if (!csrfToken) {
+            showToast('Security token missing. Please refresh the page.', true);
+            return;
+        }
         
         fetch('/attsys/api/registration/save/', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': csrfToken.value
             }
         })
         .then(response => response.json())
@@ -4535,7 +4283,8 @@
                 updateRegistrationStats();
                 
                 // Close modal
-                bootstrap.Modal.getInstance(document.getElementById('registrationModal')).hide();
+                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('registrationModal'));
+                if (modalInstance) modalInstance.hide();
             } else {
                 showToast(data.error || 'Failed to save registration', true);
             }
@@ -4545,173 +4294,80 @@
             showToast('An error occurred. Please try again.', true);
         })
         .finally(() => {
-            saveBtn.disabled = false;
-            spinner.classList.add('d-none');
-            btnText.textContent = document.getElementById('modalTitle').textContent === 'Registration Form' ? 
-                'Save Registration' : 'Update Registration';
+            if (saveBtn) saveBtn.disabled = false;
+            if (spinner) spinner.classList.add('d-none');
+            if (btnText) {
+                const modalTitle = document.getElementById('modalTitle');
+                btnText.textContent = modalTitle && modalTitle.textContent === 'Registration Form' ? 
+                    'Save Registration' : 'Update Registration';
+            }
         });
     };
-    
-    // ============================================
-    // UPDATE ATTENDEE REGISTRATION DISPLAY
-    // ============================================
-    
-    function updateAttendeeRegistrationDisplay(attendeeId, registration) {
-        console.log('Updating display for attendee:', attendeeId);
-        
-        const row = document.querySelector(`#attendee-${attendeeId}`);
-        if (!row) {
-            console.error(`Row for attendee ${attendeeId} not found`);
-            return;
-        }
-        
-        // Helper function to safely update element
-        function safeUpdateElement(elementId, htmlContent) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.innerHTML = htmlContent;
-            } else {
-                console.warn(`Element ${elementId} not found`);
-            }
-        }
-        
-        // Helper function to safely get element
-        function getElement(elementId) {
-            return document.getElementById(elementId);
-        }
-        
-        // 1. Update registration info
-        const regInfoDiv = getElement(`registration-info-${attendeeId}`);
-        if (regInfoDiv) {
-            const regDate = new Date(registration.register_date);
-            regInfoDiv.innerHTML = `
-                <div class="small">
-                    <strong>${registration.course || ''}</strong><br>
-                    <span class="text-muted">${registration.college || ''}</span><br>
-                    <small>Reg: ${regDate.toLocaleDateString('en-GB')}</small>
-                </div>
-            `;
-        }
-        
-        // 2. Update payment type
-        const paymentTypeDiv = getElement(`payment-type-${attendeeId}`);
-        if (paymentTypeDiv) {
-            let paymentTypeBadge = '';
-            if (registration.payment_type) {
-                let badgeClass = 'badge-payment-other';
-                let badgeText = registration.payment_type;
-                
-                if (registration.payment_type === 'CASH') {
-                    badgeClass = 'badge-payment-cash';
-                    badgeText = 'Cash';
-                } else if (registration.payment_type === 'ONLINE_BANKING') {
-                    badgeClass = 'badge-payment-online';
-                    badgeText = 'Online Banking';
-                } else if (registration.payment_type === 'QR_PAYMENT') {
-                    badgeClass = 'badge-payment-qr';
-                    badgeText = 'QR Payment';
-                } else if (registration.payment_type === 'CREDIT_CARD' || registration.payment_type === 'DEBIT_CARD') {
-                    badgeClass = 'badge-payment-card';
-                    badgeText = 'Card';
-                }
-                
-                paymentTypeBadge = `<span class="badge ${badgeClass} status-badge">${badgeText}</span>`;
-            } else {
-                paymentTypeBadge = '<span class="badge bg-light text-muted">—</span>';
-            }
-            paymentTypeDiv.innerHTML = paymentTypeBadge;
-        }
-        
-        // 3. Update payment status
-        const paymentDiv = getElement(`payment-status-${attendeeId}`);
-        if (paymentDiv) {
-            let statusBadge = '';
-            if (registration.payment_status === 'DONE') {
-                statusBadge = '<span class="badge badge-payment-done status-badge">Completed</span>';
-            } else if (registration.payment_status === 'PARTIAL') {
-                statusBadge = '<span class="badge badge-payment-partial status-badge">Partially Paid</span>';
-            } else if (registration.payment_status === 'PENDING') {
-                statusBadge = '<span class="badge badge-payment-pending status-badge">Pending</span>';
-            } else {
-                statusBadge = `<span class="badge bg-secondary">${registration.payment_status || ''}</span>`;
-            }
-            paymentDiv.innerHTML = statusBadge;
-        }
-        
-        // 4. Update amount
-        const amountDiv = getElement(`payment-amount-${attendeeId}`);
-        if (amountDiv) {
-            const amountPaid = parseFloat(registration.amount_paid || 0).toFixed(2);
-            const balance = registration.payment_status === 'PARTIAL' ? 
-                `<div class="text-danger small">Balance: RM ${parseFloat(registration.balance_amount || 0).toFixed(2)}</div>` : '';
-            
-            amountDiv.innerHTML = `
-                <div class="small">
-                    <div class="text-success">Paid: RM ${amountPaid}</div>
-                    ${balance}
-                </div>
-            `;
-        }
-        
-        // 5. Update button
-        const btn = row.querySelector('.btn-success, .btn-warning');
-        if (btn) {
-            // Remove both classes first
-            btn.classList.remove('btn-success', 'btn-warning');
-            // Add the correct class
-            btn.classList.add('btn-warning');
-            
-            btn.innerHTML = `
-                <i class="bi bi-pencil"></i>
-                <span class="d-none d-md-inline">Update</span>
-            `;
-            btn.title = 'Update Registration';
-        }
-        
-        // 6. Update last updated time in the row
-        const timeDiv = row.querySelector('.attendee-time');
-        if (timeDiv) {
-            const now = new Date();
-            const currentTime = timeDiv.textContent.trim();
-            
-            // Only add update time if not already there
-            if (!currentTime.includes('Updated:')) {
-                timeDiv.innerHTML += ` <br><small class="text-muted">Updated: ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>`;
-            }
-        }
-        
-        // 7. Update statistics immediately
-        updateRegistrationStats();
-        
-        console.log('Display updated successfully for attendee:', attendeeId);
-    }
     
     // ============================================
     // STATISTICS FUNCTIONS
     // ============================================
     
     window.showAllRegistrationStats = function() {
-        const modal = new bootstrap.Modal(document.getElementById('statsModal'));
+        console.log('showAllRegistrationStats called');
+        
+        const modalElement = document.getElementById('statsModal');
+        if (!modalElement) {
+            console.error('Stats modal element not found');
+            return;
+        }
+        
+        const modal = new bootstrap.Modal(modalElement);
         
         fetch(`/attsys/api/event/{{ event.id }}/registration-full-stats/`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Registration stats data:', data);
                 if (data.success) {
                     // Update stats cards
-                    document.getElementById('statsTotalRegistered').textContent = data.total_registered;
-                    document.getElementById('statsTotalPaid').textContent = data.total_paid;
-                    document.getElementById('statsTotalPartial').textContent = data.total_partial;
-                    document.getElementById('statsTotalRevenue').textContent = `RM ${data.total_revenue}`;
-                    
-                    // Create charts
-                    if (data.charts) {
-                        createChart('topCoursesChart', data.charts.top_courses, 'Courses');
-                        createChart('topClosersChart', data.charts.top_closers, 'Closers');
-                        createTimelineChart('timelineChart', data.charts.timeline);
+                    if (document.getElementById('statsTotalRegistered')) {
+                        document.getElementById('statsTotalRegistered').textContent = data.total_registered || 0;
                     }
+                    if (document.getElementById('statsTotalPaid')) {
+                        document.getElementById('statsTotalPaid').textContent = data.total_paid || 0;
+                    }
+                    if (document.getElementById('statsTotalPartial')) {
+                        document.getElementById('statsTotalPartial').textContent = data.total_pending || 0;
+                    }
+                    if (document.getElementById('statsTotalRevenue')) {
+                        document.getElementById('statsTotalRevenue').textContent = `RM ${data.total_revenue || '0.00'}`;
+                    }
+                    
+                    // Create charts if data exists
+                    if (data.charts) {
+                        if (data.charts.top_courses && data.charts.top_courses.length > 0) {
+                            createChart('topCoursesChart', data.charts.top_courses, 'Courses');
+                        }
+                        if (data.charts.top_closers && data.charts.top_closers.length > 0) {
+                            createChart('topClosersChart', data.charts.top_closers, 'Closers');
+                        }
+                        if (data.charts.timeline && data.charts.timeline.length > 0) {
+                            createTimelineChart('timelineChart', data.charts.timeline);
+                        }
+                    }
+                } else {
+                    console.error('API returned error:', data.error);
+                    showToast('Error loading statistics: ' + (data.error || 'Unknown error'), true);
                 }
             })
-            .catch(error => console.error('Error loading full stats:', error));
+            .catch(error => {
+                console.error('Error loading full stats:', error);
+                showToast('Failed to load statistics. Please try again.', true);
+            });
         
         modal.show();
     };
@@ -4721,17 +4377,26 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById('totalRegistered').textContent = data.total_registered;
-                    document.getElementById('totalPaid').textContent = data.total_paid;
-                    document.getElementById('totalPartial').textContent = data.total_partial;
-                    document.getElementById('totalRevenue').textContent = `RM ${data.total_revenue}`;
+                    if (document.getElementById('totalRegistered')) {
+                        document.getElementById('totalRegistered').textContent = data.total_registered || 0;
+                    }
+                    if (document.getElementById('totalPaid')) {
+                        document.getElementById('totalPaid').textContent = data.total_paid || 0;
+                    }
+                    if (document.getElementById('totalPartial')) {
+                        document.getElementById('totalPartial').textContent = data.total_pending || 0;
+                    }
+                    if (document.getElementById('totalRevenue')) {
+                        document.getElementById('totalRevenue').textContent = `RM ${data.total_revenue || '0.00'}`;
+                    }
                 }
             })
             .catch(error => console.error('Error loading stats:', error));
     }
     
     window.exportRegistrationCSV = function() {
-        window.open(`/attsys/api/event/{{ event.id }}/export-registrations/`, '_blank');
+        const eventId = {{ event.id }};
+        window.open(`/attsys/api/event/${eventId}/export-registrations/`, '_blank');
         showToast('Exporting CSV file...');
     };
     
@@ -4741,8 +4406,10 @@
         
         showToast('Generating PDF report... Please wait.');
         
+        // Open in new tab
         const newWindow = window.open(url, '_blank');
         
+        // Fallback for popup blockers
         if (!newWindow || newWindow.closed) {
             const link = document.createElement('a');
             link.href = url;
@@ -4750,14 +4417,19 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            showToast('PDF download started. Check your downloads folder.');
         }
     };
     
     function createChart(canvasId, data, label) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) {
+            console.error(`Canvas element ${canvasId} not found`);
+            return;
+        }
         
+        const chartCtx = ctx.getContext('2d');
+        
+        // Destroy existing chart if exists
         if (window[`${canvasId}Chart`]) {
             window[`${canvasId}Chart`].destroy();
         }
@@ -4765,7 +4437,7 @@
         const labels = data.map(item => item.label);
         const values = data.map(item => item.value);
         
-        window[`${canvasId}Chart`] = new Chart(ctx, {
+        window[`${canvasId}Chart`] = new Chart(chartCtx, {
             type: 'bar',
             data: {
                 labels: labels,
@@ -4789,8 +4461,15 @@
     }
     
     function createTimelineChart(canvasId, data) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) {
+            console.error(`Canvas element ${canvasId} not found`);
+            return;
+        }
         
+        const chartCtx = ctx.getContext('2d');
+        
+        // Destroy existing chart if exists
         if (window[`${canvasId}Chart`]) {
             window[`${canvasId}Chart`].destroy();
         }
@@ -4798,7 +4477,7 @@
         const labels = data.map(item => item.date);
         const values = data.map(item => item.count);
         
-        window[`${canvasId}Chart`] = new Chart(ctx, {
+        window[`${canvasId}Chart`] = new Chart(chartCtx, {
             type: 'line',
             data: {
                 labels: labels,
@@ -4824,6 +4503,137 @@
     }
     
     // ============================================
+    // SEARCH AND FILTER FUNCTIONS
+    // ============================================
+    
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    const searchAttendees = debounce(function(searchTerm) {
+        const searchLower = searchTerm.toLowerCase().trim();
+        const attendees = document.querySelectorAll('.attendee-item');
+        let visibleCount = 0;
+        
+        if (!searchTerm) {
+            attendees.forEach(attendee => {
+                attendee.style.display = '';
+                visibleCount++;
+            });
+            const resultsInfo = document.getElementById('searchResultsInfo');
+            if (resultsInfo) resultsInfo.classList.remove('show');
+            updateFilterButtons('all');
+            return;
+        }
+        
+        attendees.forEach(attendee => {
+            const attendeeName = attendee.querySelector('.attendee-name')?.textContent.toLowerCase() || '';
+            const attendeeEmail = attendee.querySelector('.attendee-contact')?.textContent.toLowerCase() || '';
+            
+            let hasMatch = attendeeName.includes(searchLower) || 
+                           attendeeEmail.includes(searchLower);
+            
+            if (hasMatch) {
+                attendee.style.display = '';
+                visibleCount++;
+            } else {
+                attendee.style.display = 'none';
+            }
+        });
+        
+        const resultsInfo = document.getElementById('searchResultsInfo');
+        const resultsCount = document.getElementById('resultsCount');
+        
+        if (resultsInfo && searchTerm) {
+            if (resultsCount) resultsCount.textContent = visibleCount;
+            resultsInfo.classList.add('show');
+        } else if (resultsInfo) {
+            resultsInfo.classList.remove('show');
+        }
+    }, 300);
+    
+    function filterAttendees(status) {
+        const attendees = document.querySelectorAll('.attendee-item');
+        let visibleCount = 0;
+        
+        attendees.forEach(attendee => {
+            const attendeeId = attendee.getAttribute('data-attendee-id');
+            const paymentStatusDiv = document.getElementById(`payment-status-${attendeeId}`);
+            
+            if (status === 'all') {
+                attendee.style.display = '';
+                visibleCount++;
+            } else if (paymentStatusDiv) {
+                const statusText = paymentStatusDiv.textContent.toLowerCase();
+                let shouldShow = false;
+                
+                switch(status) {
+                    case 'paid':
+                        shouldShow = statusText.includes('completed');
+                        break;
+                    case 'partial':
+                        shouldShow = statusText.includes('partial');
+                        break;
+                    case 'pending':
+                        shouldShow = statusText.includes('pending');
+                        break;
+                }
+                
+                if (shouldShow) {
+                    attendee.style.display = '';
+                    visibleCount++;
+                } else {
+                    attendee.style.display = 'none';
+                }
+            }
+        });
+        
+        const searchBox = document.getElementById('attendeeSearch');
+        if (searchBox) searchBox.value = '';
+        
+        const resultsInfo = document.getElementById('searchResultsInfo');
+        const resultsCount = document.getElementById('resultsCount');
+        
+        if (resultsInfo) {
+            if (resultsCount) resultsCount.textContent = visibleCount;
+            resultsInfo.classList.add('show');
+        }
+        
+        updateFilterButtons(status);
+    }
+    
+    function updateFilterButtons(activeStatus) {
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        filterButtons.forEach(btn => {
+            btn.classList.remove('active', 'active-paid', 'active-partial', 'active-pending');
+            
+            if (btn.textContent.toLowerCase().includes(activeStatus)) {
+                btn.classList.add('active');
+                if (activeStatus === 'paid') btn.classList.add('active-paid');
+                if (activeStatus === 'partial') btn.classList.add('active-partial');
+                if (activeStatus === 'pending') btn.classList.add('active-pending');
+            }
+        });
+    }
+    
+    window.clearSearch = function() {
+        const searchBox = document.getElementById('attendeeSearch');
+        if (searchBox) {
+            searchBox.value = '';
+            searchAttendees('');
+        }
+        filterAttendees('all');
+    };
+    
+    // ============================================
     // QR CODE FUNCTIONS
     // ============================================
     
@@ -4844,10 +4654,10 @@
         const modalContent = document.querySelector('.modal-content');
         if (document.fullscreenElement) {
             document.exitFullscreen();
-            fullscreenIcon.className = 'bi bi-fullscreen';
+            if (fullscreenIcon) fullscreenIcon.className = 'bi bi-fullscreen';
         } else {
             modalContent.requestFullscreen();
-            fullscreenIcon.className = 'bi bi-fullscreen-exit';
+            if (fullscreenIcon) fullscreenIcon.className = 'bi bi-fullscreen-exit';
         }
     };
     
@@ -4897,9 +4707,7 @@
         
         // QR Code Modal Setup
         if (qrImage) {
-            qrImage.addEventListener('click', function() {
-                openQRModal();
-            });
+            qrImage.addEventListener('click', openQRModal);
         }
         
         if (qrModal) {
@@ -4939,9 +4747,7 @@
             if ((e.key === 'd' || e.key === 'D') && qrModal && qrModal.classList.contains('active')) {
                 e.preventDefault();
                 const downloadLink = document.querySelector('[href*="download-qr"]');
-                if (downloadLink) {
-                    downloadLink.click();
-                }
+                if (downloadLink) downloadLink.click();
             }
             
             if ((e.key === 'c' || e.key === 'C') && qrModal && qrModal.classList.contains('active')) {
@@ -4950,71 +4756,68 @@
             }
         });
         
-        // Update fee display when fee inputs change
-        document.getElementById('pre_registration_fee')?.addEventListener('input', updatePaymentSummary);
-        document.getElementById('registration_fee')?.addEventListener('input', updatePaymentSummary);
-        document.getElementById('amount_paid')?.addEventListener('input', updatePaymentSummary);
-        document.getElementById('payment_status')?.addEventListener('change', updatePaymentSummary);
-        
         // Add search event listener
-        document.getElementById('attendeeSearch')?.addEventListener('input', function(e) {
-            searchAttendees(e.target.value);
-        });
-        
-        // Load initial registration statistics
-        updateRegistrationStats();
-        
-        // Initialize Attendance Chart
-        const chartEl = document.getElementById('attendanceChart');
-        if (chartEl) {
-            const ctx = chartEl.getContext('2d');
-            
-            const labels = [
-                {% for row in attendance_by_hour %}
-                    "{{ row.hour|date:'H:i' }}",
-                {% endfor %}
-            ];
-            
-            const data = [
-                {% for row in attendance_by_hour %}
-                    {{ row.count }},
-                {% endfor %}
-            ];
-            
-            window.attendanceChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Check-ins per Hour',
-                        data: data,
-                        borderColor: '#212529',
-                        backgroundColor: 'rgba(33, 37, 41, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.1,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: {
-                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                            ticks: { font: { size: 11 } }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                            ticks: { font: { size: 11 }, precision: 0 }
-                        }
-                    }
-                }
+        const searchInput = document.getElementById('attendeeSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                searchAttendees(e.target.value);
             });
         }
         
-        // Real-time stats updates
+        // Add filter button event listeners
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const status = this.textContent.toLowerCase().trim();
+                filterAttendees(status);
+            });
+        });
+        
+        // Add event listeners for registration form
+        const preRegFee = document.getElementById('pre_registration_fee');
+        const regFee = document.getElementById('registration_fee');
+        const amountPaid = document.getElementById('amount_paid');
+        const paymentStatus = document.getElementById('payment_status');
+        
+        if (preRegFee) preRegFee.addEventListener('input', updatePaymentSummary);
+        if (regFee) regFee.addEventListener('input', updatePaymentSummary);
+        if (amountPaid) amountPaid.addEventListener('input', updatePaymentSummary);
+        if (paymentStatus) paymentStatus.addEventListener('change', updateAmountPaidField);
+        
+        // Initialize stats
+        updateRegistrationStats();
+        
+        // Initialize attendance chart if exists
+        const chartEl = document.getElementById('attendanceChart');
+        if (chartEl && window.attendanceData) {
+            try {
+                const ctx = chartEl.getContext('2d');
+                window.attendanceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: window.attendanceData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                ticks: { font: { size: 11 } }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                ticks: { font: { size: 11 }, precision: 0 }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error initializing attendance chart:', error);
+            }
+        }
+        
+        // Auto-update stats every 30 seconds
         setInterval(updateRegistrationStats, 30000);
         
         console.log('✅ All functions initialized successfully');

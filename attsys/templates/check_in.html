@@ -589,71 +589,6 @@
             to { transform: rotate(360deg); }
         }
         
-        /* City-State Search Suggestions */
-        .city-search-container {
-            position: relative;
-        }
-        
-        .city-search-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--white);
-            border: 1px solid var(--gray-300);
-            border-radius: var(--border-radius-sm);
-            box-shadow: var(--box-shadow-hover);
-            z-index: 1000;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
-            margin-top: 2px;
-        }
-        
-        .city-search-suggestions.show {
-            display: block;
-        }
-        
-        .city-suggestion {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid var(--gray-100);
-            transition: all var(--transition-speed) var(--transition-timing);
-        }
-        
-        .city-suggestion:last-child {
-            border-bottom: none;
-        }
-        
-        .city-suggestion:hover {
-            background-color: var(--gray-100);
-        }
-        
-        .city-suggestion.active {
-            background-color: var(--gray-200);
-            font-weight: 600;
-        }
-        
-        .city-suggestion .city-name {
-            font-weight: 500;
-            color: var(--gray-800);
-        }
-        
-        .city-suggestion .state-name {
-            font-size: 0.85rem;
-            color: var(--gray-600);
-            margin-left: 0.5rem;
-        }
-        
-        .search-icon {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-400);
-            pointer-events: none;
-        }
-        
         /* Responsive Design - Tablet */
         @media (min-width: 768px) {
             .mobile-header {
@@ -1215,18 +1150,13 @@
 
                         <div class="field-group">
                             <label class="form-label required">City</label>
-                            <div class="city-search-container">
-                                <input type="text" 
-                                       class="form-control city-search-input" 
-                                       placeholder="Start typing city name..." 
-                                       name="city" 
-                                       id="cityInput"
-                                       required
-                                       autocomplete="off"
-                                       value="{% if form_data.city %}{{ form_data.city }}{% endif %}">
-                                <i class="bi bi-search search-icon"></i>
-                                <div class="city-search-suggestions" id="citySuggestions"></div>
-                            </div>
+                            <input type="text" 
+                                class="form-control" 
+                                placeholder="Enter city name" 
+                                name="city" 
+                                required
+                                value="{% if form_data.city %}{{ form_data.city }}{% endif %}">
+                            <small class="optional-note">Enter the name of your city</small>
                         </div>
 
                         <div class="field-group">
@@ -1555,170 +1485,6 @@
             const cityInput = document.getElementById('cityInput');
             const stateSelect = document.getElementById('stateSelect');
             const citySuggestions = document.getElementById('citySuggestions');
-            
-            // ============================================
-            // CITY-STATE AUTOCOMPLETE FUNCTIONALITY
-            // ============================================
-            if (cityInput && citySuggestions) {
-                let selectedCityIndex = -1;
-                let filteredCities = [];
-                
-                // Filter cities based on search query
-                function filterCities(query) {
-                    if (!query || query.trim() === '') {
-                        return [];
-                    }
-                    
-                    const searchTerm = query.toLowerCase().trim();
-                    return malaysiaCities.filter(cityData => 
-                        cityData.city.toLowerCase().includes(searchTerm) ||
-                        cityData.state.toLowerCase().includes(searchTerm)
-                    );
-                }
-                
-                // Show city suggestions dropdown
-                function showCitySuggestions(cities) {
-                    citySuggestions.innerHTML = '';
-                    
-                    if (cities.length === 0) {
-                        citySuggestions.classList.remove('show');
-                        return;
-                    }
-                    
-                    cities.slice(0, 10).forEach((cityData, index) => {
-                        const suggestion = document.createElement('div');
-                        suggestion.className = 'city-suggestion';
-                        suggestion.setAttribute('data-index', index);
-                        suggestion.innerHTML = `
-                            <span class="city-name">${cityData.city}</span>
-                            <span class="state-name">(${cityData.state})</span>
-                        `;
-                        
-                        suggestion.addEventListener('click', function() {
-                            selectCity(cityData);
-                        });
-                        
-                        suggestion.addEventListener('mouseover', function() {
-                            clearSelectedSuggestion();
-                            suggestion.classList.add('active');
-                            selectedCityIndex = index;
-                        });
-                        
-                        citySuggestions.appendChild(suggestion);
-                    });
-                    
-                    citySuggestions.classList.add('show');
-                }
-                
-                // Select a city from suggestions
-                function selectCity(cityData) {
-                    cityInput.value = cityData.city;
-                    if (stateSelect) {
-                        stateSelect.value = cityData.state;
-                    }
-                    citySuggestions.classList.remove('show');
-                    selectedCityIndex = -1;
-                    
-                    // Trigger validation
-                    cityInput.dispatchEvent(new Event('input'));
-                    if (stateSelect) stateSelect.dispatchEvent(new Event('change'));
-                }
-                
-                // Clear selected suggestion
-                function clearSelectedSuggestion() {
-                    const allSuggestions = citySuggestions.querySelectorAll('.city-suggestion');
-                    allSuggestions.forEach(suggestion => {
-                        suggestion.classList.remove('active');
-                    });
-                }
-                
-                // City input event handler
-                cityInput.addEventListener('input', function() {
-                    const query = this.value.trim();
-                    
-                    if (query.length >= 2) {
-                        filteredCities = filterCities(query);
-                        showCitySuggestions(filteredCities);
-                    } else {
-                        citySuggestions.classList.remove('show');
-                        filteredCities = [];
-                    }
-                    
-                    // Auto-detect state if exact city match
-                    if (query.length >= 3 && stateSelect) {
-                        const exactMatch = malaysiaCities.find(city => 
-                            city.city.toLowerCase() === query.toLowerCase()
-                        );
-                        
-                        if (exactMatch) {
-                            stateSelect.value = exactMatch.state;
-                            stateSelect.dispatchEvent(new Event('change'));
-                        }
-                    }
-                });
-                
-                // Keyboard navigation for suggestions
-                cityInput.addEventListener('keydown', function(e) {
-                    if (!citySuggestions.classList.contains('show')) return;
-                    
-                    const suggestions = citySuggestions.querySelectorAll('.city-suggestion');
-                    
-                    switch(e.key) {
-                        case 'ArrowDown':
-                            e.preventDefault();
-                            if (selectedCityIndex < suggestions.length - 1) {
-                                selectedCityIndex++;
-                            } else {
-                                selectedCityIndex = 0;
-                            }
-                            updateSelectedSuggestion(suggestions);
-                            break;
-                            
-                        case 'ArrowUp':
-                            e.preventDefault();
-                            if (selectedCityIndex > 0) {
-                                selectedCityIndex--;
-                            } else {
-                                selectedCityIndex = suggestions.length - 1;
-                            }
-                            updateSelectedSuggestion(suggestions);
-                            break;
-                            
-                        case 'Enter':
-                            e.preventDefault();
-                            if (selectedCityIndex >= 0 && selectedCityIndex < suggestions.length) {
-                                const cityData = filteredCities[selectedCityIndex];
-                                selectCity(cityData);
-                            }
-                            break;
-                            
-                        case 'Escape':
-                            citySuggestions.classList.remove('show');
-                            selectedCityIndex = -1;
-                            break;
-                    }
-                });
-                
-                // Update selected suggestion highlighting
-                function updateSelectedSuggestion(suggestions) {
-                    suggestions.forEach((suggestion, index) => {
-                        suggestion.classList.toggle('active', index === selectedCityIndex);
-                        
-                        // Scroll into view if needed
-                        if (index === selectedCityIndex) {
-                            suggestion.scrollIntoView({ block: 'nearest' });
-                        }
-                    });
-                }
-                
-                // Close suggestions when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
-                        citySuggestions.classList.remove('show');
-                        selectedCityIndex = -1;
-                    }
-                });
-            }
             
             // ============================================
             // FORM VALIDATION & SUBMISSION
