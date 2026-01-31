@@ -721,6 +721,7 @@ def check_in(request, event_id, token):
             # Required fields
             required_fields = [
                 'registration_officer', 'applied_programme', 'full_name',
+                'address1',
                 'city', 'postcode', 'state', 'ic_no', 'email',
                 'phone_no', 'marriage_status', 'father_name', 'father_ic',
                 'father_phone', 'father_occupation', 'mother_name', 'mother_ic',
@@ -828,6 +829,7 @@ def check_in(request, event_id, token):
                 event=event,
                 registration_officer=request.POST['registration_officer'].strip(),
                 applied_programme=request.POST['applied_programme'],
+                attended_with=request.POST['attended_with'], 
                 full_name=request.POST['full_name'].strip(),
                 address1=request.POST['address1'].strip(),
                 city=request.POST['city'].strip(),
@@ -1173,7 +1175,6 @@ def get_attendee_details(request, attendee_id):
                     'marriage_status': format_value(application.marriage_status),
                     'spm_total_credit': format_value(application.spm_total_credit),
                     'address1': format_value(application.address1),
-                    'address2': format_value(application.address2 or ''),
                     'city': format_value(application.city),
                     'postcode': format_value(application.postcode),
                     'state': format_value(application.state),
@@ -2955,7 +2956,6 @@ def get_printable_attendee_details(request, attendee_id):
                 },
                 'address': {
                     'address1': format_print_value(application.address1),
-                    'address2': format_print_value(application.address2),
                     'city': format_print_value(application.city),
                     'postcode': format_print_value(application.postcode),
                     'state': format_print_value(application.state),

@@ -1122,6 +1122,68 @@
         color: #198754;
         border: 1px solid rgba(25, 135, 84, 0.2);
     }
+
+    /* Search and Filter Section */
+    .search-filter-section {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+    }
+
+    .filter-btn {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        border-radius: 15px;
+        border: 1px solid var(--gray-300);
+        background: white;
+        color: var(--gray-700);
+        transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .filter-btn.active-paid {
+        background: var(--success);
+        border-color: var(--success);
+    }
+
+    .filter-btn.active-partial {
+        background: var(--warning);
+        border-color: var(--warning);
+    }
+
+    .filter-btn.active-pending {
+        background: var(--danger);
+        border-color: var(--danger);
+    }
+
+    /* Search Results Info */
+    .search-results-info {
+        background: var(--gray-100);
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: var(--gray-700);
+        display: none;
+    }
+
+    .search-results-info.show {
+        display: block;
+    }
     
     /* Responsive Design */
     @media (max-width: 768px) {
@@ -1576,44 +1638,6 @@
                     </div>
                 </div>
                 <div class="section-body">
-                    <!-- Registration Stats Summary -->
-                    <div class="registration-summary mb-3">
-                        <div class="row">
-                            <div class="col-md-3 col-6">
-                                <div class="card bg-light border-0">
-                                    <div class="card-body text-center py-2">
-                                        <h5 class="card-title text-primary mb-0" id="totalRegistered">{{ total_registered }}</h5>
-                                        <small class="text-muted">Registered</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="card bg-light border-0">
-                                    <div class="card-body text-center py-2">
-                                        <h5 class="card-title text-success mb-0" id="totalPaid">{{ total_paid }}</h5>
-                                        <small class="text-muted">Payment Done</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="card bg-light border-0">
-                                    <div class="card-body text-center py-2">
-                                        <h5 class="card-title text-warning mb-0" id="totalPartial">{{ total_partial }}</h5>
-                                        <small class="text-muted">Payment Partial</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="card bg-light border-0">
-                                    <div class="card-body text-center py-2">
-                                        <h5 class="card-title text-info mb-0" id="totalRevenue">RM {{ total_revenue }}</h5>
-                                        <small class="text-muted">Total Revenue</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <!-- Search and Filter Section -->
                     <div class="search-filter-section">
                         <div class="row">
@@ -1623,7 +1647,7 @@
                                         <i class="bi bi-search"></i>
                                     </span>
                                     <input type="text" class="form-control" id="attendeeSearch" 
-                                           placeholder="Search by name, email, phone, IC, or referral number...">
+                                        placeholder="Search by name, email, phone, IC, or referral number...">
                                     <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
                                         <i class="bi bi-x"></i>
                                     </button>
@@ -1662,8 +1686,12 @@
                         <div class="attendee-header row fw-bold text-muted small border-bottom pb-2 mb-2">
                             <div class="col-md-2">Attendee Info</div>
                             <div class="col-md-2">Referral Number</div>
+                            <div class="col-md-1">Payment Type</div>
                             <div class="col-md-1">Payment Status</div>
                             <div class="col-md-1">Amount</div>
+                            <div class="col-md-2">Programme & SPM</div>
+                            <div class="col-md-1">Registration Details</div>
+                            <div class="col-md-2">Actions</div>
                         </div>
                     </div>
                     
@@ -1706,25 +1734,6 @@
                                         {% endwith %}
                                     {% else %}
                                         <span class="text-muted fst-italic">No application</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Attended With -->
-                            <div class="col-md-1 col-12 mb-2 mb-md-0">
-                                <div id="attended-with-{{ attendee.id }}">
-                                    {% if attendee.has_application %}
-                                        {% with app=attendee.application %}
-                                        {% if app.attended_with == 'PARENT' %}
-                                        <span class="badge badge-parent status-badge">Parent</span>
-                                        {% elif app.attended_with == 'GUARDIAN' %}
-                                        <span class="badge badge-guardian status-badge">Guardian</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary status-badge">{{ app.attended_with|default:"-" }}</span>
-                                        {% endif %}
-                                        {% endwith %}
-                                    {% else %}
-                                        <span class="text-muted">—</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -1787,6 +1796,58 @@
                                         {% endwith %}
                                     {% else %}
                                         <span class="text-muted">—</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Programme & SPM -->
+                            <div class="col-md-2 col-12 mb-2 mb-md-0">
+                                <div id="programme-spm-{{ attendee.id }}">
+                                    {% if attendee.has_application %}
+                                        {% with app=attendee.application %}
+                                        <div class="small">
+                                            <!-- Programme Badge -->
+                                            {% if app.applied_programme == 'DIPLOMA' %}
+                                            <span class="badge badge-diploma status-badge">Diploma</span>
+                                            {% elif app.applied_programme == 'PRA_DIPLOMA' %}
+                                            <span class="badge badge-pra-diploma status-badge">Pra-Diploma</span>
+                                            {% elif app.applied_programme == 'TVET' %}
+                                            <span class="badge badge-tvet status-badge">TVET</span>
+                                            {% elif app.applied_programme == 'SMART_TAHFIZ' %}
+                                            <span class="badge badge-smart-tahfiz status-badge">Smart Tahfiz</span>
+                                            {% elif app.applied_programme == 'OTHER' %}
+                                            <span class="badge badge-other status-badge">Other</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary status-badge">{{ app.applied_programme }}</span>
+                                            {% endif %}
+                                            
+                                            <!-- SPM Credits -->
+                                            {% if app.spm_total_credit and app.spm_total_credit > 0 %}
+                                            <div class="mt-1 small">
+                                                <i class="bi bi-award"></i> SPM: {{ app.spm_total_credit }} credits
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        {% endwith %}
+                                    {% else %}
+                                        <span class="text-muted fst-italic">Not available</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Registration Details -->
+                            <div class="col-md-1 col-12 mb-2 mb-md-0">
+                                <div id="registration-info-{{ attendee.id }}">
+                                    {% if attendee.has_registration %}
+                                        {% with reg=attendee.registration %}
+                                        <div class="small">
+                                            <strong>{{ reg.course }}</strong><br>
+                                            <span class="text-muted">{{ reg.college }}</span><br>
+                                            <small>Reg: {{ reg.register_date|date:"d/m/Y" }}</small>
+                                        </div>
+                                        {% endwith %}
+                                    {% else %}
+                                        <span class="text-muted fst-italic">Not registered yet</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -1898,10 +1959,11 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <!-- PRINT BUTTON ADDED HERE ON LEFT SIDE -->
                 <button type="button" class="btn btn-primary" onclick="printAttendeeForm()" id="printAttendeeBtn" style="display: none;">
                     <i class="bi bi-printer me-2"></i>Print Application Form
                 </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -2070,11 +2132,11 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveRegistration()">
-                    <span id="saveBtnText">Save Registration</span>
-                    <span class="spinner-border spinner-border-sm d-none" id="saveSpinner"></span>
-                </button>
+                <div class="d-flex justify-content-between w-100 align-items-center">
+                    <div>
+                        <small class="text-muted">Attendee ID: <span id="modalAttendeeId">-</span></small>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2229,6 +2291,7 @@
         }, 3000);
     }
     
+    // Helper function for marital status badges
     function getMaritalStatusBadge(status) {
         if (!status) return '<span class="badge bg-secondary">-</span>';
         
@@ -2246,7 +2309,7 @@
         }
     }
 
-    // Helper function to get programme badge
+    // Helper function for programme badges
     function getProgrammeBadge(programme) {
         if (!programme) return '<span class="badge bg-secondary">-</span>';
         
@@ -2266,7 +2329,7 @@
         }
     }
 
-    // Helper function to get attended with badge
+    // Helper function for attended with badges
     function getAttendedWithBadge(attendedWith) {
         if (!attendedWith) return '<span class="badge bg-secondary">-</span>';
         
@@ -2318,14 +2381,19 @@
     // CORE FUNCTIONS - COMPLETE VERSION
     // ============================================
     
-    // 1. SHOW ATTENDEE DETAILS - COMPLETE INFORMATION
-    window.showAttendeeDetails = function(attendeeId) {
+    function showAttendeeDetails(attendeeId) {
         console.log('showAttendeeDetails called for:', attendeeId);
         
         currentAttendeeId = attendeeId;
         
         // Show loading in modal
         const modalBody = document.getElementById('attendeeModalBody');
+        if (!modalBody) {
+            console.error('Modal body element not found');
+            showToast('Modal not found', true);
+            return;
+        }
+        
         modalBody.innerHTML = `
             <div class="text-center py-4">
                 <div class="spinner-border text-primary" role="status">
@@ -2339,15 +2407,24 @@
         const modalElement = document.getElementById('attendeeModal');
         if (!modalElement) {
             console.error('Attendee modal element not found');
+            showToast('Modal not found', true);
             return;
         }
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
+
+        try {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        } catch (error) {
+            console.error('Error showing modal:', error);
+            // Fallback: try to show with jQuery if bootstrap not loaded
+            modalElement.style.display = 'block';
+            modalElement.classList.add('show');
+        }
         
-        // Show/hide print button
+        // Show/hide print button - initialize as hidden
         const printBtn = document.getElementById('printAttendeeBtn');
         if (printBtn) printBtn.style.display = 'none';
-        
+
         // Fetch data
         fetch(`/attsys/api/attendee/${attendeeId}/details/`)
             .then(response => {
@@ -2357,22 +2434,36 @@
             .then(data => {
                 console.log('Complete attendee data received:', data);
                 currentAttendeeData = data;
+                currentAttendeeId = attendeeId;
                 
-                if (data.attendee) {
-                    // Build modal content with COMPLETE information
-                    modalBody.innerHTML = buildCompleteAttendeeDetailsHTML(data);
-                    
-                    // Show print button if application exists
-                    if (printBtn && data.application) {
-                        printBtn.style.display = 'inline-flex';
-                    }
-                } else {
+                if (!data.attendee) {
                     modalBody.innerHTML = `
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle me-2"></i>
                             No attendee found with ID: ${attendeeId}
                         </div>
                     `;
+                    return;
+                }
+                
+                // Build modal content with COMPLETE information
+                modalBody.innerHTML = buildCompleteAttendeeDetailsHTML(data);
+                
+                // Show attendee ID in footer
+                const modalAttendeeId = document.getElementById('modalAttendeeId');
+                if (modalAttendeeId) {
+                    modalAttendeeId.textContent = attendeeId;
+                }
+                
+                // Show print button if application exists
+                if (printBtn) {
+                    if (data.application && data.application.full_name) {
+                        printBtn.style.display = 'inline-flex';
+                        printBtn.style.visibility = 'visible';
+                    } else {
+                        printBtn.style.display = 'none';
+                        printBtn.style.visibility = 'hidden';
+                    }
                 }
             })
             .catch(error => {
@@ -2383,8 +2474,15 @@
                         <strong>Error loading details:</strong> ${error.message}
                     </div>
                 `;
+                
+                // Hide print button on error
+                const printBtn = document.getElementById('printAttendeeBtn');
+                if (printBtn) printBtn.style.display = 'none';
             });
-    };
+    }
+    
+    // Make function available globally
+    window.showAttendeeDetails = showAttendeeDetails;
     
     // Build HTML for COMPLETE attendee details
     function buildCompleteAttendeeDetailsHTML(data) {
@@ -2765,10 +2863,11 @@
         return html;
     }
     
-    // 2. PRINT ATTENDEE FORM
+    // 1. Print button function (should already exist)
     window.printAttendeeForm = async function() {
-        if (!currentAttendeeData || !currentAttendeeData.application) {
-            showToast('No application data available to print', true);
+        if (!currentAttendeeData || !currentAttendeeData.application || 
+            !currentAttendeeData.application.full_name) {
+            showToast('No application form data available to print', true);
             return;
         }
         
@@ -2787,8 +2886,8 @@
         printWindow.document.write(printHtml);
         printWindow.document.close();
     };
-    
-    // 3. GENERATE UNIQUE FORM NUMBER
+
+    // 2. Generate unique form number function
     async function generateUniqueFormNumber(application) {
         try {
             const eventStateCode = "{{ event.state }}" || 'KUALA_LUMPUR';
@@ -4051,7 +4150,87 @@
     // ============================================
     // REGISTRATION FORM FUNCTIONS
     // ============================================
-    
+    function updateAmountPaidField() {
+        const paymentStatus = document.getElementById('payment_status');
+        const amountPaidInput = document.getElementById('amount_paid');
+        
+        if (!paymentStatus || !amountPaidInput) return;
+        
+        const status = paymentStatus.value;
+        const totalFeeDisplay = document.getElementById('totalFeeDisplay');
+        const totalFee = parseFloat(totalFeeDisplay ? totalFeeDisplay.textContent.replace('RM ', '') : '0') || 0;
+        
+        switch(status) {
+            case 'PENDING':
+                amountPaidInput.value = '0.00';
+                amountPaidInput.readOnly = true;
+                break;
+            case 'PARTIAL':
+                amountPaidInput.readOnly = false;
+                if (totalFee > 0) {
+                    amountPaidInput.value = (totalFee * 0.5).toFixed(2);
+                }
+                break;
+            case 'DONE':
+                amountPaidInput.readOnly = false;
+                amountPaidInput.value = totalFee.toFixed(2);
+                break;
+        }
+        
+        updatePaymentSummary();
+    }
+
+    function updatePaymentSummary() {
+        const preFee = parseFloat(document.getElementById('pre_registration_fee')?.value) || 0;
+        const regFee = parseFloat(document.getElementById('registration_fee')?.value) || 0;
+        const total = preFee + regFee;
+        const amountPaid = parseFloat(document.getElementById('amount_paid')?.value) || 0;
+        const balance = total - amountPaid;
+        const paymentPercentage = total > 0 ? (amountPaid / total) * 100 : 0;
+        
+        // Update displays
+        const totalFeeDisplay = document.getElementById('totalFeeDisplay');
+        const displayAmountPaid = document.getElementById('displayAmountPaid');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const paymentPercentageEl = document.getElementById('paymentPercentage');
+        
+        if (totalFeeDisplay) totalFeeDisplay.textContent = `RM ${total.toFixed(2)}`;
+        if (displayAmountPaid) displayAmountPaid.textContent = `RM ${amountPaid.toFixed(2)}`;
+        if (balanceDisplay) balanceDisplay.textContent = `RM ${balance.toFixed(2)}`;
+        if (paymentPercentageEl) paymentPercentageEl.textContent = `${paymentPercentage.toFixed(1)}%`;
+        
+        // Update progress bar
+        const progressBar = document.getElementById('paymentProgressBar');
+        if (progressBar) {
+            progressBar.style.width = `${paymentPercentage}%`;
+            
+            if (paymentPercentage >= 100) {
+                progressBar.className = 'payment-progress-bar bg-success';
+            } else if (paymentPercentage >= 50) {
+                progressBar.className = 'payment-progress-bar bg-warning';
+            } else if (paymentPercentage > 0) {
+                progressBar.className = 'payment-progress-bar bg-danger';
+            } else {
+                progressBar.className = 'payment-progress-bar bg-secondary';
+            }
+        }
+    }
+
+    // Make sure to add event listeners for registration form fields
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners for registration form
+        const preRegFee = document.getElementById('pre_registration_fee');
+        const regFee = document.getElementById('registration_fee');
+        const amountPaid = document.getElementById('amount_paid');
+        const paymentStatus = document.getElementById('payment_status');
+        
+        if (preRegFee) preRegFee.addEventListener('input', updatePaymentSummary);
+        if (regFee) regFee.addEventListener('input', updatePaymentSummary);
+        if (amountPaid) amountPaid.addEventListener('input', updatePaymentSummary);
+        if (paymentStatus) paymentStatus.addEventListener('change', updateAmountPaidField);
+    });
+
+
     window.openRegistrationModal = function(attendeeId) {
         console.log('openRegistrationModal called for:', attendeeId);
         
@@ -4767,6 +4946,34 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ Page fully loaded');
         
+        // Debug: Check if function is available
+        console.log('showAttendeeDetails defined:', typeof showAttendeeDetails);
+        console.log('window.showAttendeeDetails defined:', typeof window.showAttendeeDetails);
+        
+        // Event delegation for all buttons
+        document.addEventListener('click', function(e) {
+            // View attendee details buttons
+            if (e.target.closest('.view-attendee-btn')) {
+                const button = e.target.closest('.view-attendee-btn');
+                const attendeeId = button.getAttribute('data-attendee-id');
+                if (attendeeId) {
+                    showAttendeeDetails(parseInt(attendeeId));
+                    e.preventDefault();
+                }
+            }
+            
+            // Check for buttons with onclick containing showAttendeeDetails
+            if (e.target.closest('[onclick*="showAttendeeDetails"]')) {
+                const button = e.target.closest('[onclick*="showAttendeeDetails"]');
+                const onclickText = button.getAttribute('onclick');
+                const match = onclickText.match(/showAttendeeDetails\((\d+)\)/);
+                if (match && match[1]) {
+                    showAttendeeDetails(parseInt(match[1]));
+                    e.preventDefault();
+                }
+            }
+        });
+        
         // QR Code Modal Setup
         if (qrImage) {
             qrImage.addEventListener('click', openQRModal);
@@ -4884,5 +5091,22 @@
         
         console.log('✅ All functions initialized successfully');
     });
+    
+    // Emergency fallback for showAttendeeDetails
+    if (typeof window.showAttendeeDetails === 'undefined') {
+        window.showAttendeeDetails = function(attendeeId) {
+            console.warn('Emergency fallback showAttendeeDetails called for:', attendeeId);
+            alert('Loading attendee details... Please wait.');
+            
+            // Try to load the function again
+            setTimeout(() => {
+                if (typeof showAttendeeDetails === 'function') {
+                    showAttendeeDetails(attendeeId);
+                } else {
+                    alert('Function not loaded. Please refresh the page.');
+                }
+            }, 100);
+        };
+    }
 </script>
 {% endblock %}

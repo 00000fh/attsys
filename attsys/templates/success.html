@@ -277,11 +277,6 @@
             // Clear sessionStorage too
             sessionStorage.clear();
             
-            // Add vibration feedback on load (if supported)
-            if (navigator.vibrate) {
-                navigator.vibrate([50]);
-            }
-            
             // Close on any tap/click after 2 seconds
             setTimeout(function() {
                 document.body.addEventListener('click', function() {
