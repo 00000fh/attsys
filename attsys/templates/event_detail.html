@@ -2245,6 +2245,74 @@
             return `<span class="badge bg-secondary status-badge">${status}</span>`;
         }
     }
+
+    // Helper function to get programme badge
+    function getProgrammeBadge(programme) {
+        if (!programme) return '<span class="badge bg-secondary">-</span>';
+        
+        const programmeUpper = programme.toUpperCase();
+        if (programmeUpper.includes('DIPLOMA')) {
+            return '<span class="badge badge-diploma status-badge">Diploma</span>';
+        } else if (programmeUpper.includes('PRA-DIPLOMA') || programmeUpper.includes('PRA_DIPLOMA')) {
+            return '<span class="badge badge-pra-diploma status-badge">Pra-Diploma</span>';
+        } else if (programmeUpper.includes('TVET')) {
+            return '<span class="badge badge-tvet status-badge">TVET</span>';
+        } else if (programmeUpper.includes('SMART') || programmeUpper.includes('TAHFIZ')) {
+            return '<span class="badge badge-smart-tahfiz status-badge">Smart Tahfiz</span>';
+        } else if (programmeUpper.includes('OTHER')) {
+            return '<span class="badge badge-other status-badge">Other</span>';
+        } else {
+            return `<span class="badge bg-secondary status-badge">${programme}</span>`;
+        }
+    }
+
+    // Helper function to get attended with badge
+    function getAttendedWithBadge(attendedWith) {
+        if (!attendedWith) return '<span class="badge bg-secondary">-</span>';
+        
+        const attendedUpper = attendedWith.toUpperCase();
+        if (attendedUpper.includes('PARENT')) {
+            return '<span class="badge badge-parent status-badge">With Parent(s)</span>';
+        } else if (attendedUpper.includes('GUARDIAN')) {
+            return '<span class="badge badge-guardian status-badge">With Guardian</span>';
+        } else {
+            return `<span class="badge bg-secondary status-badge">${attendedWith}</span>`;
+        }
+    }
+
+    // Helper function to get payment status badge
+    function getPaymentStatusBadge(paymentStatus) {
+        if (!paymentStatus) return '<span class="badge bg-secondary">-</span>';
+        
+        const statusUpper = paymentStatus.toUpperCase();
+        if (statusUpper === 'DONE' || statusUpper.includes('COMPLETED')) {
+            return '<span class="badge badge-payment-done status-badge">Completed</span>';
+        } else if (statusUpper === 'PARTIAL') {
+            return '<span class="badge badge-payment-partial status-badge">Partially Paid</span>';
+        } else if (statusUpper === 'PENDING') {
+            return '<span class="badge badge-payment-pending status-badge">Pending</span>';
+        } else {
+            return `<span class="badge bg-secondary">${paymentStatus}</span>`;
+        }
+    }
+
+    // Helper function to get payment type badge
+    function getPaymentTypeBadge(paymentType) {
+        if (!paymentType) return '<span class="badge bg-light text-muted">-</span>';
+        
+        const typeUpper = paymentType.toUpperCase();
+        if (typeUpper === 'CASH') {
+            return '<span class="badge badge-payment-cash status-badge">Cash</span>';
+        } else if (typeUpper === 'ONLINE_BANKING' || typeUpper === 'ONLINE') {
+            return '<span class="badge badge-payment-online status-badge">Online Banking</span>';
+        } else if (typeUpper === 'QR_PAYMENT' || typeUpper.includes('QR')) {
+            return '<span class="badge badge-payment-qr status-badge">QR Payment</span>';
+        } else if (typeUpper.includes('CARD')) {
+            return '<span class="badge badge-payment-card status-badge">Card</span>';
+        } else {
+            return `<span class="badge badge-payment-other status-badge">${paymentType}</span>`;
+        }
+    }
     
     // ============================================
     // CORE FUNCTIONS - COMPLETE VERSION
@@ -2616,10 +2684,6 @@
                                     <span class="detail-grid-label">Amount Paid:</span>
                                     <span class="detail-grid-value">RM ${parseFloat(registration.amount_paid || 0).toFixed(2)}</span>
                                 </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Total Fee:</span>
-                                    <span class="detail-grid-value">RM ${parseFloat(registration.total_fee || 0).toFixed(2)}</span>
-                                </div>
                             </div>
                         </div>
                         
@@ -2659,10 +2723,6 @@
                                     <span class="detail-grid-value">RM ${parseFloat(registration.registration_fee || 0).toFixed(2)}</span>
                                 </div>
                                 ${registration.payment_status === 'PARTIAL' ? `
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Balance Amount:</span>
-                                    <span class="detail-grid-value text-danger">RM ${parseFloat(registration.balance_amount || 0).toFixed(2)}</span>
-                                </div>
                                 <div class="detail-grid-row">
                                     <span class="detail-grid-label">Payment Percentage:</span>
                                     <span class="detail-grid-value">${parseFloat(registration.payment_percentage || 0).toFixed(1)}%</span>
@@ -3931,7 +3991,11 @@
                                     </div>
                                 </div>
                             </div>
+
                             <div style="margin-top: 1px;">
+                                <br>
+                            </div>
+                            <div style="margin-top: -2px;">
                                 Catatan / Remarks: _____________________________________________________________________________________________________________
                             </div>
                         </div>
