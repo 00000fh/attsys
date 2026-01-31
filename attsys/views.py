@@ -721,7 +721,6 @@ def check_in(request, event_id, token):
             # Required fields
             required_fields = [
                 'registration_officer', 'applied_programme', 'full_name',
-                'address1',
                 'city', 'postcode', 'state', 'ic_no', 'email',
                 'phone_no', 'marriage_status', 'father_name', 'father_ic',
                 'father_phone', 'father_occupation', 'mother_name', 'mother_ic',
@@ -829,7 +828,6 @@ def check_in(request, event_id, token):
                 event=event,
                 registration_officer=request.POST['registration_officer'].strip(),
                 applied_programme=request.POST['applied_programme'],
-                attended_with=request.POST['attended_with'], 
                 full_name=request.POST['full_name'].strip(),
                 address1=request.POST['address1'].strip(),
                 city=request.POST['city'].strip(),
@@ -1075,203 +1073,124 @@ def export_attendees_csv(request, event_id):
     return response
 
 
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_GET
-from .models import Attendee
-from django.shortcuts import get_object_or_404
-
 @login_required
 @require_GET
 def get_attendee_details(request, attendee_id):
-    """Get complete attendee details with application and registration data"""
+    """Get detailed information about an attendee including application form data"""
     try:
-        print(f"[DEBUG] Fetching details for attendee_id: {attendee_id}")
+        attendee = get_object_or_404(Attendee, id=attendee_id)
         
-        # 1. Get the attendee with related data
-        try:
-            attendee = Attendee.objects.select_related('event').get(id=attendee_id)
-            print(f"[DEBUG] Found attendee: {attendee.name}")
-        except Attendee.DoesNotExist:
-            return JsonResponse({
-                'error': 'Attendee not found',
-                'message': f'No attendee found with ID {attendee_id}'
-            }, status=404)
-        
-        # 2. Check permissions
+        # Check permissions
         if request.user.role == 'STAFF' and attendee.event.created_by != request.user:
-            return JsonResponse({
-                'error': 'Permission denied',
-                'message': 'You do not have permission to view this attendee'
-            }, status=403)
+            return JsonResponse({'error': 'Permission denied'}, status=403)
         
-        # 3. Helper function to format values
-        def format_value(value, field_type='text'):
-            """Format value for display, handling None and empty strings"""
-            if value is None:
-                return ''
-            
-            str_value = str(value).strip()
-            
-            if not str_value or str_value.lower() in ['none', 'null', '']:
-                return ''
-            
-            # Special formatting for specific field types
-            if field_type == 'date' and hasattr(value, 'strftime'):
-                return value.strftime('%Y-%m-%d')
-            elif field_type == 'datetime':
-                return timezone.localtime(value).strftime('%Y-%m-%d %H:%M:%S')
-            elif field_type == 'display_datetime':
-                return timezone.localtime(value).strftime('%I:%M %p')
-            elif field_type == 'display_date':
-                return timezone.localtime(value).strftime('%b %d')
-            elif field_type == 'money':
-                try:
-                    return f"{float(value):,.2f}"
-                except (ValueError, TypeError):
-                    return str_value
-            elif field_type == 'ic' and len(str_value.replace('-', '')) == 12:
-                # Format IC number: 900101-01-1234
-                clean_ic = str_value.replace('-', '')
-                return f"{clean_ic[:6]}-{clean_ic[6:8]}-{clean_ic[8:]}"
-            else:
-                return str_value
+        # Helper function to format empty values as dash
+        def format_value(value):
+            if value is None or str(value).strip() == '':
+                return '-'
+            return str(value).strip()
         
-        # 4. Build attendee data
+        # Build attendee data
         attendee_data = {
             'id': attendee.id,
             'name': attendee.name,
             'email': attendee.email,
-            'phone_number': attendee.phone_number or '',
-            'attended_at': format_value(attendee.attended_at, 'datetime'),
-            'attended_at_display': format_value(attendee.attended_at, 'display_datetime'),
-            'attended_date_display': format_value(attendee.attended_at, 'display_date'),
+            'phone_number': attendee.phone_number,
+            'attended_at': timezone.localtime(attendee.attended_at).strftime('%Y-%m-%d %H:%M:%S'),
+            'attended_at_display': timezone.localtime(attendee.attended_at).strftime('%I:%M %p'),
+            'attended_date_display': timezone.localtime(attendee.attended_at).strftime('%b %d'),
         }
         
-        # 5. Try to get application data
-        application_data = None
+        response_data = {
+            'attendee': attendee_data
+        }
+        
+        # Try to get the corresponding application
         try:
-            # Case-insensitive email match
-            application = Application.objects.filter(
+            application = Application.objects.get(
                 event=attendee.event,
                 email__iexact=attendee.email
-            ).first()
+            )
             
-            if application:
-                print(f"[DEBUG] Found application for {attendee.email}")
-                
-                # Get attended_with from application or default
-                attended_with = application.attended_with or ''
-                
-                application_data = {
-                    'id': application.id,
-                    'registration_officer': format_value(application.registration_officer),
-                    'applied_programme': format_value(application.applied_programme),
-                    'attended_with': attended_with,
-                    'full_name': format_value(application.full_name),
-                    'ic_no': format_value(application.ic_no, 'ic'),
-                    'email': format_value(application.email),
-                    'phone_no': format_value(application.phone_no),
-                    'marriage_status': format_value(application.marriage_status),
-                    'spm_total_credit': format_value(application.spm_total_credit),
-                    'address1': format_value(application.address1),
-                    'city': format_value(application.city),
-                    'postcode': format_value(application.postcode),
-                    'state': format_value(application.state),
-                    'father_name': format_value(application.father_name),
-                    'father_ic': format_value(application.father_ic, 'ic'),
-                    'father_phone': format_value(application.father_phone),
-                    'father_occupation': format_value(application.father_occupation),
-                    'father_income': format_value(application.father_income, 'money'),
-                    'father_dependants': format_value(application.father_dependants),
-                    'mother_name': format_value(application.mother_name),
-                    'mother_ic': format_value(application.mother_ic, 'ic'),
-                    'mother_phone': format_value(application.mother_phone),
-                    'mother_occupation': format_value(application.mother_occupation),
-                    'mother_income': format_value(application.mother_income, 'money'),
-                    'mother_dependants': format_value(application.mother_dependants or ''),
-                    'interest_choice1': format_value(application.interest_choice1),
-                    'interest_choice2': format_value(application.interest_choice2),
-                    'interest_choice3': format_value(application.interest_choice3),
-                    'submitted_at': format_value(application.submitted_at, 'datetime'),
-                    'has_application': True
-                }
-            else:
-                print(f"[DEBUG] No application found for {attendee.email}")
-                application_data = None
-                
-        except Exception as e:
-            print(f"[ERROR] Error fetching application: {e}")
-            application_data = None
+            # Build application data
+            app_data = {
+                'registration_officer': format_value(application.registration_officer),
+                'applied_programme': format_value(application.applied_programme),
+                'full_name': format_value(application.full_name),
+                'address1': format_value(application.address1),
+                'city': format_value(application.city),
+                'postcode': format_value(application.postcode),
+                'state': format_value(application.state),
+                'ic_no': format_value(application.ic_no),
+                'email': format_value(application.email),
+                'phone_no': format_value(application.phone_no),
+                'marriage_status': format_value(application.marriage_status),
+                'spm_total_credit': format_value(application.spm_total_credit),
+                'father_name': format_value(application.father_name),
+                'father_ic': format_value(application.father_ic),
+                'father_phone': format_value(application.father_phone),
+                'father_occupation': format_value(application.father_occupation),
+                'father_income': format_value(application.father_income),
+                'father_dependants': format_value(application.father_dependants),
+                'mother_name': format_value(application.mother_name),
+                'mother_ic': format_value(application.mother_ic),
+                'mother_phone': format_value(application.mother_phone),
+                'mother_occupation': format_value(application.mother_occupation),
+                'mother_income': format_value(application.mother_income),
+                'mother_dependants': format_value(application.mother_dependants),
+                'interest_choice1': format_value(application.interest_choice1),
+                'interest_choice2': format_value(application.interest_choice2),
+                'interest_choice3': format_value(application.interest_choice3),
+                'submitted_at': timezone.localtime(application.submitted_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'attended_with': application.attended_with,  # Add this field
+            }
+            
+            response_data['application'] = app_data
+            
+        except Application.DoesNotExist:
+            # If no application found, add null to response
+            response_data['application'] = None
         
-        # 6. Try to get registration data
-        registration_data = None
+        # Try to get registration data
         try:
-            registration = Registration.objects.filter(attendee=attendee).first()
+            registration = Registration.objects.get(attendee=attendee)
             
-            if registration:
-                print(f"[DEBUG] Found registration for attendee {attendee.id}")
-                
-                # Calculate total fee
-                pre_fee = registration.pre_registration_fee or 0
-                reg_fee = registration.registration_fee or 0
-                total_fee = pre_fee + reg_fee
-                
-                # Calculate payment percentage
-                amount_paid = registration.amount_paid or 0
-                payment_percentage = (amount_paid / total_fee * 100) if total_fee > 0 else 0
-                
-                # Calculate balance
-                balance = total_fee - amount_paid
-                
-                registration_data = {
-                    'id': registration.id,
-                    'course': format_value(registration.course),
-                    'college': format_value(registration.college),
-                    'register_date': format_value(registration.register_date, 'date'),
-                    'pre_registration_fee': format_value(registration.pre_registration_fee, 'money'),
-                    'registration_fee': format_value(registration.registration_fee, 'money'),
-                    'payment_status': registration.payment_status or 'PENDING',
-                    'payment_type': registration.payment_type or '',
-                    'amount_paid': format_value(registration.amount_paid, 'money'),
-                    'balance_amount': format_value(balance, 'money'),
-                    'total_fee': format_value(total_fee, 'money'),
-                    'payment_percentage': f"{payment_percentage:.1f}",
-                    'closer': format_value(registration.closer),
-                    'referral_number': format_value(registration.referral_number),
-                    'remark': format_value(registration.remark),
-                    'created_at': format_value(registration.created_at, 'datetime'),
-                    'updated_at': format_value(registration.updated_at, 'datetime'),
-                    'has_registration': True
-                }
-            else:
-                print(f"[DEBUG] No registration found for attendee {attendee.id}")
-                registration_data = None
-                
-        except Exception as e:
-            print(f"[ERROR] Error fetching registration: {e}")
-            registration_data = None
+            reg_data = {
+                'id': registration.id,
+                'course': format_value(registration.course),
+                'college': format_value(registration.college),
+                'register_date': registration.register_date.strftime('%Y-%m-%d') if registration.register_date else '-',
+                'pre_registration_fee': str(registration.pre_registration_fee or '0.00'),
+                'registration_fee': str(registration.registration_fee or '0.00'),
+                'payment_status': registration.payment_status,
+                'payment_type': registration.payment_type,
+                'amount_paid': str(registration.amount_paid or '0.00'),
+                'balance_amount': str(registration.balance_amount or '0.00'),
+                'total_fee': str(registration.total_fee()),
+                'payment_percentage': str(registration.payment_percentage()),
+                'closer': format_value(registration.closer),
+                'referral_number': format_value(registration.referral_number),
+                'remark': format_value(registration.remark),
+                'created_at': timezone.localtime(registration.created_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'updated_at': timezone.localtime(registration.updated_at).strftime('%Y-%m-%d %H:%M:%S')
+            }
+            
+            response_data['registration'] = reg_data
+            
+        except Registration.DoesNotExist:
+            # If no registration found, add null to response
+            response_data['registration'] = None
         
-        # 7. Build final response
-        response_data = {
-            'success': True,
-            'attendee': attendee_data,
-            'application': application_data,
-            'registration': registration_data
-        }
-        
-        print(f"[DEBUG] Successfully built response for attendee {attendee.id}")
-        return JsonResponse(response_data, json_dumps_params={'ensure_ascii': False})
+        return JsonResponse(response_data)
         
     except Exception as e:
-        print(f"[ERROR] Unhandled exception in get_attendee_details: {e}")
+        print(f"Error in get_attendee_details: {e}")
         import traceback
         traceback.print_exc()
         
         return JsonResponse({
-            'success': False,
-            'error': 'Internal server error',
-            'message': str(e)
+            'error': str(e),
+            'message': 'An error occurred while fetching attendee details'
         }, status=500)
 
 
@@ -2956,6 +2875,7 @@ def get_printable_attendee_details(request, attendee_id):
                 },
                 'address': {
                     'address1': format_print_value(application.address1),
+                    'address2': format_print_value(application.address2),
                     'city': format_print_value(application.city),
                     'postcode': format_print_value(application.postcode),
                     'state': format_print_value(application.state),
