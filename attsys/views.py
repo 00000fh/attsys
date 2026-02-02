@@ -2197,6 +2197,18 @@ def export_registrations_pdf(request, event_id):
                 wordWrap='CJK'  # Allow word wrapping
             )
             
+            # Table cell style for EMAIL (NO TRUNCATION) - smaller font with word wrap
+            table_cell_email_style = ParagraphStyle(
+                'ProfessionalTableCellEmail',
+                parent=styles['Normal'],
+                fontSize=7.0,  # Smaller font for email
+                textColor=colors.HexColor(COLORS['gray_charcoal']),
+                fontName='Helvetica',
+                alignment=0,
+                leading=8,
+                wordWrap='CJK'  # Allow word wrapping
+            )
+            
             # Table cell center style - UPPERCASE - REDUCED SIZE
             table_cell_center = ParagraphStyle(
                 'ProfessionalTableCellCenter',
@@ -2729,7 +2741,7 @@ def export_registrations_pdf(request, event_id):
                     status_cell_style = status_completed_style
                 elif status_code == 'PARTIAL':
                     status_cell_style = status_partial_style
-                else:
+                else:  # PENDING
                     status_cell_style = status_pending_style
                 
                 payment_status_data.append([
@@ -3039,14 +3051,14 @@ def export_registrations_pdf(request, event_id):
             ))
             story.append(Spacer(1, 0.5*cm))
             
-            # Column widths - UPDATED: ADDED COLLEGE COLUMN, ADJUSTED ATTENDEE NAME WIDTH
+            # Column widths - UPDATED: ADDED COLLEGE COLUMN, ADJUSTED EMAIL COLUMN WIDTH
             headers = [
                 (uppercase_text('NO.'), 1.0*cm),
-                (uppercase_text('ATTENDEE NAME'), 4.0*cm),  # INCREASED from 3.5cm to 4.0cm
-                (uppercase_text('EMAIL'), 3.0*cm),
+                (uppercase_text('ATTENDEE NAME'), 4.0*cm),
+                (uppercase_text('EMAIL'), 3.5*cm),  # INCREASED WIDTH from 3.0cm to 3.5cm
                 (uppercase_text('REF. CODE'), 2.0*cm),
                 (uppercase_text('COURSE'), 2.5*cm),
-                (uppercase_text('COLLEGE'), 2.5*cm),  # NEW COLUMN ADDED
+                (uppercase_text('COLLEGE'), 2.5*cm),
                 (uppercase_text('PAYMENT TYPE'), 2.0*cm),
                 (uppercase_text('PAYMENT STATUS'), 2.2*cm),
                 (uppercase_text('PRE REG. (RM)'), 2.0*cm),
@@ -3075,9 +3087,8 @@ def export_registrations_pdf(request, event_id):
                 # ATTENDEE NAME: FULL NAME SHOWN - NO TRUNCATION, use smaller font
                 attendee_name = uppercase_text(reg.attendee.name)
                 
-                email = (reg.attendee.email)
-                if len(email) > 25:
-                    email = email[:23] + "..."
+                # EMAIL: FULL EMAIL SHOWN - NO TRUNCATION, use smaller font with word wrap
+                email = reg.attendee.email  # Keep original case for email
                 
                 officer = uppercase_text(inviting_officer)
                 if len(officer) > 15:
@@ -3088,7 +3099,7 @@ def export_registrations_pdf(request, event_id):
                     course = course[:18] + "..."
                 
                 # COLLEGE APPLIED - NEW COLUMN
-                college = uppercase_text(reg.college or 'NONE')  # Changed from 'N/A' to 'NONE'
+                college = uppercase_text(reg.college or 'NONE')
                 if len(college) > 20:
                     college = college[:18] + "..."
                 
@@ -3121,10 +3132,10 @@ def export_registrations_pdf(request, event_id):
                 row = [
                     Paragraph(str(i), table_cell_center),
                     Paragraph(attendee_name, table_cell_long_name_style),  # Use special style for long names
-                    Paragraph(email, table_cell_style),
+                    Paragraph(email, table_cell_email_style),  # NEW: Use email style for full email display
                     Paragraph(officer, table_cell_style),
                     Paragraph(course, table_cell_style),
-                    Paragraph(college, table_cell_style),  # NEW COLUMN
+                    Paragraph(college, table_cell_style),
                     Paragraph(payment_type, table_cell_center),
                     status_cell,
                     Paragraph(f"{pre_reg_fee:,.2f}", table_cell_right),
@@ -3199,7 +3210,10 @@ def export_registrations_pdf(request, event_id):
                 ('GRID', (0, 0), (-1, -2), 0.5, colors.HexColor(COLORS['gray_medium'])),
                 
                 # Special handling for attendee name column (column 1) - smaller font
-                ('FONTSIZE', (1, 1), (1, -2), 6.5), # Smaller font for long names
+                ('FONTSIZE', (1, 1), (1, -2), 6.5),  # Smaller font for long names
+                
+                # Special handling for email column (column 2) - smaller font and word wrap
+                ('FONTSIZE', (2, 1), (2, -2), 6.0),  # Even smaller font for emails
                 
                 ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
                  [colors.white, colors.HexColor(COLORS['gray_light'])]),
