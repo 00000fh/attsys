@@ -1760,7 +1760,7 @@ def get_full_registration_stats(request, event_id):
             for item in payment_type_stats:
                 try:
                     payment_types_data.append({
-                        'type': item['payment_type'] or 'UNSPECIFIED',
+                        'type': item['payment_type'] or 'NONE',
                         'count': item['count'] or 0,
                         'pre_reg_amount': float(item['pre_reg_amount'] or 0),
                         'reg_amount': float(item['reg_amount'] or 0),
@@ -1946,7 +1946,7 @@ def export_registrations_pdf(request, event_id):
         elif payment_type == 'QR_PAYMENT':
             return 'QR PAYMENT'
         else:
-            return uppercase_text(payment_type or 'UNSPECIFIED')
+            return uppercase_text(payment_type or 'NONE')
     
     # Helper function to get payment status display name
     def get_payment_status_display(payment_status):
@@ -2011,7 +2011,7 @@ def export_registrations_pdf(request, event_id):
                 payment_status_revenue[reg.payment_status] += reg_total
             
             # Count payment types and revenue by type
-            payment_type = reg.payment_type or 'UNSPECIFIED'
+            payment_type = reg.payment_type or 'NONE'
             if payment_type not in payment_type_counts:
                 payment_type_counts[payment_type] = 0
                 payment_type_revenue[payment_type] = Decimal('0.00')
@@ -2165,24 +2165,36 @@ def export_registrations_pdf(request, event_id):
             table_header_style = ParagraphStyle(
                 'ProfessionalTableHeader',
                 parent=styles['Normal'],
-                fontSize=9,  # Reduced from 10
+                fontSize=8.5,  # Reduced from 10
                 textColor=colors.HexColor(COLORS['white']),
                 fontName='Helvetica-Bold',
                 alignment=1,
-                spaceBefore=1,
-                spaceAfter=1,
-                leading=10  # Reduced from 12
+                spaceBefore=1.5,
+                spaceAfter=1.5,
+                leading=9  # Reduced from 12
             )
             
             # Table cell style - UPPERCASE - REDUCED SIZE
             table_cell_style = ParagraphStyle(
                 'ProfessionalTableCell',
                 parent=styles['Normal'],
-                fontSize=8.5,  # Reduced from 9.5
+                fontSize=7.5,  # Reduced from 9.5
                 textColor=colors.HexColor(COLORS['gray_charcoal']),
                 fontName='Helvetica',
                 alignment=0,
-                leading=9.5  # Reduced from 11
+                leading=9  # Reduced from 11
+            )
+            
+            # Table cell style for LONG NAMES (NO TRUNCATION) - smaller font
+            table_cell_long_name_style = ParagraphStyle(
+                'ProfessionalTableCellLongName',
+                parent=styles['Normal'],
+                fontSize=7.5,  # Even smaller for long names
+                textColor=colors.HexColor(COLORS['gray_charcoal']),
+                fontName='Helvetica',
+                alignment=0,
+                leading=9,
+                wordWrap='CJK'  # Allow word wrapping
             )
             
             # Table cell center style - UPPERCASE - REDUCED SIZE
@@ -2353,9 +2365,9 @@ def export_registrations_pdf(request, event_id):
                 ],
                 [
                     Paragraph(f"{uppercase_text(f'{total_completed} completed')} • {uppercase_text(f'{total_partial} partial')} • {uppercase_text(f'{total_pending} pending')}", 
-                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=9, alignment=1)),
+                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=8, alignment=1)),
                     Paragraph(f"{total_completed} {uppercase_text('of')} {total_registered}", 
-                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=9, alignment=1)),
+                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=8, alignment=1)),
                 ],
                 [
                     Paragraph(uppercase_text('TOTAL REVENUE'), kpi_header_white_style),
@@ -2367,9 +2379,9 @@ def export_registrations_pdf(request, event_id):
                 ],
                 [
                     Paragraph(f"{uppercase_text('pre-reg')}: RM {total_pre_registration_fee:,.2f} • {uppercase_text('reg')}: RM {total_registration_fee:,.2f}", 
-                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=9, alignment=1)),
+                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=8, alignment=1)),
                     Paragraph(f"{uppercase_text('pre-registration')} / {uppercase_text('registration')} {uppercase_text('split')}", 
-                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=9, alignment=1)),
+                             ParagraphStyle('KpiDetail', parent=styles['Normal'], fontSize=8, alignment=1)),
                 ]
             ]
             
@@ -2526,13 +2538,38 @@ def export_registrations_pdf(request, event_id):
             story.append(Spacer(1, 0.4*cm))
             
             # ============================
-            # NEW SECTION: PAYMENT ANALYSIS
+            # NEW SECTION: PAYMENT ANALYSIS - MOVED TO NEW PAGE
             # ============================
             
+            # Add page break after insights section
+            story.append(Spacer(1, 0.3*cm))
+
+            # Footer for page 1
+            story.append(Paragraph(
+                f"{uppercase_text('PAGE 1 OF 4')} | {uppercase_text('REPORT ID')}: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')} | {uppercase_text('GENERATED BY ATTSYS')}",
+                footer_style
+            ))
+
+            # ============================
+            # PAGE BREAK - NEW PAGE FOR PAYMENT ANALYSIS
+            # ============================
+            story.append(PageBreak())
+
+            # ============================
+            # PAGE 2: PAYMENT ANALYSIS
+            # ============================
+
+            story.append(Paragraph(f"{uppercase_text('PAYMENT ANALYSIS REPORT')}", title_style))
+            story.append(Paragraph(
+                f"{uppercase_text('EVENT')}: {uppercase_text(event.title)} | {uppercase_text('TOTAL TRANSACTIONS')}: {total_registered}", 
+                subtitle_style
+            ))
+            story.append(Spacer(1, 0.5*cm))
+
             if payment_type_counts:
                 story.append(Paragraph(f"<b>{uppercase_text('PAYMENT METHOD ANALYSIS')}</b>", 
                             ParagraphStyle('SectionCenter', parent=section_style, fontSize=13, alignment=1)))
-                story.append(Spacer(1, 0.2*cm))
+                story.append(Spacer(1, 0.3*cm))
                 
                 # Create payment analysis table with updated payment types
                 payment_data = []
@@ -2643,16 +2680,16 @@ def export_registrations_pdf(request, event_id):
                 ]))
                 
                 story.append(payment_table)
-                story.append(Spacer(1, 0.3*cm))
-            
+                story.append(Spacer(1, 0.5*cm))  # Increased spacing
+
             # Add Payment Status Analysis Section
             story.append(Paragraph(f"<b>{uppercase_text('PAYMENT STATUS ANALYSIS')}</b>", 
                         ParagraphStyle('SectionCenter', parent=section_style, fontSize=13, alignment=1)))
-            story.append(Spacer(1, 0.2*cm))
-            
+            story.append(Spacer(1, 0.3*cm))
+
             # Payment status analysis table
             payment_status_data = []
-            
+
             # Headers
             payment_status_data.append([
                 Paragraph(f'<b>{uppercase_text("PAYMENT STATUS")}</b>', table_header_style),
@@ -2661,7 +2698,7 @@ def export_registrations_pdf(request, event_id):
                 Paragraph(f'<b>{uppercase_text("REVENUE (RM)")}</b>', table_header_style),
                 Paragraph(f'<b>{uppercase_text("AVG. PER REG (RM)")}</b>', table_header_style),
             ])
-            
+
             # Status data in order: COMPLETED, PARTIAL, PENDING
             status_order = ['DONE', 'PARTIAL', 'PENDING']
             status_display = {
@@ -2669,7 +2706,7 @@ def export_registrations_pdf(request, event_id):
                 'PARTIAL': 'PARTIALLY PAID',
                 'PENDING': 'PENDING'
             }
-            
+
             for status_code in status_order:
                 count = 0
                 revenue = Decimal('0.00')
@@ -2702,7 +2739,7 @@ def export_registrations_pdf(request, event_id):
                     Paragraph(f"{revenue:,.2f}", table_cell_right),
                     Paragraph(f"{avg_per_reg:,.2f}", table_cell_right),
                 ])
-            
+
             # Summary row
             payment_status_data.append([
                 Paragraph(f'<b>{uppercase_text("TOTAL")}</b>', summary_white_style),
@@ -2711,9 +2748,9 @@ def export_registrations_pdf(request, event_id):
                 Paragraph(f'<b>{total_revenue:,.2f}</b>', summary_white_right),
                 Paragraph(f'<b>{avg_revenue_per_reg:,.2f}</b>', summary_white_right),
             ])
-            
+
             payment_status_table = Table(payment_status_data, colWidths=[5*cm, 3*cm, 3*cm, 4*cm, 4*cm], repeatRows=1)
-            
+
             payment_status_table.setStyle(TableStyle([
                 # Header - Dark gray background
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_darker'])),
@@ -2748,32 +2785,92 @@ def export_registrations_pdf(request, event_id):
                 ('FONTSIZE', (0, -1), (-1, -1), 9),
                 ('PADDING', (0, -1), (-1, -1), 5),
             ]))
-            
+
             story.append(payment_status_table)
             story.append(Spacer(1, 0.3*cm))
-            
-            # Footer for page 1
+
+            # Add payment analysis insights
+            if total_registered > 0:
+                story.append(Paragraph(f"<b>{uppercase_text('PAYMENT ANALYSIS INSIGHTS')}</b>", 
+                            ParagraphStyle('SectionCenter', parent=section_style, fontSize=12, alignment=1)))
+                story.append(Spacer(1, 0.2*cm))
+                
+                insights_content = []
+                
+                # Calculate key payment metrics
+                cash_percentage = (payment_type_counts.get('CASH', 0) / total_registered * 100) if total_registered > 0 else 0
+                online_percentage = (payment_type_counts.get('ONLINE_BANKING', 0) / total_registered * 100) if total_registered > 0 else 0
+                qr_percentage = (payment_type_counts.get('QR_PAYMENT', 0) / total_registered * 100) if total_registered > 0 else 0
+                
+                # Most popular payment method
+                if payment_type_counts:
+                    most_popular = max(payment_type_counts.items(), key=lambda x: x[1])
+                    most_popular_name = get_payment_type_display(most_popular[0])
+                    most_popular_percentage = (most_popular[1] / total_registered * 100) if total_registered > 0 else 0
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('MOST POPULAR PAYMENT METHOD')}:</b> {most_popular_name} ({most_popular_percentage:.1f}% {uppercase_text('OF ALL TRANSACTIONS')})", 
+                                 table_cell_style)
+                    ])
+                
+                # Payment completion insights
+                if total_completed > 0:
+                    completion_percentage = (total_completed / total_registered * 100)
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('PAYMENT COMPLETION RATE')}:</b> {completion_percentage:.1f}% ({total_completed} {uppercase_text('OF')} {total_registered} {uppercase_text('REGISTRATIONS FULLY PAID')})", 
+                                 table_cell_style)
+                    ])
+                
+                # Partial payment insights
+                if total_partial > 0:
+                    partial_percentage = (total_partial / total_registered * 100)
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('PARTIAL PAYMENTS')}:</b> {partial_percentage:.1f}% ({total_partial} {uppercase_text('REGISTRATIONS WITH PARTIAL PAYMENT')})", 
+                                 table_cell_style)
+                    ])
+                
+                # Average revenue per completed registration
+                if total_completed > 0:
+                    avg_completed_revenue = payment_status_revenue['DONE'] / total_completed if total_completed > 0 else 0
+                    insights_content.append([
+                        Paragraph(f"• <b>{uppercase_text('AVERAGE REVENUE PER COMPLETED REGISTRATION')}:</b> RM {avg_completed_revenue:,.2f}", 
+                                 table_cell_style)
+                    ])
+                
+                # Add insights table
+                if insights_content:
+                    insights_table = Table(insights_content, colWidths=[18*cm])
+                    insights_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(COLORS['gray_ultralight'])),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('PADDING', (0, 0), (-1, -1), 8),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 15),
+                        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor(COLORS['gray_darker'])),
+                    ]))
+                    story.append(insights_table)
+
+            # Footer for page 2
+            story.append(Spacer(1, 0.3*cm))
             story.append(Paragraph(
-                f"{uppercase_text('PAGE 1 OF 3')} | {uppercase_text('REPORT ID')}: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')} | {uppercase_text('GENERATED BY ATTSYS')}",
+                f"{uppercase_text('PAGE 2 OF 4')} | {uppercase_text('REPORT ID')}: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')}",
                 footer_style
             ))
-            
+
             # ============================
-            # PAGE BREAK
+            # PAGE BREAK - FOR CLOSER PERFORMANCE
             # ============================
             story.append(PageBreak())
-            
+
             # ============================
-            # PAGE 2: CLOSER PERFORMANCE ANALYSIS
+            # PAGE 3: CLOSER PERFORMANCE ANALYSIS (formerly page 2)
             # ============================
-            
+
             story.append(Paragraph(f"{uppercase_text('PERFORMANCE ANALYSIS BY CLOSER')}", title_style))
             story.append(Paragraph(
                 f"{uppercase_text('EVENT')}: {uppercase_text(event.title)} | {uppercase_text('TOTAL CLOSERS')}: {len(all_closers) if all_closers else 0}", 
                 subtitle_style
             ))
             story.append(Spacer(1, 0.5*cm))
-            
+
             if all_closers and len(all_closers) > 0:
                 story.append(Paragraph(f"<b>{uppercase_text('CLOSER PERFORMANCE RANKING')}</b>", 
                             ParagraphStyle('SectionCenter', parent=section_style, fontSize=13, alignment=1)))
@@ -2786,7 +2883,7 @@ def export_registrations_pdf(request, event_id):
                 closers_data.append([
                     Paragraph(f'<b>{uppercase_text("RANK")}</b>', table_header_style),
                     Paragraph(f'<b>{uppercase_text("CLOSER NAME")}</b>', table_header_style),
-                    Paragraph(f'<b>{uppercase_text("TOTAL")}</b>', table_header_style),
+                    Paragraph(f'<b>{uppercase_text("CLOSING")}</b>', table_header_style),
                     Paragraph(f'<b>{uppercase_text("COMPLETED")}</b>', table_header_style),
                     Paragraph(f'<b>{uppercase_text("PARTIAL")}</b>', table_header_style),
                     Paragraph(f'<b>{uppercase_text("PENDING")}</b>', table_header_style),
@@ -2819,7 +2916,7 @@ def export_registrations_pdf(request, event_id):
                 summary_white_style = ParagraphStyle(
                     'SummaryWhite',
                     parent=table_cell_style,
-                    fontSize=9,
+                    fontSize=8,
                     fontName='Helvetica-Bold',
                     textColor=colors.white,
                     alignment=1
@@ -2828,7 +2925,7 @@ def export_registrations_pdf(request, event_id):
                 summary_white_right = ParagraphStyle(
                     'SummaryWhiteRight',
                     parent=table_cell_style,
-                    fontSize=9,
+                    fontSize=8,
                     fontName='Helvetica-Bold',
                     textColor=colors.white,
                     alignment=2
@@ -2845,7 +2942,7 @@ def export_registrations_pdf(request, event_id):
                 ])
                 
                 # Column widths
-                closers_col_widths = [1.5*cm, 5.5*cm, 1.5*cm, 1.5*cm, 1.5*cm, 1.5*cm, 3.0*cm]
+                closers_col_widths = [1.5*cm, 5.5*cm, 3.0*cm, 3.0*cm, 2.0*cm, 2.0*cm, 3.0*cm]
                 
                 closers_table = Table(closers_data, colWidths=closers_col_widths, repeatRows=1)
                 
@@ -2860,7 +2957,7 @@ def export_registrations_pdf(request, event_id):
                     ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                     ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor(COLORS['gray_dark'])),
                     
-                    ('FONTSIZE', (0, 1), (-1, -2), 8.5),
+                    ('FONTSIZE', (0, 1), (-1, -2), 6.5),
                     ('PADDING', (0, 1), (-1, -2), 5),
                     ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
                     
@@ -2919,22 +3016,22 @@ def export_registrations_pdf(request, event_id):
                 story.append(Paragraph(f"{uppercase_text('NO CLOSER PERFORMANCE DATA AVAILABLE')}", 
                             ParagraphStyle('NoData', parent=section_style, fontSize=12, alignment=1)))
             
-            # Footer for page 2
+            # UPDATE THE FOOTER ON CLOSER PERFORMANCE PAGE
             story.append(Spacer(1, 0.3*cm))
             story.append(Paragraph(
-                f"{uppercase_text('PAGE 2 OF 3')} | {uppercase_text('REPORT ID')}: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')}",
+                f"{uppercase_text('PAGE 3 OF 4')} | {uppercase_text('REPORT ID')}: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')}",
                 footer_style
             ))
-            
+
             # ============================
-            # PAGE BREAK
+            # PAGE BREAK - FOR REGISTRATION DETAILS
             # ============================
             story.append(PageBreak())
-            
+
             # ============================
-            # PAGE 3: DETAILED REGISTRATIONS REGISTER
+            # PAGE 4: REGISTRATION DETAILS REGISTER (formerly page 3)
             # ============================
-            
+
             story.append(Paragraph(f"{uppercase_text('REGISTRATION DETAILS REGISTER')}", title_style))
             story.append(Paragraph(
                 f"{uppercase_text('EVENT')}: {uppercase_text(event.title)} | {uppercase_text('TOTAL REGISTRATIONS')}: {total_registered}", 
@@ -2942,15 +3039,16 @@ def export_registrations_pdf(request, event_id):
             ))
             story.append(Spacer(1, 0.5*cm))
             
-            # Column widths - UPDATED FOR PAYMENT TYPE AND STATUS
+            # Column widths - UPDATED: ADDED COLLEGE COLUMN, ADJUSTED ATTENDEE NAME WIDTH
             headers = [
-                (uppercase_text('NO.'), 1.2*cm),
-                (uppercase_text('ATTENDEE NAME'), 3.5*cm),
+                (uppercase_text('NO.'), 1.0*cm),
+                (uppercase_text('ATTENDEE NAME'), 4.0*cm),  # INCREASED from 3.5cm to 4.0cm
                 (uppercase_text('EMAIL'), 3.0*cm),
                 (uppercase_text('REF. CODE'), 2.0*cm),
                 (uppercase_text('COURSE'), 2.5*cm),
+                (uppercase_text('COLLEGE'), 2.5*cm),  # NEW COLUMN ADDED
                 (uppercase_text('PAYMENT TYPE'), 2.0*cm),
-                (uppercase_text('PAYMENT STATUS'), 2.0*cm),
+                (uppercase_text('PAYMENT STATUS'), 2.2*cm),
                 (uppercase_text('PRE REG. (RM)'), 2.0*cm),
                 (uppercase_text('REG. (RM)'), 2.0*cm),
                 (uppercase_text('TOTAL (RM)'), 2.0*cm),
@@ -2974,10 +3072,8 @@ def export_registrations_pdf(request, event_id):
                     reg.attendee.email.lower(), uppercase_text('N/A')
                 )
                 
-                # Truncate long text and convert to UPPERCASE
+                # ATTENDEE NAME: FULL NAME SHOWN - NO TRUNCATION, use smaller font
                 attendee_name = uppercase_text(reg.attendee.name)
-                if len(attendee_name) > 25:
-                    attendee_name = attendee_name[:23] + "..."
                 
                 email = (reg.attendee.email)
                 if len(email) > 25:
@@ -2990,6 +3086,11 @@ def export_registrations_pdf(request, event_id):
                 course = uppercase_text(reg.course or 'N/A')
                 if len(course) > 20:
                     course = course[:18] + "..."
+                
+                # COLLEGE APPLIED - NEW COLUMN
+                college = uppercase_text(reg.college or 'NONE')  # Changed from 'N/A' to 'NONE'
+                if len(college) > 20:
+                    college = college[:18] + "..."
                 
                 closer = uppercase_text(reg.closer or 'N/A')
                 if len(closer) > 15:
@@ -3019,10 +3120,11 @@ def export_registrations_pdf(request, event_id):
                 # Build row
                 row = [
                     Paragraph(str(i), table_cell_center),
-                    Paragraph(attendee_name, table_cell_style),
+                    Paragraph(attendee_name, table_cell_long_name_style),  # Use special style for long names
                     Paragraph(email, table_cell_style),
                     Paragraph(officer, table_cell_style),
                     Paragraph(course, table_cell_style),
+                    Paragraph(college, table_cell_style),  # NEW COLUMN
                     Paragraph(payment_type, table_cell_center),
                     status_cell,
                     Paragraph(f"{pre_reg_fee:,.2f}", table_cell_right),
@@ -3037,7 +3139,7 @@ def export_registrations_pdf(request, event_id):
             financial_summary_white_style = ParagraphStyle(
                 'FinancialSummaryWhite',
                 parent=table_cell_style,
-                fontSize=9,
+                fontSize=8,
                 fontName='Helvetica-Bold',
                 textColor=colors.white,
                 alignment=0
@@ -3046,7 +3148,7 @@ def export_registrations_pdf(request, event_id):
             financial_summary_white_center = ParagraphStyle(
                 'FinancialSummaryWhiteCenter',
                 parent=table_cell_style,
-                fontSize=9,
+                fontSize=8,
                 fontName='Helvetica-Bold',
                 textColor=colors.white,
                 alignment=1
@@ -3055,7 +3157,7 @@ def export_registrations_pdf(request, event_id):
             financial_summary_white_right = ParagraphStyle(
                 'FinancialSummaryWhiteRight',
                 parent=table_cell_style,
-                fontSize=9,
+                fontSize=8,
                 fontName='Helvetica-Bold',
                 textColor=colors.white,
                 alignment=2
@@ -3063,13 +3165,13 @@ def export_registrations_pdf(request, event_id):
             
             summary_row = [
                 Paragraph(f'<b>{uppercase_text("FINANCIAL SUMMARY")}</b>', financial_summary_white_style),
-                '', '', '',
+                '', '', '', '', '',  # Empty cells for No., Name, Email, Ref Code, Course, College
                 Paragraph(f'<b>{uppercase_text("TOTAL")}:</b>', financial_summary_white_center),
-                '', '',
+                '',  # Empty for Payment Status
                 Paragraph(f'<b>{total_pre_registration_fee:,.2f}</b>', financial_summary_white_right),
                 Paragraph(f'<b>{total_registration_fee:,.2f}</b>', financial_summary_white_right),
                 Paragraph(f'<b>{total_revenue:,.2f}</b>', financial_summary_white_right),
-                '',
+                '',  # Empty for Closer
             ]
             
             table_data.append(summary_row)
@@ -3091,18 +3193,21 @@ def export_registrations_pdf(request, event_id):
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                 ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor(COLORS['gray_dark'])),
                 
-                ('FONTSIZE', (0, 1), (-1, -2), 8.5),
+                ('FONTSIZE', (0, 1), (-1, -2), 6.5),
                 ('PADDING', (0, 1), (-1, -2), 5),
                 ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),
                 ('GRID', (0, 0), (-1, -2), 0.5, colors.HexColor(COLORS['gray_medium'])),
+                
+                # Special handling for attendee name column (column 1) - smaller font
+                ('FONTSIZE', (1, 1), (1, -2), 6.5), # Smaller font for long names
                 
                 ('ROWBACKGROUNDS', (0, 1), (-1, -2), 
                  [colors.white, colors.HexColor(COLORS['gray_light'])]),
                 
                 ('ALIGN', (0, 1), (0, -2), 'CENTER'),
-                ('ALIGN', (5, 1), (6, -2), 'CENTER'),
-                ('ALIGN', (7, 1), (9, -2), 'RIGHT'),
-                ('ALIGN', (10, 1), (10, -2), 'LEFT'),
+                ('ALIGN', (6, 1), (7, -2), 'CENTER'),  # Payment Type and Status centered
+                ('ALIGN', (8, 1), (10, -2), 'RIGHT'),  # Fee columns right-aligned
+                ('ALIGN', (11, 1), (11, -2), 'LEFT'),  # Closer left-aligned
                 
                 ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor(COLORS['gray_darker'])),
                 ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
@@ -3112,11 +3217,13 @@ def export_registrations_pdf(request, event_id):
                 ('LINEABOVE', (0, -1), (-1, -1), 1.5, colors.HexColor(COLORS['gray_medium'])),
                 ('VALIGN', (0, -1), (-1, -1), 'MIDDLE'),
                 
-                ('SPAN', (0, -1), (3, -1)),
-                ('SPAN', (4, -1), (6, -1)),
-                ('SPAN', (7, -1), (7, -1)),
-                ('SPAN', (8, -1), (8, -1)),
-                ('SPAN', (9, -1), (9, -1)),
+                # Span cells for summary row
+                ('SPAN', (0, -1), (5, -1)),  # Span from No. to College
+                ('SPAN', (6, -1), (7, -1)),  # Span Payment Type and Payment Status
+                ('SPAN', (8, -1), (8, -1)),  # Pre Reg column
+                ('SPAN', (9, -1), (9, -1)),  # Reg column
+                ('SPAN', (10, -1), (10, -1)), # Total column
+                ('SPAN', (11, -1), (11, -1)), # Closer column
                 
                 ('GRID', (0, -1), (-1, -1), 0, colors.white),
             ]))
@@ -3129,11 +3236,14 @@ def export_registrations_pdf(request, event_id):
                 [
                     Paragraph('<b>PAYMENT TYPE LEGEND</b>', ParagraphStyle('LegendHeader', parent=table_header_style, fontSize=8)),
                     Paragraph('<b>PAYMENT STATUS LEGEND</b>', ParagraphStyle('LegendHeader', parent=table_header_style, fontSize=8)),
+                    Paragraph('<b>COLLEGE LEGEND</b>', ParagraphStyle('LegendHeader', parent=table_header_style, fontSize=8)),
                 ],
                 [
                     Paragraph('• <font color="#1976d2">CASH</font> - Cash Payment', 
                              ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
                     Paragraph('• <font color="#388e3c">COMPLETED</font> - Fully Paid', 
+                             ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
+                    Paragraph('• <font color="#666666">NONE</font> - No College Specified', 
                              ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
                 ],
                 [
@@ -3141,16 +3251,18 @@ def export_registrations_pdf(request, event_id):
                              ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
                     Paragraph('• <font color="#fbc02d">PARTIALLY PAID</font> - Partial Payment', 
                              ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
+                    Paragraph('', ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
                 ],
                 [
                     Paragraph('• <font color="#7b1fa2">QR PAYMENT</font> - QR Code Payment', 
                              ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
                     Paragraph('• <font color="#d32f2f">PENDING</font> - Payment Pending', 
                              ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
+                    Paragraph('', ParagraphStyle('LegendItem', parent=table_cell_style, fontSize=8)),
                 ],
             ]
             
-            legend_table = Table(legend_data, colWidths=[9*cm, 9*cm])
+            legend_table = Table(legend_data, colWidths=[6*cm, 6*cm, 6*cm])
             legend_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(COLORS['gray_light'])),
                 ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor(COLORS['gray_medium'])),
@@ -3161,16 +3273,17 @@ def export_registrations_pdf(request, event_id):
             story.append(legend_table)
             story.append(Spacer(1, 0.3*cm))
             
-            # Final footer
+            # UPDATE THE FINAL FOOTER
+            story.append(Spacer(1, 0.3*cm))
             disclaimer = Paragraph(
                 f"""<b>{uppercase_text("OFFICIAL REPORT - CONFIDENTIAL")}</b><br/>
                 {uppercase_text("REPORT ID")}: REG-{event.id}-{malaysia_now().strftime('%y%m%d%H%M')} | 
                 {uppercase_text("GENERATED BY ATTSYS DASHBOARD")} | 
-                {uppercase_text("PAGE 3 OF 3")} | 
+                {uppercase_text("PAGE 4 OF 4")} | 
                 {malaysia_now().strftime('%d/%m/%Y %H:%M')}<br/>
                 <i>{uppercase_text("THIS DOCUMENT CONTAINS CONFIDENTIAL INFORMATION AND IS INTENDED FOR OFFICIAL USE ONLY")}.</i>""",
                 ParagraphStyle('FinalFooter', parent=footer_style, fontSize=8, textColor=colors.HexColor(COLORS['gray_dark'])))
-            
+
             story.append(disclaimer)
             
             # ============================
