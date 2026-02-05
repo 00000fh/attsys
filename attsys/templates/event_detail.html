@@ -3574,13 +3574,20 @@
             'GUARDIAN': app.attended_with === 'GUARDIAN',
         };
         
-        // Determine programme checkbox
+        // Even better - match the exact values from your form:
+        const appliedProgramme = app.applied_programme ? app.applied_programme.trim() : '';
         const programmeCheckboxes = {
-            'DIPLOMA': app.applied_programme === 'DIPLOMA',
-            'PRA_DIPLOMA': app.applied_programme === 'PRA_DIPLOMA',
-            'TVET': app.applied_programme === 'TVET',
-            'SMART_TAHFIZ': app.applied_programme === 'SMART_TAHFIZ',
+            'DIPLOMA': appliedProgramme === 'Diploma',
+            'PRA_DIPLOMA': appliedProgramme === 'Pra-Diploma',
+            'TVET': appliedProgramme === 'TVET',
+            'SMART_TAHFIZ': appliedProgramme === 'Smart Tahfiz'
         };
+
+        console.log('Programme detection:', {
+            original: app.applied_programme,
+            trimmed: appliedProgramme,
+            checks: programmeCheckboxes
+        });
         
         return `
     <!DOCTYPE html>

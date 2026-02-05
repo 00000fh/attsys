@@ -1088,10 +1088,11 @@ def get_attendee_details(request, attendee_id):
                 return '-'
             return str(value).strip()
         
-        # Build application data
+        # Build application data - ADD attended_with HERE!
         app_data = {
             'registration_officer': format_value(application.registration_officer),
             'applied_programme': format_value(application.applied_programme),
+            'attended_with': format_value(application.attended_with),  # ← ADD THIS LINE
             'full_name': format_value(application.full_name),
             'address1': format_value(application.address1),
             'city': format_value(application.city),
