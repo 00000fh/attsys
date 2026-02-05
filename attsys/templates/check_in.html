@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ms">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Programme Application | {{ event.title }}</title>
+    <title>Borang Permohonan | {{ event.title }}</title>
     
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -69,9 +69,17 @@
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--black);
-            margin: 0 0 0.5rem 0;
+            margin: 0 0 0.25rem 0;
             line-height: 1.3;
             text-align: center;
+        }
+        
+        .mobile-subtitle {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            font-weight: 400;
         }
         
         /* Event name */
@@ -230,12 +238,20 @@
             transform: scale(1.05);
         }
         
-        .section-title {
+        .section-title-main {
             font-size: 1.1rem;
             font-weight: 700;
             color: var(--black);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.125rem;
             line-height: 1.3;
+        }
+        
+        .section-title-sub {
+            color: var(--gray-600);
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+            line-height: 1.4;
+            font-style: italic;
         }
         
         .section-subtitle {
@@ -261,9 +277,17 @@
             display: block;
             font-weight: 600;
             color: var(--gray-800);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
             font-size: 0.95rem;
             line-height: 1.4;
+        }
+        
+        .form-label-sub {
+            display: block;
+            color: var(--gray-500);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            font-style: italic;
         }
         
         .form-label.required::after {
@@ -322,8 +346,9 @@
         
         .programme-label {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             padding: 1rem;
             background: var(--white);
             border: 2px solid var(--gray-300);
@@ -331,9 +356,10 @@
             cursor: pointer;
             font-weight: 500;
             color: var(--gray-800);
-            text-align: left;
+            text-align: center;
             position: relative;
             transition: all var(--transition-speed) var(--transition-timing);
+            min-height: 90px;
         }
         
         .programme-label:hover {
@@ -353,21 +379,35 @@
             content: '✓';
             position: absolute;
             right: 1rem;
+            top: 1rem;
             font-size: 1.1rem;
             font-weight: bold;
             line-height: 1;
         }
         
         .programme-label i {
-            font-size: 1.25rem;
-            margin-right: 0.75rem;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
             color: inherit;
             flex-shrink: 0;
         }
         
         .programme-label span {
             font-size: 0.95rem;
+            font-weight: 600;
             line-height: 1.3;
+            margin-bottom: 0.25rem;
+        }
+        
+        .programme-label-sub {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+        
+        .programme-option input[type="radio"]:checked + .programme-label .programme-label-sub {
+            color: rgba(255, 255, 255, 0.8);
         }
         
         /* Programme Interest */
@@ -772,6 +812,13 @@
                 line-height: 1.3;
             }
             
+            .desktop-subtitle {
+                font-size: 0.85rem;
+                color: var(--gray-600);
+                margin: 0 0 0.5rem 0;
+                font-weight: 400;
+            }
+            
             .desktop-event-name {
                 font-size: 1.1rem;
                 font-weight: 600;
@@ -803,7 +850,7 @@
                 font-size: 1.2rem;
             }
             
-            .section-title {
+            .section-title-main {
                 font-size: 1.2rem;
             }
             
@@ -898,6 +945,10 @@
                 font-size: 1.35rem;
             }
             
+            .mobile-subtitle {
+                font-size: 0.8rem;
+            }
+            
             .mobile-event-name {
                 font-size: 1rem;
             }
@@ -919,10 +970,10 @@
             <div class="mobile-header">
                 <div class="mobile-header-top">
                     <div class="mobile-event-badge">
-                        Event
+                        Acara
                     </div>
                     <div class="mobile-event-date">
-                        {{ event.date|date:"F d, Y" }}
+                        {{ event.date|date:"d F Y" }}
                     </div>
                 </div>
                 
@@ -932,7 +983,8 @@
                     <img src="/static/images/upkb.png" alt="" class="mobile-logo">
                 </div>
                 
-                <h1 class="mobile-title">Programme Application Form</h1>
+                <h1 class="mobile-title">Borang Permohonan Program</h1>
+                <p class="mobile-subtitle">Programme Application Form</p>
                 <h3 class="mobile-event-name">{{ event.title }}</h3>
                 
                 <div class="mobile-event-details">
@@ -958,7 +1010,7 @@
                 <div class="desktop-content">
                     <div class="desktop-top-row">
                         <div class="desktop-event-badge">
-                            {{ event.date|date:"F d, Y" }}
+                            {{ event.date|date:"d F Y" }}
                         </div>
                         <div class="desktop-event-details">
                             <span>
@@ -972,7 +1024,8 @@
                         </div>
                     </div>
                     
-                    <h1 class="desktop-title">Programme Application Form</h1>
+                    <h1 class="desktop-title">Borang Permohonan Program</h1>
+                    <p class="desktop-subtitle">Programme Application Form</p>
                     <h3 class="desktop-event-name">{{ event.title }}</h3>
                 </div>
             </div>
@@ -995,31 +1048,35 @@
                             <i class="bi bi-person"></i>
                         </div>
                         <div>
-                            <h3 class="section-title">1. Applicant Information</h3>
-                            <p class="section-subtitle">Referral, programme selection and attendance details</p>
+                            <h3 class="section-title-main">1. Maklumat Pemohon</h3>
+                            <p class="section-title-sub">Applicant Information</p>
+                            <p class="section-subtitle">Rujukan, pemilihan program dan maklumat kehadiran</p>
                         </div>
                     </div>
 
                     <div class="form-grid">
                         <div class="field-group">
-                            <label class="form-label required">Referral Number</label>
+                            <label class="form-label required">Nombor Rujukan</label>
+                            <p class="form-label-sub">Referral Number</p>
                             <input type="text" class="form-control" 
-                                placeholder="Referral number" 
+                                placeholder="Masukkan nombor rujukan" 
                                 name="registration_officer" required
                                 value="{% if form_data.registration_officer %}{{ form_data.registration_officer }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Attended With</label>
+                            <label class="form-label required">Kehadiran Bersama</label>
+                            <p class="form-label-sub">Attended With</p>
                             <select class="form-select" name="attended_with" required>
-                                <option value="">-- Select --</option>
-                                <option value="PARENT" {% if form_data.attended_with == 'PARENT' %}selected{% endif %}>With Parent(s)</option>
-                                <option value="GUARDIAN" {% if form_data.attended_with == 'GUARDIAN' %}selected{% endif %}>With Guardian</option>
+                                <option value="">-- Pilih --</option>
+                                <option value="PARENT" {% if form_data.attended_with == 'PARENT' %}selected{% endif %}>Dengan Ibu Bapa</option>
+                                <option value="GUARDIAN" {% if form_data.attended_with == 'GUARDIAN' %}selected{% endif %}>Dengan Penjaga</option>
                             </select>
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Applied Programme</label>
+                            <label class="form-label required">Program Dipohon</label>
+                            <p class="form-label-sub">Applied Programme</p>
                             <div class="programme-grid">
                                 <div class="programme-option">
                                     <input type="radio" id="programme_diploma" name="applied_programme" value="Diploma" required
@@ -1027,6 +1084,7 @@
                                     <label for="programme_diploma" class="programme-label">
                                         <i class="bi bi-mortarboard"></i>
                                         <span>Diploma</span>
+                                        <div class="programme-label-sub">Diploma</div>
                                     </label>
                                 </div>
                                 <div class="programme-option">
@@ -1035,6 +1093,7 @@
                                     <label for="programme_pra_diploma" class="programme-label">
                                         <i class="bi bi-book"></i>
                                         <span>Pra-Diploma</span>
+                                        <div class="programme-label-sub">Pre-Diploma</div>
                                     </label>
                                 </div>
                                 <div class="programme-option">
@@ -1043,6 +1102,7 @@
                                     <label for="programme_tvet" class="programme-label">
                                         <i class="bi bi-tools"></i>
                                         <span>TVET</span>
+                                        <div class="programme-label-sub">TVET</div>
                                     </label>
                                 </div>
                                 <div class="programme-option">
@@ -1051,6 +1111,7 @@
                                     <label for="programme_smart_tahfiz" class="programme-label">
                                         <i class="bi bi-moon-stars"></i>
                                         <span>Smart Tahfiz</span>
+                                        <div class="programme-label-sub">Smart Tahfiz</div>
                                     </label>
                                 </div>
                             </div>
@@ -1065,62 +1126,69 @@
                             <i class="bi bi-person-badge"></i>
                         </div>
                         <div>
-                            <h3 class="section-title">2. Personal Details</h3>
-                            <p class="section-subtitle">Personal identification</p>
+                            <h3 class="section-title-main">2. Maklumat Peribadi</h3>
+                            <p class="section-title-sub">Personal Details</p>
+                            <p class="section-subtitle">Pengesahan identiti</p>
                         </div>
                     </div>
 
                     <div class="form-grid">
                         <div class="field-group">
-                            <label class="form-label required">Full Name (as per IC)</label>
+                            <label class="form-label required">Nama Penuh (seperti dalam kad pengenalan)</label>
+                            <p class="form-label-sub">Full Name (as per IC)</p>
                             <input type="text" class="form-control" 
-                                   placeholder="Enter full name as per IC" 
+                                   placeholder="Masukkan nama penuh seperti dalam kad pengenalan" 
                                    name="full_name" required
                                    value="{% if form_data.full_name %}{{ form_data.full_name }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">IC / Passport No.</label>
+                            <label class="form-label required">No. Kad Pengenalan / Pasport</label>
+                            <p class="form-label-sub">IC / Passport No.</p>
                             <input type="text" class="form-control" 
-                                   placeholder="e.g. 900101-01-1234" 
+                                   placeholder="cth: 900101-01-1234" 
                                    name="ic_no" required
                                    value="{% if form_data.ic_no %}{{ form_data.ic_no }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label">SPM Total Credit</label>
+                            <label class="form-label">Jumlah Kredit SPM</label>
+                            <p class="form-label-sub">SPM Total Credit</p>
                             <div class="spm-input-group">
                                 <input type="number" class="form-control spm-input" 
-                                       placeholder="e.g., 12" 
+                                       placeholder="cth: 12" 
                                        name="spm_total_credit" 
                                        min="0" max="100" 
                                        value="{% if form_data.spm_total_credit %}{{ form_data.spm_total_credit }}{% else %}0{% endif %}">
                             </div>
-                            <span class="optional-note">Optional</span>
+                            <span class="optional-note">Pilihan (Optional)</span>
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Marriage Status</label>
+                            <label class="form-label required">Status Perkahwinan</label>
+                            <p class="form-label-sub">Marriage Status</p>
                             <select class="form-select" name="marriage_status" required>
-                                <option value="">-- Select Status --</option>
-                                <option value="Single" {% if form_data.marriage_status == 'Single' %}selected{% endif %}>Single</option>
-                                <option value="Married" {% if form_data.marriage_status == 'Married' %}selected{% endif %}>Married</option>
-                                <option value="Divorced" {% if form_data.marriage_status == 'Divorced' %}selected{% endif %}>Divorced</option>
+                                <option value="">-- Pilih Status --</option>
+                                <option value="Single" {% if form_data.marriage_status == 'Single' %}selected{% endif %}>Bujang</option>
+                                <option value="Married" {% if form_data.marriage_status == 'Married' %}selected{% endif %}>Berkahwin</option>
+                                <option value="Divorced" {% if form_data.marriage_status == 'Divorced' %}selected{% endif %}>Bercerai</option>
                             </select>
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Email Address</label>
+                            <label class="form-label required">Alamat Emel</label>
+                            <p class="form-label-sub">Email Address</p>
                             <input type="email" class="form-control" 
-                                   placeholder="email@example.com" 
+                                   placeholder="emel@contoh.com" 
                                    name="email" required
                                    value="{% if form_data.email %}{{ form_data.email }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Phone Number</label>
+                            <label class="form-label required">Nombor Telefon</label>
+                            <p class="form-label-sub">Phone Number</p>
                             <input type="text" class="form-control" 
-                                   placeholder="e.g. 012-345 6789" 
+                                   placeholder="cth: 012-345 6789" 
                                    name="phone_no" required
                                    value="{% if form_data.phone_no %}{{ form_data.phone_no }}{% endif %}">
                         </div>
@@ -1134,24 +1202,27 @@
                             <i class="bi bi-house"></i>
                         </div>
                         <div>
-                            <h3 class="section-title">3. Address Details</h3>
-                            <p class="section-subtitle">Current residential address</p>
+                            <h3 class="section-title-main">3. Maklumat Alamat</h3>
+                            <p class="section-title-sub">Address Details</p>
+                            <p class="section-subtitle">Alamat kediaman semasa</p>
                         </div>
                     </div>
 
                     <div class="form-grid">
                         <div class="field-group">
-                            <label class="form-label required">Address</label>
+                            <label class="form-label required">Alamat</label>
+                            <p class="form-label-sub">Address</p>
                             <input type="text" class="form-control" 
-                                   placeholder="Full address including street, house number, etc." 
+                                   placeholder="Alamat penuh termasuk jalan, nombor rumah, dll." 
                                    name="address1" required
                                    value="{% if form_data.address1 %}{{ form_data.address1 }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">City</label>
+                            <label class="form-label required">Bandar</label>
+                            <p class="form-label-sub">City</p>
                             <input type="text" class="form-control" 
-                                   placeholder="Enter city name" 
+                                   placeholder="Masukkan nama bandar" 
                                    name="city" 
                                    id="cityInput"
                                    required
@@ -1159,17 +1230,19 @@
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Postcode</label>
+                            <label class="form-label required">Poskod</label>
+                            <p class="form-label-sub">Postcode</p>
                             <input type="text" class="form-control" 
-                                   placeholder="e.g. 50000" 
+                                   placeholder="cth: 50000" 
                                    name="postcode" required
                                    value="{% if form_data.postcode %}{{ form_data.postcode }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">State</label>
+                            <label class="form-label required">Negeri</label>
+                            <p class="form-label-sub">State</p>
                             <select class="form-select" name="state" id="stateSelect" required>
-                                <option value="">-- Select State --</option>
+                                <option value="">-- Pilih Negeri --</option>
                                 <option value="Johor" {% if form_data.state == 'Johor' %}selected{% endif %}>Johor</option>
                                 <option value="Kedah" {% if form_data.state == 'Kedah' %}selected{% endif %}>Kedah</option>
                                 <option value="Kelantan" {% if form_data.state == 'Kelantan' %}selected{% endif %}>Kelantan</option>
@@ -1198,54 +1271,61 @@
                             <i class="bi bi-person-standing"></i>
                         </div>
                         <div>
-                            <h3 class="section-title">4. Father's Information</h3>
-                            <p class="section-subtitle">Father / Guardian details</p>
+                            <h3 class="section-title-main">4. Maklumat Bapa</h3>
+                            <p class="section-title-sub">Father's Information</p>
+                            <p class="section-subtitle">Butiran bapa / penjaga</p>
                         </div>
                     </div>
 
                     <div class="form-grid">
                         <div class="field-group">
-                            <label class="form-label required">Full Name</label>
+                            <label class="form-label required">Nama Penuh</label>
+                            <p class="form-label-sub">Full Name</p>
                             <input type="text" class="form-control" 
-                                   placeholder="Father's full name" 
+                                   placeholder="Nama penuh bapa" 
                                    name="father_name" required
                                    value="{% if form_data.father_name %}{{ form_data.father_name }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">IC Number</label>
+                            <label class="form-label required">Nombor Kad Pengenalan</label>
+                            <p class="form-label-sub">IC Number</p>
                             <input type="text" class="form-control" 
-                                   placeholder="e.g. 700101-01-1234" 
+                                   placeholder="cth: 700101-01-1234" 
                                    name="father_ic" required
                                    value="{% if form_data.father_ic %}{{ form_data.father_ic }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Phone Number</label>
+                            <label class="form-label required">Nombor Telefon</label>
+                            <p class="form-label-sub">Phone Number</p>
                             <input type="text" class="form-control" 
-                                   placeholder="e.g. 012-345 6789" 
+                                   placeholder="cth: 012-345 6789" 
                                    name="father_phone" required
                                    value="{% if form_data.father_phone %}{{ form_data.father_phone }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Occupation</label>
+                            <label class="form-label required">Pekerjaan</label>
+                            <p class="form-label-sub">Occupation</p>
                             <input type="text" class="form-control" 
-                                   placeholder="Current occupation" 
+                                   placeholder="Pekerjaan semasa" 
                                    name="father_occupation" required
                                    value="{% if form_data.father_occupation %}{{ form_data.father_occupation }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label">Estimated Monthly Income (RM)</label>
+                            <label class="form-label">Anggaran Pendapatan Bulanan (RM)</label>
+                            <p class="form-label-sub">Estimated Monthly Income (RM)</p>
                             <input type="text" class="form-control" 
-                                   placeholder="e.g. 5000.00" 
+                                   placeholder="cth: 5000.00" 
                                    name="father_income"
                                    value="{% if form_data.father_income %}{{ form_data.father_income }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label">Number of Dependants</label>
+                            <label class="form-label">Bilangan Tanggungan</label>
+                            <p class="form-label-sub">Number of Dependants</p>
                             <input type="number" class="form-control" 
                                    placeholder="0" min="0" 
                                    name="father_dependants" 
@@ -1261,53 +1341,57 @@
                             <i class="bi bi-person-standing-dress"></i>
                         </div>
                         <div>
-                            <h3 class="section-title">5. Mother's Information</h3>
-                            <p class="section-subtitle">Mother / Guardian details</p>
+                            <h3 class="section-title-main">5. Maklumat Ibu</h3>
+                            <p class="section-title-sub">Mother's Information</p>
+                            <p class="section-subtitle">Butiran ibu / penjaga</p>
                         </div>
                     </div>
 
                     <div class="form-grid">
                         <div class="field-group">
-                            <label class="form-label required">Full Name</label>
+                            <label class="form-label required">Nama Penuh</label>
+                            <p class="form-label-sub">Full Name</p>
                             <input type="text" class="form-control" 
-                                   placeholder="Mother's full name" 
+                                   placeholder="Nama penuh ibu" 
                                    name="mother_name" required
                                    value="{% if form_data.mother_name %}{{ form_data.mother_name }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">IC Number</label>
+                            <label class="form-label required">Nombor Kad Pengenalan</label>
+                            <p class="form-label-sub">IC Number</p>
                             <input type="text" class="form-control" 
-                                   placeholder="e.g. 700101-02-1234" 
+                                   placeholder="cth: 700101-02-1234" 
                                    name="mother_ic" required
                                    value="{% if form_data.mother_ic %}{{ form_data.mother_ic }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Phone Number</label>
+                            <label class="form-label required">Nombor Telefon</label>
+                            <p class="form-label-sub">Phone Number</p>
                             <input type="text" class="form-control" 
-                                   placeholder="e.g. 012-345 6789" 
+                                   placeholder="cth: 012-345 6789" 
                                    name="mother_phone" required
                                    value="{% if form_data.mother_phone %}{{ form_data.mother_phone }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label required">Occupation</label>
+                            <label class="form-label required">Pekerjaan</label>
+                            <p class="form-label-sub">Occupation</p>
                             <input type="text" class="form-control" 
-                                   placeholder="Current occupation" 
+                                   placeholder="Pekerjaan semasa" 
                                    name="mother_occupation" required
                                    value="{% if form_data.mother_occupation %}{{ form_data.mother_occupation }}{% endif %}">
                         </div>
 
                         <div class="field-group">
-                            <label class="form-label">Estimated Monthly Income (RM)</label>
+                            <label class="form-label">Anggaran Pendapatan Bulanan (RM)</label>
+                            <p class="form-label-sub">Estimated Monthly Income (RM)</p>
                             <input type="text" class="form-control" 
-                                   placeholder="e.g. 4000.00" 
+                                   placeholder="cth: 4000.00" 
                                    name="mother_income"
                                    value="{% if form_data.mother_income %}{{ form_data.mother_income }}{% endif %}">
                         </div>
-
-                        <!-- Removed Number of Dependants field from Mother's Information -->
                     </div>
                 </div>
 
@@ -1318,8 +1402,9 @@
                             <i class="bi bi-book"></i>
                         </div>
                         <div>
-                            <h3 class="section-title">6. Programme Interest</h3>
-                            <p class="section-subtitle">List your preferred programme choices</p>
+                            <h3 class="section-title-main">6. Pilihan Program</h3>
+                            <p class="section-title-sub">Programme Interest</p>
+                            <p class="section-subtitle">Senaraikan pilihan program anda</p>
                         </div>
                     </div>
 
@@ -1328,12 +1413,13 @@
                             <div class="interest-simple-header">
                                 <h4 class="interest-simple-title">
                                     <i class="bi bi-1-circle"></i>
-                                    First Choice
+                                    Pilihan Pertama
                                 </h4>
                             </div>
+                            <p class="form-label-sub" style="margin-bottom: 0.5rem; font-size: 0.85rem;">First Choice</p>
                             <textarea 
                                 class="interest-simple-textarea"
-                                placeholder="Enter your first choice programme (optional)"
+                                placeholder="Masukkan program pilihan pertama anda"
                                 name="interest_choice1"
                                 rows="3">{% if form_data.interest_choice1 %}{{ form_data.interest_choice1 }}{% endif %}</textarea>
                         </div>
@@ -1342,12 +1428,13 @@
                             <div class="interest-simple-header">
                                 <h4 class="interest-simple-title">
                                     <i class="bi bi-2-circle"></i>
-                                    Second Choice
+                                    Pilihan Kedua
                                 </h4>
                             </div>
+                            <p class="form-label-sub" style="margin-bottom: 0.5rem; font-size: 0.85rem;">Second Choice</p>
                             <textarea 
                                 class="interest-simple-textarea"
-                                placeholder="Enter your second choice programme (optional)"
+                                placeholder="Masukkan program pilihan kedua anda"
                                 name="interest_choice2"
                                 rows="3">{% if form_data.interest_choice2 %}{{ form_data.interest_choice2 }}{% endif %}</textarea>
                         </div>
@@ -1356,12 +1443,13 @@
                             <div class="interest-simple-header">
                                 <h4 class="interest-simple-title">
                                     <i class="bi bi-3-circle"></i>
-                                    Third Choice
+                                    Pilihan Ketiga
                                 </h4>
                             </div>
+                            <p class="form-label-sub" style="margin-bottom: 0.5rem; font-size: 0.85rem;">Third Choice</p>
                             <textarea 
                                 class="interest-simple-textarea"
-                                placeholder="Enter your third choice programme (optional)"
+                                placeholder="Masukkan program pilihan ketiga anda"
                                 name="interest_choice3"
                                 rows="3">{% if form_data.interest_choice3 %}{{ form_data.interest_choice3 }}{% endif %}</textarea>
                         </div>
@@ -1372,10 +1460,13 @@
                 <div class="form-actions">
                     <button type="submit" class="btn-submit" id="submitBtn">
                         <i class="bi bi-check-circle"></i>
-                        Submit Application & Mark Attendance
+                        Hantar Permohonan & Tandakan Kehadiran
                     </button>
                     <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--gray-600);">
                         <i class="bi bi-info-circle"></i>
+                        Sila semak semua medan sebelum menghantar. Anda tidak boleh mengubah selepas penghantaran.
+                    </p>
+                    <p style="margin-top: 0.25rem; font-size: 0.8rem; color: var(--gray-500); font-style: italic;">
                         Please check all fields before submitting. You cannot edit after submission.
                     </p>
                 </div>
@@ -1383,7 +1474,8 @@
 
             <!-- Brand Footer -->
             <div class="brand-footer">
-                <p class="mb-0">ATTSYS • Programme Application Form</p>
+                <p class="mb-0">ATTSYS • Borang Permohonan Program</p>
+                <p class="mb-0" style="font-size: 0.75rem; color: var(--gray-400);">ATTSYS • Programme Application Form</p>
             </div>
         </div>
     </div>
@@ -1486,6 +1578,15 @@
                 });
             });
             
+            // Validation messages in Bahasa Melayu
+            const validationMessages = {
+                required: 'Ruangan ini wajib diisi',
+                email: 'Sila masukkan alamat emel yang sah',
+                number: 'Sila masukkan nombor yang sah',
+                radio: 'Sila pilih satu pilihan',
+                select: 'Sila pilih satu pilihan'
+            };
+            
             // Validate individual field
             function validateField(field) {
                 const value = field.value.trim();
@@ -1502,7 +1603,7 @@
                 // Check if field is empty
                 if (field.hasAttribute('required') && !value) {
                     isValid = false;
-                    errorMessage = 'This field is required';
+                    errorMessage = validationMessages.required;
                 }
                 
                 // Email validation
@@ -1510,7 +1611,7 @@
                     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailPattern.test(value)) {
                         isValid = false;
-                        errorMessage = 'Please enter a valid email address';
+                        errorMessage = validationMessages.email;
                     }
                 }
                 
@@ -1519,16 +1620,16 @@
                     const spmValue = parseInt(value);
                     if (isNaN(spmValue) || spmValue < 0 || spmValue > 100) {
                         isValid = false;
-                        errorMessage = 'Please enter a valid number between 0-100';
+                        errorMessage = validationMessages.number;
                     }
                 }
                 
-                // Dependants validation (only for father now)
+                // Dependants validation
                 else if (field.name === 'father_dependants' && value !== '') {
                     const depsValue = parseInt(value);
                     if (isNaN(depsValue) || depsValue < 0) {
                         isValid = false;
-                        errorMessage = 'Please enter a valid number (0 or higher)';
+                        errorMessage = validationMessages.number;
                     }
                 }
                 
@@ -1572,7 +1673,7 @@
                     if (container) {
                         const errorElement = document.createElement('small');
                         errorElement.className = 'validation-message';
-                        errorElement.textContent = 'Please select an option';
+                        errorElement.textContent = validationMessages.radio;
                         errorElement.style.display = 'block';
                         errorElement.style.marginTop = '0.5rem';
                         errorElement.style.color = '#dc3545';
@@ -1584,7 +1685,7 @@
                 return true;
             }
             
-            // Validate select field (specifically for attended_with)
+            // Validate select field
             function validateSelectField(fieldName) {
                 const selectField = form.querySelector(`select[name="${fieldName}"]`);
                 if (!selectField) return true;
@@ -1606,7 +1707,7 @@
                     
                     const errorElement = document.createElement('small');
                     errorElement.className = 'validation-message';
-                    errorElement.textContent = 'Please select an option';
+                    errorElement.textContent = validationMessages.select;
                     errorElement.style.display = 'block';
                     errorElement.style.marginTop = '0.5rem';
                     errorElement.style.color = '#dc3545';
@@ -1616,7 +1717,7 @@
                 return isValid;
             }
             
-            // Show error message
+            // Show error message in Bahasa Melayu
             function showErrorMessage(message, scrollToForm = true) {
                 // Remove any existing error alerts
                 const existingAlert = form.querySelector('.form-error-alert');
@@ -1719,6 +1820,24 @@
                     }
                 }
                 
+                // Validate marriage status
+                const marriageStatusValid = validateSelectField('marriage_status');
+                if (!marriageStatusValid) {
+                    isValid = false;
+                    if (!firstInvalidField) {
+                        firstInvalidField = form.querySelector('select[name="marriage_status"]');
+                    }
+                }
+                
+                // Validate state selection
+                const stateValid = validateSelectField('state');
+                if (!stateValid) {
+                    isValid = false;
+                    if (!firstInvalidField) {
+                        firstInvalidField = form.querySelector('select[name="state"]');
+                    }
+                }
+                
                 // Validate required occupation fields
                 const fatherOccupation = form.querySelector('input[name="father_occupation"]');
                 const motherOccupation = form.querySelector('input[name="mother_occupation"]');
@@ -1727,7 +1846,7 @@
                     fatherOccupation.classList.add('is-invalid');
                     const errorElement = document.createElement('small');
                     errorElement.className = 'validation-message';
-                    errorElement.textContent = 'Father occupation is required';
+                    errorElement.textContent = 'Pekerjaan bapa diperlukan';
                     fatherOccupation.parentNode.appendChild(errorElement);
                     isValid = false;
                     if (!firstInvalidField) firstInvalidField = fatherOccupation;
@@ -1737,7 +1856,7 @@
                     motherOccupation.classList.add('is-invalid');
                     const errorElement = document.createElement('small');
                     errorElement.className = 'validation-message';
-                    errorElement.textContent = 'Mother occupation is required';
+                    errorElement.textContent = 'Pekerjaan ibu diperlukan';
                     motherOccupation.parentNode.appendChild(errorElement);
                     isValid = false;
                     if (!firstInvalidField && fatherOccupation !== firstInvalidField) {
@@ -1783,14 +1902,14 @@
                         }
                     }
                     
-                    showErrorMessage('Please fix the errors in the form before submitting.', false);
+                    showErrorMessage('Sila betulkan ralat dalam borang sebelum menghantar.', false);
                     return false;
                 }
                 
                 // Add loading state to submit button
                 submitBtn.classList.add('loading');
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting...';
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Menghantar...';
                 
                 // Prevent double submission
                 if (form.dataset.submitting === 'true') {
@@ -1831,13 +1950,24 @@
                             window.location.href = '/attsys/success/';
                             
                         } else {
-                            // Show error from server
-                            showErrorMessage(data.error || 'Submission failed. Please try again.');
+                            // Show error from server in Bahasa Melayu
+                            let errorMessage = data.error || 'Penghantaran gagal. Sila cuba lagi.';
+                            
+                            // Translate common error messages
+                            if (errorMessage.includes('already submitted')) {
+                                errorMessage = 'Anda telah menghantar permohonan untuk acara ini.';
+                            } else if (errorMessage.includes('valid email')) {
+                                errorMessage = 'Sila masukkan alamat emel yang sah.';
+                            } else if (errorMessage.includes('required')) {
+                                errorMessage = 'Sila isi semua ruangan yang wajib.';
+                            }
+                            
+                            showErrorMessage(errorMessage);
                             
                             // Reset button
                             submitBtn.classList.remove('loading');
                             submitBtn.disabled = false;
-                            submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Submit Application & Mark Attendance';
+                            submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Hantar Permohonan & Tandakan Kehadiran';
                             form.dataset.submitting = 'false';
                         }
                         
@@ -1865,17 +1995,17 @@
                 } catch (error) {
                     console.error('Submission error:', error);
                     
-                    // Show error message
+                    // Show error message in Bahasa Melayu
                     if (error.message.includes('Failed to fetch')) {
-                        showErrorMessage('Network error. Please check your internet connection and try again.');
+                        showErrorMessage('Ralat rangkaian. Sila semak sambungan internet anda dan cuba lagi.');
                     } else {
-                        showErrorMessage('An unexpected error occurred. Please try again.');
+                        showErrorMessage('Ralat tidak dijangka berlaku. Sila cuba lagi.');
                     }
                     
                     // Reset button state
                     submitBtn.classList.remove('loading');
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Submit Application & Mark Attendance';
+                    submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Hantar Permohonan & Tandakan Kehadiran';
                     form.dataset.submitting = 'false';
                     
                 } finally {

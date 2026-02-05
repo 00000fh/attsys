@@ -5,7 +5,499 @@
 
 {% block extra_css %}
 <style>
-    /* Event Detail Page Styles */
+    /* ========================= */
+    /* GLOBAL STYLES & RESETS */
+    /* ========================= */
+    :root {
+        --primary: #0d6efd;
+        --success: #198754;
+        --warning: #fd7e14;
+        --danger: #dc3545;
+        --dark: #212529;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --gray-300: #ced4da;
+        --gray-400: #adb5bd;
+        --gray-500: #6c757d;
+        --gray-600: #495057;
+        --gray-700: #343a40;
+        --gray-800: #212529;
+        --gray-900: #121416;
+    }
+
+    /* ========================= */
+    /* MODAL SCROLL CONTROL */
+    /* ========================= */
+    body.modal-open {
+        overflow: hidden !important;
+        padding-right: 0 !important;
+    }
+
+    .modal {
+        z-index: 1055;
+    }
+
+    .modal-backdrop {
+        z-index: 1050;
+    }
+
+    /* ========================= */
+    /* ATTENDEE DETAILS MODAL - WIDER, SHORTER, CENTERED */
+    /* ========================= */
+    .attendee-modal .modal-dialog.modal-left-aligned {
+        max-width: 1000px !important;
+        width: 90% !important;
+        margin: 1.75rem auto !important;
+        max-height: 92vh !important;
+    }
+
+    .attendee-modal .modal-content {
+        max-height: 92vh !important;
+        display: flex;
+        flex-direction: column;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+    }
+
+    .attendee-modal .modal-header {
+        background: white;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .attendee-modal .modal-title {
+        color: var(--dark);
+        font-weight: 600;
+        font-size: 1.5rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .attendee-modal .btn-close {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        opacity: 0.5;
+        transition: opacity 0.2s ease;
+        padding: 0.5rem;
+        margin: -0.5rem -0.5rem -0.5rem auto;
+    }
+
+    .attendee-modal .btn-close:hover {
+        opacity: 1;
+    }
+
+    .attendee-modal .modal-body {
+        padding: 1.5rem;
+        max-height: calc(92vh - 100px) !important;
+        overflow-y: auto;
+        background: white;
+        text-align: left;
+        flex: 1;
+    }
+
+    .attendee-modal .modal-footer {
+        background: var(--gray-50);
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        flex-shrink: 0;
+    }
+
+    /* Attendee Details Sections - LEFT-ALIGNED */
+    .attendee-details-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        text-align: left;
+    }
+
+    .attendee-details-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .attendee-details-section h6 {
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    /* Detail rows for left-aligned layout */
+    .detail-row {
+        display: flex;
+        margin-bottom: 1rem;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        min-width: 240px;
+        max-width: 240px;
+        color: var(--dark);
+        font-size: 1rem;
+        padding: 0.5rem 0;
+        flex-shrink: 0;
+        text-align: left;
+    }
+
+    .detail-value {
+        flex: 1;
+        color: var(--gray-800);
+        padding: 0.75rem 1rem;
+        background: var(--gray-50);
+        border-radius: 8px;
+        border: 1px solid var(--gray-200);
+        min-height: 46px;
+        display: flex;
+        align-items: center;
+        font-size: 1rem;
+        word-break: break-word;
+        text-align: left;
+    }
+
+    /* Grid layout for left-aligned organization */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-grid-item {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: left;
+    }
+
+    .detail-grid-title {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        border-bottom: 1px solid var(--gray-300);
+        padding-bottom: 0.75rem;
+        text-align: left;
+    }
+
+    .detail-grid-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .detail-grid-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed var(--gray-300);
+        text-align: left;
+    }
+
+    .detail-grid-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-grid-label {
+        font-weight: 500;
+        color: var(--gray-700);
+        font-size: 0.95rem;
+        text-align: left;
+    }
+
+    .detail-grid-value {
+        font-weight: 600;
+        color: var(--dark);
+        font-size: 0.95rem;
+        text-align: right;
+        max-width: 60%;
+        word-break: break-word;
+    }
+
+    /* Ensure all badges are left-aligned */
+    .attendee-modal .badge {
+        display: inline-flex !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        text-align: left !important;
+    }
+
+    /* ========================= */
+    /* REGISTRATION FORM MODAL - WIDER, SHORTER, CENTERED */
+    /* ========================= */
+    #registrationModal .modal-dialog {
+        max-width: 900px !important;
+        width: 90% !important;
+        margin: 1.75rem auto !important;
+        max-height: 92vh !important;
+    }
+
+    #registrationModal .modal-content {
+        max-height: 92vh !important;
+        display: flex;
+        flex-direction: column;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: none;
+    }
+
+    #registrationModal .modal-header {
+        flex-shrink: 0;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        background: white;
+    }
+
+    #registrationModal .modal-header .modal-title {
+        color: var(--dark);
+        font-weight: 600;
+        font-size: 1.5rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    #registrationModal .modal-body {
+        flex: 1;
+        overflow-y: auto;
+        max-height: calc(92vh - 100px) !important;
+        padding: 1.5rem;
+        background: white;
+    }
+
+    #registrationModal .modal-footer {
+        flex-shrink: 0;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--gray-200);
+        background: var(--gray-50);
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    /* ========================= */
+    /* NEW: COMPACT REGISTRATION FORM LAYOUT */
+    /* ========================= */
+    
+    /* Compact Attendee Preview */
+    .attendee-preview-compact {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--primary);
+    }
+
+    .attendee-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .attendee-preview-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .attendee-preview-label {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+
+    .attendee-preview-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    /* Alert for existing registration */
+    #checkoutTimeAlert {
+        margin-bottom: 1.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #bee5eb;
+        background-color: #d1ecf1;
+    }
+
+    /* Compact Form Grid */
+    .registration-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .registration-form-grid .form-group {
+        margin-bottom: 0;
+    }
+
+    .registration-form-grid .form-group.full-width {
+        grid-column: span 2;
+    }
+
+    .registration-form-grid .form-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        color: var(--dark);
+    }
+
+    .registration-form-grid .form-control {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        min-height: 40px;
+        border: 1px solid var(--gray-300);
+        border-radius: 6px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .registration-form-grid .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+
+    .registration-form-grid select.form-control {
+        padding: 0.5rem 0.75rem;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        padding-right: 2.5rem;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    .registration-form-grid textarea.form-control {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    /* Payment summary - more compact */
+    .payment-summary-compact {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        border: 1px solid var(--gray-300);
+    }
+
+    .payment-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .payment-summary-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .payment-summary-label {
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+
+    .payment-summary-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .payment-summary-value.total-fee {
+        color: var(--primary);
+    }
+
+    .payment-summary-value.amount-paid {
+        color: var(--success);
+    }
+
+    .payment-summary-value.balance {
+        color: var(--danger);
+    }
+
+    .payment-progress-compact {
+        height: 6px;
+        border-radius: 3px;
+        background: var(--gray-200);
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .payment-progress-bar-compact {
+        height: 100%;
+        transition: width 0.3s ease;
+        background: var(--primary);
+    }
+
+    .payment-progress-bar-compact.bg-success {
+        background: var(--success) !important;
+    }
+
+    .payment-progress-bar-compact.bg-warning {
+        background: var(--warning) !important;
+    }
+
+    .payment-progress-bar-compact.bg-danger {
+        background: var(--danger) !important;
+    }
+
+    /* Form help text */
+    .registration-form-grid small.text-muted {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    /* Form validation states */
+    .registration-form-grid .form-control.is-invalid {
+        border-color: var(--danger);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        padding-right: calc(1.5em + 0.75rem);
+    }
+
+    .registration-form-grid .form-control.is-valid {
+        border-color: var(--success);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        padding-right: calc(1.5em + 0.75rem);
+    }
+
+    /* ========================= */
+    /* EVENT DETAIL PAGE STYLES */
+    /* ========================= */
     .event-detail-container {
         max-width: 1400px;
         margin: 0 auto;
@@ -21,6 +513,7 @@
         color: var(--dark);
         font-weight: 700;
         margin-bottom: 0.5rem;
+        font-size: 2rem;
     }
     
     .event-meta {
@@ -69,6 +562,8 @@
         font-size: 0.875rem;
         transition: all 0.2s ease;
         border: 1px solid transparent;
+        text-decoration: none;
+        cursor: pointer;
     }
     
     .btn-outline {
@@ -81,6 +576,8 @@
         background: var(--gray-50);
         border-color: var(--gray-400);
         transform: translateY(-2px);
+        text-decoration: none;
+        color: var(--gray-700);
     }
     
     .btn-primary {
@@ -92,6 +589,8 @@
         background: var(--gray-800);
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        color: white;
+        text-decoration: none;
     }
     
     .btn-success {
@@ -103,6 +602,8 @@
         background: #157347;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
+        color: white;
+        text-decoration: none;
     }
     
     .btn-danger {
@@ -114,6 +615,8 @@
         background: #bb2d3b;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        color: white;
+        text-decoration: none;
     }
     
     .btn-warning {
@@ -125,6 +628,8 @@
         background: #fd9843;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(253, 126, 20, 0.2);
+        color: var(--dark);
+        text-decoration: none;
     }
     
     /* QR Code Section */
@@ -302,7 +807,7 @@
         opacity: 1;
     }
     
-    .modal-content {
+    .qr-modal-content {
         background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
         border-radius: 20px 20px 0 0;
         width: 100%;
@@ -328,7 +833,7 @@
         }
     }
     
-    .modal-header {
+    .qr-modal-header {
         background: white;
         padding: 1.5rem 2rem;
         border-bottom: 1px solid var(--gray-200);
@@ -338,7 +843,7 @@
         position: relative;
     }
     
-    .modal-header h4 {
+    .qr-modal-header h4 {
         color: var(--dark);
         font-weight: 600;
         margin: 0;
@@ -371,7 +876,7 @@
         transform: rotate(90deg);
     }
     
-    .modal-body {
+    .qr-modal-body {
         padding: 2rem;
         text-align: center;
         flex: 1;
@@ -540,6 +1045,7 @@
         background: white;
         color: var(--gray-700);
         transition: all 0.2s ease;
+        cursor: pointer;
     }
     
     .filter-btn:hover, .filter-btn.active {
@@ -578,277 +1084,414 @@
         display: block;
     }
     
-    /* Attendees List */
-    .attendee-header {
-        font-weight: 600;
-        color: var(--gray-600);
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid var(--gray-300);
-        margin-bottom: 1rem;
-    }
-    
-    .attendee-item {
-        padding: 1rem 0;
-        border-bottom: 1px solid var(--gray-100);
-        transition: background-color 0.2s ease;
-        margin: 0 -0.5rem;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
+    /* UPDATED: Attendees Table - NEW LAYOUT WITH CONSISTENT BORDER COLORS */
+    .table-responsive {
+        border: 1px solid var(--gray-200);
         border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
-    .attendee-item:hover {
-        background-color: rgba(13, 110, 253, 0.05);
+    #attendeesTable {
+        font-size: 0.85rem;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+        width: 100%;
+        border: 1px solid var(--gray-200);
     }
     
-    .attendee-item:last-child {
+    #attendeesTable thead th {
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.75rem 0.5rem;
+        border-bottom: 2px solid var(--gray-300);
+        background-color: var(--gray-50);
+        white-space: nowrap;
+        color: var(--gray-700);
+        vertical-align: middle;
+    }
+    
+    #attendeesTable tbody td {
+        padding: 0.75rem 0.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-800);
+    }
+    
+    /* CONSISTENT VISUAL SEPARATION BETWEEN ALL COLUMNS */
+    #attendeesTable td,
+    #attendeesTable th {
+        border-right: 1px solid var(--gray-200);
+    }
+    
+    #attendeesTable td:last-child,
+    #attendeesTable th:last-child {
+        border-right: none;
+    }
+    
+    #attendeesTable tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.03);
+    }
+    
+    #attendeesTable tbody tr:last-child td {
         border-bottom: none;
     }
     
-    .attendee-info {
-        flex: 1;
+    #attendeesTable tbody tr {
+        transition: all 0.2s ease;
     }
     
-    .attendee-name {
-        font-weight: 600;
-        color: var(--dark);
-        margin-bottom: 0.25rem;
+    /* Table-specific badge adjustments - FIXED NO TRUNCATION */
+    #attendeesTable .badge {
+        font-size: 0.7rem !important;
+        padding: 0.2rem 0.5rem !important;
+        border-radius: 10px !important;
+        font-weight: 500 !important;
+        display: inline-block !important;
+        white-space: nowrap !important;
+        max-width: none !important;
+        line-height: 1.2 !important;
     }
     
-    .attendee-contact {
-        font-size: 0.875rem;
-        color: var(--gray-600);
+    /* Column width adjustments for better display - INCREASED WIDTHS */
+    #attendeesTable th:nth-child(1), /* # column */
+    #attendeesTable td:nth-child(1) {
+        width: 50px;
+        min-width: 50px;
+        max-width: 50px;
+        text-align: center;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        border-right: 1px solid var(--gray-200) !important;
     }
     
-    .attendee-time {
-        font-size: 0.75rem;
-        color: var(--gray-500);
+    #attendeesTable th:nth-child(2), /* Attendee Info */
+    #attendeesTable td:nth-child(2) {
+        min-width: 200px;
+        max-width: 220px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        border-right: 1px solid var(--gray-200) !important;
     }
     
-    /* Payment Type Badges */
+    #attendeesTable th:nth-child(3), /* Applied Program */
+    #attendeesTable td:nth-child(3) {
+        min-width: 130px;
+        max-width: 150px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    /* Attended With column - CONSISTENT BORDER */
+    #attendeesTable th:nth-child(4),
+    #attendeesTable td:nth-child(4) {
+        width: 120px;
+        min-width: 120px;
+        max-width: 140px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    /* Referral column - CONSISTENT BORDER (SAME AS OTHERS) */
+    #attendeesTable th:nth-child(5),
+    #attendeesTable td:nth-child(5) {
+        width: 110px;
+        min-width: 110px;
+        max-width: 130px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    #attendeesTable th:nth-child(6), /* Payment Type */
+    #attendeesTable td:nth-child(6) {
+        width: 120px;
+        min-width: 120px;
+        max-width: 140px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    #attendeesTable th:nth-child(7), /* Status */
+    #attendeesTable td:nth-child(7) {
+        width: 100px;
+        min-width: 100px;
+        max-width: 120px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    #attendeesTable th:nth-child(8), /* Amount */
+    #attendeesTable td:nth-child(8) {
+        width: 90px;
+        min-width: 90px;
+        max-width: 100px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    #attendeesTable th:nth-child(9), /* Time */
+    #attendeesTable td:nth-child(9) {
+        width: 85px;
+        min-width: 85px;
+        max-width: 95px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    #attendeesTable th:nth-child(10), /* Actions */
+    #attendeesTable td:nth-child(10) {
+        width: 120px;
+        min-width: 120px;
+        max-width: 130px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: none !important;
+    }
+    
+    /* Center content in badge columns */
+    #attendeesTable td:nth-child(3), /* Applied Program */
+    #attendeesTable td:nth-child(4), /* Attended With */
+    #attendeesTable td:nth-child(6), /* Payment Type */
+    #attendeesTable td:nth-child(7) { /* Status */
+        text-align: center !important;
+    }
+    
+    #attendeesTable td:nth-child(3) .badge,
+    #attendeesTable td:nth-child(4) .badge,
+    #attendeesTable td:nth-child(6) .badge,
+    #attendeesTable td:nth-child(7) .badge {
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        min-width: 60px;
+    }
+    
+    /* Text truncation - only for specific columns */
+    .text-truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+    
+    /* Only truncate these specific columns */
+    #attendeesTable td:nth-child(2) .text-truncate { /* Attendee Info */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Referral column - allow truncation but with more width */
+    #attendeesTable td:nth-child(5) div {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100px;
+        margin: 0 auto;
+    }
+    
+    /* DO NOT truncate badges - ensure full text display */
+    #attendeesTable .badge,
+    #attendeesTable td:nth-child(3) .badge, /* Applied Program */
+    #attendeesTable td:nth-child(4) .badge, /* Attended With */
+    #attendeesTable td:nth-child(6) .badge, /* Payment Type */
+    #attendeesTable td:nth-child(7) .badge { /* Status */
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        min-width: fit-content !important;
+    }
+    
+    /* Extra small text */
+    .extra-small {
+        font-size: 0.7rem !important;
+    }
+    
+    .small {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Button group adjustments for table */
+    .btn-group-sm > .btn {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.7rem;
+    }
+    
+    /* Empty state for table */
+    #attendeesTable .empty-state {
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    #attendeesTable .empty-state i {
+        font-size: 2rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+    
+    /* Action buttons styling */
+    .action-buttons-cell .btn-group {
+        display: flex;
+        gap: 0.25rem;
+        justify-content: center;
+    }
+    
+    /* Status badges for different fields - ensure no truncation */
+    .status-badge {
+        font-size: 0.7rem !important;
+        padding: 0.2rem 0.5rem !important;
+        border-radius: 10px !important;
+        font-weight: 500 !important;
+        display: inline-block !important;
+        white-space: nowrap !important;
+        max-width: none !important;
+    }
+    
+    .badge-parent {
+        background: rgba(13, 110, 253, 0.1) !important;
+        color: #0d6efd !important;
+        border: 1px solid rgba(13, 110, 253, 0.2) !important;
+    }
+    
+    .badge-guardian {
+        background: rgba(108, 117, 125, 0.1) !important;
+        color: #6c757d !important;
+        border: 1px solid rgba(108, 117, 125, 0.2) !important;
+    }
+    
+    .badge-male {
+        background: rgba(13, 110, 253, 0.1) !important;
+        color: #0d6efd !important;
+        border: 1px solid rgba(13, 110, 253, 0.2) !important;
+    }
+    
+    .badge-female {
+        background: rgba(220, 53, 69, 0.1) !important;
+        color: #dc3545 !important;
+        border: 1px solid rgba(220, 53, 69, 0.2) !important;
+    }
+    
+    .badge-single {
+        background: rgba(25, 135, 84, 0.1) !important;
+        color: #198754 !important;
+        border: 1px solid rgba(25, 135, 84, 0.2) !important;
+    }
+    
+    .badge-married {
+        background: rgba(253, 126, 20, 0.1) !important;
+        color: #fd7e14 !important;
+        border: 1px solid rgba(253, 126, 20, 0.2) !important;
+    }
+    
+    .badge-divorced {
+        background: rgba(108, 117, 125, 0.1) !important;
+        color: #6c757d !important;
+        border: 1px solid rgba(108, 117, 125, 0.2) !important;
+    }
+    
+    .badge-widowed {
+        background: rgba(102, 16, 242, 0.1) !important;
+        color: #6610f2 !important;
+        border: 1px solid rgba(102, 16, 242, 0.2) !important;
+    }
+    
+    /* Programme badges */
+    .badge-diploma {
+        background: rgba(0, 123, 255, 0.1) !important;
+        color: #007bff !important;
+        border: 1px solid rgba(0, 123, 255, 0.2) !important;
+    }
+    
+    .badge-pra-diploma {
+        background: rgba(40, 167, 69, 0.1) !important;
+        color: #28a745 !important;
+        border: 1px solid rgba(40, 167, 69, 0.2) !important;
+    }
+    
+    .badge-tvet {
+        background: rgba(255, 193, 7, 0.1) !important;
+        color: #ffc107 !important;
+        border: 1px solid rgba(255, 193, 7, 0.2) !important;
+    }
+    
+    .badge-smart-tahfiz {
+        background: rgba(111, 66, 193, 0.1) !important;
+        color: #6f42c1 !important;
+        border: 1px solid rgba(111, 66, 193, 0.2) !important;
+    }
+    
+    .badge-other {
+        background: rgba(23, 162, 184, 0.1) !important;
+        color: #17a2b8 !important;
+        border: 1px solid rgba(23, 162, 184, 0.2) !important;
+    }
+    
+    /* Payment Type Badges - NO TRUNCATION */
     .badge-payment-cash {
-        background: rgba(13, 110, 253, 0.1);
-        color: #0d6efd;
-        border: 1px solid rgba(13, 110, 253, 0.2);
+        background: rgba(13, 110, 253, 0.1) !important;
+        color: #0d6efd !important;
+        border: 1px solid rgba(13, 110, 253, 0.2) !important;
     }
     
     .badge-payment-online {
-        background: rgba(23, 162, 184, 0.1);
-        color: #17a2b8;
-        border: 1px solid rgba(23, 162, 184, 0.2);
+        background: rgba(23, 162, 184, 0.1) !important;
+        color: #17a2b8 !important;
+        border: 1px solid rgba(23, 162, 184, 0.2) !important;
     }
     
     .badge-payment-qr {
-        background: rgba(25, 135, 84, 0.1);
-        color: #198754;
-        border: 1px solid rgba(25, 135, 84, 0.2);
+        background: rgba(25, 135, 84, 0.1) !important;
+        color: #198754 !important;
+        border: 1px solid rgba(25, 135, 84, 0.2) !important;
     }
     
     .badge-payment-card {
-        background: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
-        border: 1px solid rgba(255, 193, 7, 0.2);
+        background: rgba(255, 193, 7, 0.1) !important;
+        color: #ffc107 !important;
+        border: 1px solid rgba(255, 193, 7, 0.2) !important;
     }
     
     .badge-payment-other {
-        background: rgba(108, 117, 125, 0.1);
-        color: #6c757d;
-        border: 1px solid rgba(108, 117, 125, 0.2);
+        background: rgba(108, 117, 125, 0.1) !important;
+        color: #6c757d !important;
+        border: 1px solid rgba(108, 117, 125, 0.2) !important;
     }
     
-    /* ========================= */
-    /* UPDATED: Attendee Details Modal - COMPLETE INFORMATION */
-    /* ========================= */
-    .attendee-modal .modal-dialog {
-        max-width: 1000px !important;
-        margin: 1.75rem auto;
+    /* Payment Status Badges */
+    .badge-payment-pending {
+        background: rgba(220, 53, 69, 0.1) !important;
+        color: #dc3545 !important;
+        border: 1px solid rgba(220, 53, 69, 0.2) !important;
     }
     
-    .attendee-modal .modal-content {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
-        background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+    .badge-payment-partial {
+        background: rgba(255, 193, 7, 0.1) !important;
+        color: #ffc107 !important;
+        border: 1px solid rgba(255, 193, 7, 0.2) !important;
     }
     
-    .attendee-modal .modal-header {
-        background: white;
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid var(--gray-200);
-        position: relative;
-    }
-    
-    .attendee-modal .modal-title {
-        color: var(--dark);
-        font-weight: 600;
-        font-size: 1.5rem;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .attendee-modal .btn-close {
-        background: transparent;
-        border: none;
-        font-size: 1.5rem;
-        opacity: 0.5;
-        transition: opacity 0.2s ease;
-        padding: 0.5rem;
-        margin: -0.5rem -0.5rem -0.5rem auto;
-    }
-    
-    .attendee-modal .btn-close:hover {
-        opacity: 1;
-    }
-    
-    .attendee-modal .modal-body {
-        padding: 2rem;
-        max-height: 75vh;
-        overflow-y: auto;
-        background: white;
-    }
-    
-    .attendee-modal .modal-footer {
-        background: var(--gray-50);
-        padding: 1.25rem 2rem;
-        border-top: 1px solid var(--gray-200);
-        display: flex;
-        justify-content: flex-end;
-        gap: 1rem;
-    }
-    
-    /* Attendee Details Sections - COMPLETE */
-    .attendee-details-section {
-        margin-bottom: 2.5rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid var(--gray-200);
-    }
-    
-    .attendee-details-section:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
-    
-    .attendee-details-section h6 {
-        border-bottom: 2px solid var(--primary);
-        padding-bottom: 0.75rem;
-        margin-bottom: 1.5rem;
-        color: var(--dark);
-        font-size: 1.25rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    /* Detail rows for better spacing */
-    .detail-row {
-        display: flex;
-        margin-bottom: 1rem;
-        align-items: flex-start;
-        gap: 1.5rem;
-    }
-    
-    .detail-label {
-        font-weight: 600;
-        min-width: 240px;
-        max-width: 240px;
-        color: var(--dark);
-        font-size: 1rem;
-        padding: 0.5rem 0;
-        flex-shrink: 0;
-    }
-    
-    .detail-value {
-        flex: 1;
-        color: var(--gray-800);
-        padding: 0.75rem 1rem;
-        background: var(--gray-50);
-        border-radius: 8px;
-        border: 1px solid var(--gray-200);
-        min-height: 46px;
-        display: flex;
-        align-items: center;
-        font-size: 1rem;
-        word-break: break-word;
-    }
-    
-    /* Grid layout for better organization */
-    .detail-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .detail-grid-item {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
-        border-radius: 10px;
-        padding: 1.5rem;
-    }
-    
-    .detail-grid-title {
-        font-weight: 600;
-        color: var(--dark);
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
-        border-bottom: 1px solid var(--gray-300);
-        padding-bottom: 0.75rem;
-    }
-    
-    .detail-grid-content {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    
-    .detail-grid-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.5rem 0;
-        border-bottom: 1px dashed var(--gray-300);
-    }
-    
-    .detail-grid-row:last-child {
-        border-bottom: none;
-    }
-    
-    .detail-grid-label {
-        font-weight: 500;
-        color: var(--gray-700);
-        font-size: 0.95rem;
-    }
-    
-    .detail-grid-value {
-        font-weight: 600;
-        color: var(--dark);
-        font-size: 0.95rem;
-        text-align: right;
-        max-width: 60%;
-        word-break: break-word;
-    }
-    
-    .no-application {
-        text-align: center;
-        padding: 3rem 1rem;
-        color: var(--gray-600);
-    }
-    
-    .no-application i {
-        font-size: 3rem;
-        color: var(--gray-300);
-        margin-bottom: 1.5rem;
-    }
-    
-    .no-application h4 {
-        color: var(--gray-700);
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-        font-size: 1.25rem;
+    .badge-payment-done {
+        background: rgba(25, 135, 84, 0.1) !important;
+        color: #198754 !important;
+        border: 1px solid rgba(25, 135, 84, 0.2) !important;
     }
     
     /* Print button styling */
@@ -864,6 +1507,7 @@
         border-radius: 8px;
         transition: all 0.2s ease;
         font-size: 0.95rem;
+        cursor: pointer;
     }
     
     #printAttendeeBtn:hover {
@@ -1015,127 +1659,96 @@
         margin-bottom: 0.25rem;
     }
     
-    /* Status badges for different fields */
-    .status-badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.75rem;
-        border-radius: 12px;
-        font-weight: 500;
-        display: inline-block;
-        margin: 0.1rem;
+    /* Registration Modal Styles */
+    .registration-summary {
+        margin-bottom: 1.5rem;
     }
     
-    .badge-parent {
-        background: rgba(13, 110, 253, 0.1);
-        color: #0d6efd;
-        border: 1px solid rgba(13, 110, 253, 0.2);
+    .registration-summary .card {
+        border: none;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     }
     
-    .badge-guardian {
-        background: rgba(108, 117, 125, 0.1);
-        color: #6c757d;
-        border: 1px solid rgba(108, 117, 125, 0.2);
+    .registration-summary .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
     }
     
-    .badge-male {
-        background: rgba(13, 110, 253, 0.1);
-        color: #0d6efd;
-        border: 1px solid rgba(13, 110, 253, 0.2);
-    }
-    
-    .badge-female {
-        background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-        border: 1px solid rgba(220, 53, 69, 0.2);
-    }
-    
-    .badge-single {
-        background: rgba(25, 135, 84, 0.1);
-        color: #198754;
-        border: 1px solid rgba(25, 135, 84, 0.2);
-    }
-    
-    .badge-married {
-        background: rgba(253, 126, 20, 0.1);
-        color: #fd7e14;
-        border: 1px solid rgba(253, 126, 20, 0.2);
-    }
-    
-    .badge-divorced {
-        background: rgba(108, 117, 125, 0.1);
-        color: #6c757d;
-        border: 1px solid rgba(108, 117, 125, 0.2);
-    }
-    
-    .badge-widowed {
-        background: rgba(102, 16, 242, 0.1);
-        color: #6610f2;
-        border: 1px solid rgba(102, 16, 242, 0.2);
-    }
-    
-    /* Programme badges */
-    .badge-diploma {
-        background: rgba(0, 123, 255, 0.1);
-        color: #007bff;
-        border: 1px solid rgba(0, 123, 255, 0.2);
-    }
-    
-    .badge-pra-diploma {
-        background: rgba(40, 167, 69, 0.1);
-        color: #28a745;
-        border: 1px solid rgba(40, 167, 69, 0.2);
-    }
-    
-    .badge-tvet {
-        background: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
-        border: 1px solid rgba(255, 193, 7, 0.2);
-    }
-    
-    .badge-smart-tahfiz {
-        background: rgba(111, 66, 193, 0.1);
-        color: #6f42c1;
-        border: 1px solid rgba(111, 66, 193, 0.2);
-    }
-    
-    .badge-other {
-        background: rgba(23, 162, 184, 0.1);
-        color: #17a2b8;
-        border: 1px solid rgba(23, 162, 184, 0.2);
-    }
-    
-    /* Payment Status Badges */
-    .badge-payment-pending {
-        background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-        border: 1px solid rgba(220, 53, 69, 0.2);
-    }
-    
-    .badge-payment-partial {
-        background: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
-        border: 1px solid rgba(255, 193, 7, 0.2);
-    }
-    
-    .badge-payment-done {
-        background: rgba(25, 135, 84, 0.1);
-        color: #198754;
-        border: 1px solid rgba(25, 135, 84, 0.2);
-    }
-
-    /* Simplified columns for attendees list */
-    .attendee-item > .col-md-3 { /* Attendee Info */
-        max-width: 18%;
-    }
-    .attendee-item > .col-md-2 { /* Other columns */
-        max-width: 16.6667%;
-    }
-    .attendee-item > .col-md-1 { /* Actions column */
-        max-width: 8.3333%;
-    }
-    
-    /* Responsive Design */
+    /* ========================= */
+    /* RESPONSIVE DESIGN */
+    /* ========================= */
     @media (max-width: 768px) {
+        /* Modal responsive adjustments */
+        .attendee-modal .modal-dialog.modal-left-aligned,
+        #registrationModal .modal-dialog {
+            max-width: 95% !important;
+            width: 95% !important;
+            margin: 0.5rem auto !important;
+        }
+        
+        .attendee-modal .modal-body,
+        #registrationModal .modal-body {
+            padding: 1.25rem;
+        }
+        
+        .attendee-modal .modal-header,
+        #registrationModal .modal-header {
+            padding: 1rem 1.25rem;
+        }
+        
+        .attendee-modal .modal-footer,
+        #registrationModal .modal-footer {
+            padding: 1rem;
+            flex-direction: column;
+        }
+        
+        .attendee-modal .modal-footer .btn,
+        #registrationModal .modal-footer .btn {
+            width: 100%;
+        }
+        
+        /* Registration form grid */
+        .registration-form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .registration-form-grid .form-group.full-width {
+            grid-column: span 1;
+        }
+        
+        .payment-summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .attendee-preview-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        /* Detail grid adjustments */
+        .detail-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .detail-row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .detail-label {
+            min-width: auto;
+            max-width: 100%;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+        
+        .detail-value {
+            width: 100%;
+            font-size: 0.95rem;
+        }
+        
+        /* Event detail page */
         .action-buttons {
             flex-direction: column;
         }
@@ -1174,114 +1787,85 @@
             height: 300px;
         }
         
-        .modal-body {
+        .qr-modal-body {
             padding: 1.5rem;
         }
         
-        /* Attendee modal responsive */
-        .attendee-modal .modal-dialog {
-            max-width: 95% !important;
-            margin: 0.5rem auto;
+        /* Table responsive */
+        .table-responsive {
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
         }
         
-        .attendee-modal .modal-body {
-            padding: 1.5rem;
-            max-height: 80vh;
+        #attendeesTable {
+            min-width: 1000px;
+            font-size: 0.8rem;
         }
         
-        .detail-row {
-            flex-direction: column;
-            gap: 0.5rem;
+        #attendeesTable thead th {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.375rem;
         }
         
-        .detail-label {
-            min-width: auto;
-            max-width: 100%;
-            width: 100%;
-            font-size: 0.95rem;
+        #attendeesTable tbody td {
+            padding: 0.5rem 0.375rem;
         }
         
-        .detail-value {
-            width: 100%;
-            font-size: 0.95rem;
+        /* Adjust column widths for mobile */
+        #attendeesTable th:nth-child(4), /* Attended With */
+        #attendeesTable td:nth-child(4) {
+            min-width: 130px;
+            max-width: 150px;
         }
         
-        .detail-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
+        #attendeesTable th:nth-child(5), /* Referral */
+        #attendeesTable td:nth-child(5) {
+            min-width: 120px;
+            max-width: 140px;
         }
         
-        .fullscreen-btn {
-            right: 4rem;
+        #attendeesTable th:nth-child(6), /* Payment Type */
+        #attendeesTable td:nth-child(6) {
+            min-width: 130px;
+            max-width: 150px;
         }
         
-        /* Registration table responsive */
-        .attendee-item {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-            padding: 1rem;
-            border: 1px solid var(--gray-300);
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .attendee-item > div {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.25rem 0;
+        .btn-group-sm > .btn {
+            padding: 0.15rem 0.25rem;
+            font-size: 0.65rem;
         }
         
-        .attendee-item > div::before {
-            content: attr(data-label);
-            font-weight: 600;
-            color: var(--gray-600);
-            margin-right: 1rem;
-        }
-
-        .attendee-item > .col-md-3::before {
-            content: "Attendee Info";
-        }
-        .attendee-item > .col-md-2:nth-of-type(1)::before {
-            content: "Referral Number";
-        }
-        .attendee-item > .col-md-2:nth-of-type(2)::before {
-            content: "Payment Type";
-        }
-        .attendee-item > .col-md-2:nth-of-type(3)::before {
-            content: "Payment Status";
-        }
-        .attendee-item > .col-md-2:nth-of-type(4)::before {
-            content: "Amount";
-        }
-        .attendee-item > .col-md-1::before {
-            content: "Actions";
-        }
-        
-        .attendee-header {
-            display: none;
+        .badge {
+            font-size: 0.65rem !important;
+            padding: 0.15rem 0.3rem !important;
         }
         
         .filter-buttons {
             justify-content: center;
         }
+        
+        .search-filter-section .col-md-8,
+        .search-filter-section .col-md-4 {
+            width: 100%;
+        }
     }
     
     @media (max-width: 576px) {
+        /* QR modal */
         .qr-section {
             padding: 1rem;
         }
         
-        .modal-content {
+        .qr-modal-content {
             border-radius: 16px 16px 0 0;
         }
         
-        .modal-header {
+        .qr-modal-header {
             padding: 1rem 1.5rem;
         }
         
-        .modal-body {
+        .qr-modal-body {
             padding: 1rem;
         }
         
@@ -1304,24 +1888,6 @@
             right: 3.5rem;
         }
         
-        /* Attendee modal mobile */
-        .attendee-modal .modal-header {
-            padding: 1.25rem 1.5rem;
-        }
-        
-        .attendee-modal .modal-body {
-            padding: 1.25rem;
-        }
-        
-        .attendee-modal .modal-footer {
-            padding: 1.25rem;
-            flex-direction: column;
-        }
-        
-        .attendee-modal .modal-footer .btn {
-            width: 100%;
-        }
-        
         /* Registration summary cards */
         .registration-summary .row > div {
             margin-bottom: 0.5rem;
@@ -1330,6 +1896,220 @@
         .registration-summary .card-title {
             font-size: 1.25rem;
         }
+        
+        /* Payment summary grid */
+        .payment-summary-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        /* Table mobile adjustments */
+        #attendeesTable {
+            min-width: 1100px;
+            font-size: 0.75rem;
+        }
+        
+        #attendeesTable thead th {
+            font-size: 0.7rem;
+            padding: 0.375rem 0.25rem;
+        }
+        
+        #attendeesTable tbody td {
+            padding: 0.375rem 0.25rem;
+        }
+        
+        /* Further adjust column widths for small screens */
+        #attendeesTable th:nth-child(4), /* Attended With */
+        #attendeesTable td:nth-child(4) {
+            min-width: 140px;
+            max-width: 160px;
+        }
+        
+        #attendeesTable th:nth-child(5), /* Referral */
+        #attendeesTable td:nth-child(5) {
+            min-width: 130px;
+            max-width: 150px;
+        }
+        
+        #attendeesTable th:nth-child(6), /* Payment Type */
+        #attendeesTable td:nth-child(6) {
+            min-width: 140px;
+            max-width: 160px;
+        }
+        
+        .extra-small {
+            font-size: 0.65rem !important;
+        }
+        
+        .btn-sm {
+            padding: 0.15rem 0.3rem;
+            font-size: 0.7rem;
+        }
+    }
+
+    /* For extra small screens */
+    @media (max-width: 400px) {
+        .badge {
+            font-size: 0.6rem !important;
+            padding: 0.1rem 0.25rem !important;
+        }
+        
+        .attendee-name {
+            font-size: 0.8rem;
+        }
+        
+        .attendee-contact {
+            font-size: 0.7rem;
+        }
+        
+        /* Ensure badges still show full text */
+        #attendeesTable .badge {
+            font-size: 0.6rem !important;
+            padding: 0.1rem 0.25rem !important;
+            white-space: nowrap !important;
+        }
+    }
+
+    /* ========================= */
+    /* ANIMATIONS & TRANSITIONS */
+    /* ========================= */
+    .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .slide-up {
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ========================= */
+    /* LOADING STATES */
+    /* ========================= */
+    .loading-spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid var(--gray-300);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        border-radius: inherit;
+    }
+
+    /* ========================= */
+    /* UTILITY CLASSES */
+    /* ========================= */
+    .text-ellipsis {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .text-break {
+        word-break: break-word;
+    }
+
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .shadow-md {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .shadow-lg {
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+
+    /* ========================= */
+    /* SCROLLBAR STYLING */
+    /* ========================= */
+    .modal-body::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .modal-body::-webkit-scrollbar-track {
+        background: var(--gray-100);
+        border-radius: 3px;
+    }
+
+    .modal-body::-webkit-scrollbar-thumb {
+        background: var(--gray-400);
+        border-radius: 3px;
+    }
+
+    .modal-body::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-500);
+    }
+
+    /* ========================= */
+    /* FORM VALIDATION STYLES */
+    /* ========================= */
+    .was-validated .form-control:valid {
+        border-color: var(--success);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .was-validated .form-control:invalid {
+        border-color: var(--danger);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .invalid-feedback {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: var(--danger);
+    }
+
+    .was-validated .form-control:invalid ~ .invalid-feedback {
+        display: block;
     }
 </style>
 
@@ -1433,13 +2213,6 @@
                 
                 <!-- Action Buttons -->
                 <div class="qr-actions">
-                    <a href="{{ qr_url|default:'#' }}" 
-                       target="_blank" 
-                       class="qr-btn qr-btn-primary"
-                       {% if not qr_url %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
-                        <i class="bi bi-box-arrow-up-right"></i>
-                        Open Link
-                    </a>
                     <button class="qr-btn qr-btn-secondary" onclick="copyToClipboard()"
                             {% if not qr_url %}disabled{% endif %}>
                         <i class="bi bi-clipboard"></i>
@@ -1661,7 +2434,7 @@
                         </div>
                     </div>
                     
-                    <!-- Search and Filter Section -->
+                    <!-- Search and Filter Section (KEEP THIS PART AS IS) -->
                     <div class="search-filter-section">
                         <div class="row">
                             <div class="col-md-8">
@@ -1670,7 +2443,7 @@
                                         <i class="bi bi-search"></i>
                                     </span>
                                     <input type="text" class="form-control" id="attendeeSearch" 
-                                           placeholder="Search by name, email, phone, IC, or referral number...">
+                                        placeholder="Search by name, email, phone, IC, or referral number...">
                                     <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
                                         <i class="bi bi-x"></i>
                                     </button>
@@ -1694,8 +2467,8 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Search Results Info -->
+
+                    <!-- Search Results Info (KEEP THIS PART AS IS) -->
                     <div class="search-results-info" id="searchResultsInfo">
                         <i class="bi bi-info-circle me-1"></i>
                         Showing <span id="resultsCount">0</span> of <span id="totalCount">{{ total_attendees_count }}</span> attendees
@@ -1703,149 +2476,205 @@
                             Clear
                         </button>
                     </div>
-                    
-                    <!-- Table Header for Desktop - SIMPLIFIED -->
-                    <div class="d-none d-md-block">
-                        <div class="attendee-header row fw-bold text-muted small border-bottom pb-2 mb-2">
-                            <div class="col-md-3">Attendee Info</div>
-                            <div class="col-md-2">Referral Number</div>
-                            <div class="col-md-2">Payment Type</div>
-                            <div class="col-md-2">Payment Status</div>
-                            <div class="col-md-2">Amount</div>
-                            <div class="col-md-1">Actions</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Attendees List - SIMPLIFIED -->
-                    {% if attendees %}
-                    <div id="attendeesList">
-                        {% for attendee in attendees %}
-                        <div class="attendee-item row align-items-center border-bottom py-2" 
-                            data-attendee-id="{{ attendee.id }}"
-                            data-ic-number="{% if attendee.get_ic_number %}{{ attendee.get_ic_number }}{% endif %}"
-                            id="attendee-{{ attendee.id }}">
-                            
-                            <!-- Attendee Info Column -->
-                            <div class="col-md-3 col-12 mb-2 mb-md-0">
-                                <div class="attendee-info">
-                                    <div class="attendee-name fw-bold">{{ attendee.name }}</div>
-                                    <div class="attendee-contact small text-muted">
-                                        {{ attendee.email }}
-                                        {% if attendee.phone_number %}
-                                        <br>{{ attendee.phone_number }}
-                                        {% endif %}
-                                    </div>
-                                    <div class="attendee-time small text-muted">
-                                        {{ attendee.attended_at|date:"g:i A" }} • {{ attendee.attended_at|date:"M d" }}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Referral Number Column -->
-                            <div class="col-md-2 col-12 mb-2 mb-md-0">
-                                <div id="inviting-officer-{{ attendee.id }}">
-                                    {% if attendee.has_application %}
-                                        {% with app=attendee.application %}
-                                        <div class="small">
-                                            <span class="text-dark">{{ app.registration_officer|default:"—" }}</span>
-                                        </div>
-                                        {% endwith %}
-                                    {% else %}
-                                        <span class="text-muted fst-italic">—</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Payment Type Column -->
-                            <div class="col-md-2 col-12 mb-2 mb-md-0">
-                                <div id="payment-type-{{ attendee.id }}">
-                                    {% if attendee.has_registration %}
-                                        {% with reg=attendee.registration %}
-                                            {% if reg.payment_type %}
-                                                <span class="badge 
-                                                    {% if reg.payment_type == 'CASH' %}bg-primary
-                                                    {% elif reg.payment_type == 'ONLINE_BANKING' %}bg-info
-                                                    {% elif reg.payment_type == 'QR_PAYMENT' %}bg-success
-                                                    {% else %}bg-secondary{% endif %}">
-                                                    {{ reg.get_payment_type_display }}
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-light text-muted">—</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    {% else %}
-                                        <span class="badge bg-light text-muted">—</span>
-                                    {% endif %}
-                                </div>
-                            </div>
 
-                            <!-- Payment Status Column -->
-                            <div class="col-md-2 col-12 mb-2 mb-md-0">
-                                <div id="payment-status-{{ attendee.id }}">
-                                    {% if attendee.has_registration %}
-                                        {% with reg=attendee.registration %}
-                                            {% if reg.payment_status == 'DONE' %}
-                                                <span class="badge bg-success">Completed</span>
-                                            {% elif reg.payment_status == 'PARTIAL' %}
-                                                <span class="badge bg-warning">Partial</span>
-                                            {% elif reg.payment_status == 'PENDING' %}
-                                                <span class="badge bg-danger">Pending</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{{ reg.get_payment_status_display }}</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    {% else %}
-                                        <span class="badge bg-light text-muted">—</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!-- Amount Column -->
-                            <div class="col-md-2 col-12 mb-2 mb-md-0">
-                                <div id="payment-amount-{{ attendee.id }}">
-                                    {% if attendee.has_registration %}
-                                        {% with reg=attendee.registration %}
-                                            <div class="small">
-                                                <div class="text-success">RM {{ reg.amount_paid|floatformat:2 }}</div>
-                                                {% if reg.payment_status == 'PARTIAL' %}
-                                                    <div class="text-danger small">Balance: RM {{ reg.balance_amount|floatformat:2 }}</div>
-                                                {% endif %}
+                    <!-- UPDATED: Clean Table Layout for Attendees -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm align-middle mb-0" id="attendeesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center" style="width: 35px;"></th>
+                                    <th style="min-width: 180px;">Attendee Info</th>
+                                    <th style="min-width: 120px;">Applied Program</th>
+                                    <th style="width: 100px;">Attended With</th>
+                                    <th style="width: 100px;">Referral</th>
+                                    <th style="width: 100px;">Payment Type</th>
+                                    <th style="width: 100px;">Status</th>
+                                    <th style="width: 90px;">Amount</th>
+                                    <th style="width: 80px;">Time</th>
+                                    <th style="width: 120px;" class="text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if attendees %}
+                                {% for attendee in attendees %}
+                                <tr data-attendee-id="{{ attendee.id }}" 
+                                    data-ic-number="{% if attendee.get_ic_number %}{{ attendee.get_ic_number }}{% endif %}"
+                                    id="attendee-row-{{ attendee.id }}">
+                                    
+                                    <!-- Serial Number -->
+                                    <td class="text-center text-muted small">
+                                        {{ forloop.counter }}
+                                    </td>
+                                    
+                                    <!-- Attendee Info -->
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <div class="fw-bold text-truncate" style="max-width: 180px;" title="{{ attendee.name }}">
+                                                {{ attendee.name }}
                                             </div>
-                                        {% endwith %}
-                                    {% else %}
-                                        <span class="text-muted">—</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Actions Column -->
-                            <div class="col-md-1 col-12">
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary" 
-                                            onclick="showAttendeeDetails({{ attendee.id }})"
-                                            title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                        <span class="d-none d-md-inline">View</span>
-                                    </button>
-                                    <button class="btn btn-sm {% if attendee.has_registration %}btn-warning{% else %}btn-success{% endif %}" 
-                                            onclick="openRegistrationModal({{ attendee.id }})"
-                                            title="{% if attendee.has_registration %}Update Registration{% else %}Add Registration{% endif %}">
-                                        <i class="bi bi-{% if attendee.has_registration %}pencil{% else %}plus{% endif %}"></i>
-                                        <span class="d-none d-md-inline">
-                                            {% if attendee.has_registration %}Update{% else %}Add{% endif %}
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
+                                            <div class="text-muted extra-small text-truncate" style="max-width: 180px;" title="{{ attendee.email }}">
+                                                {{ attendee.email }}
+                                            </div>
+                                            {% if attendee.phone_number %}
+                                            <div class="text-muted extra-small">
+                                                {{ attendee.phone_number }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Applied Program -->
+                                    <td>
+                                        <div id="applied-program-cell-{{ attendee.id }}">
+                                            {% if attendee.application %}
+                                                <div class="program-badge-container">
+                                                    {% if attendee.application.applied_programme == 'Diploma' %}
+                                                        <span class="badge badge-diploma status-badge small">Diploma</span>
+                                                    {% elif attendee.application.applied_programme == 'Pra-Diploma' %}
+                                                        <span class="badge badge-pra-diploma status-badge small">Pra-Diploma</span>
+                                                    {% elif attendee.application.applied_programme == 'TVET' %}
+                                                        <span class="badge badge-tvet status-badge small">TVET</span>
+                                                    {% elif attendee.application.applied_programme == 'Smart Tahfiz' %}
+                                                        <span class="badge badge-smart-tahfiz status-badge small">Smart Tahfiz</span>
+                                                    {% else %}
+                                                        <span class="badge badge-other status-badge small">{{ attendee.application.applied_programme|default:"—" }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% else %}
+                                                <span class="badge bg-light text-muted small">—</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Attended With -->
+                                    <td>
+                                        <div id="attended-with-cell-{{ attendee.id }}">
+                                            {% if attendee.has_application %}
+                                                {% with app=attendee.application %}
+                                                <div class="attended-with-badge-container">
+                                                    {% if app.attended_with == 'PARENT' %}
+                                                        <span class="badge badge-parent status-badge extra-small">Parent</span>
+                                                    {% elif app.attended_with == 'GUARDIAN' %}
+                                                        <span class="badge badge-guardian status-badge extra-small">Guardian</span>
+                                                    {% else %}
+                                                        <span class="badge bg-light text-muted extra-small">—</span>
+                                                    {% endif %}
+                                                </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                <span class="badge bg-light text-muted extra-small">—</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Referral -->
+                                    <td>
+                                        <div id="inviting-officer-cell-{{ attendee.id }}" class="small">
+                                            {% if attendee.has_application %}
+                                                {% with app=attendee.application %}
+                                                <div class="text-truncate" title="{{ app.registration_officer|default:'—' }}" style="max-width: 100px;">
+                                                    {{ app.registration_officer|truncatechars:12|default:"—" }}
+                                                </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                <span class="text-muted fst-italic extra-small">—</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Payment Type -->
+                                    <td>
+                                        <div id="payment-type-cell-{{ attendee.id }}">
+                                            {% if attendee.has_registration %}
+                                                {% with reg=attendee.registration %}
+                                                    {% if reg.payment_type %}
+                                                        <span class="badge 
+                                                            {% if reg.payment_type == 'CASH' %}badge-payment-cash
+                                                            {% elif reg.payment_type == 'ONLINE_BANKING' %}badge-payment-online
+                                                            {% elif reg.payment_type == 'QR_PAYMENT' %}badge-payment-qr
+                                                            {% elif reg.payment_type == 'CREDIT_CARD' or reg.payment_type == 'DEBIT_CARD' %}badge-payment-card
+                                                            {% else %}badge-payment-other{% endif %} extra-small">
+                                                            {{ reg.get_payment_type_display }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-light text-muted extra-small">—</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% else %}
+                                                <span class="badge bg-light text-muted extra-small">—</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Payment Status -->
+                                    <td>
+                                        <div id="payment-status-cell-{{ attendee.id }}">
+                                            {% if attendee.has_registration %}
+                                                {% with reg=attendee.registration %}
+                                                    {% if reg.payment_status == 'DONE' %}
+                                                        <span class="badge badge-payment-done extra-small">Paid</span>
+                                                    {% elif reg.payment_status == 'PARTIAL' %}
+                                                        <span class="badge badge-payment-partial extra-small">Partial</span>
+                                                    {% elif reg.payment_status == 'PENDING' %}
+                                                        <span class="badge badge-payment-pending extra-small">Pending</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary extra-small">{{ reg.get_payment_status_display|truncatechars:8 }}</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% else %}
+                                                <span class="badge bg-light text-muted extra-small">—</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Amount -->
+                                    <td>
+                                        <div id="payment-amount-cell-{{ attendee.id }}" class="small">
+                                            {% if attendee.has_registration %}
+                                                {% with reg=attendee.registration %}
+                                                    <div class="text-success fw-bold">RM {{ reg.amount_paid|floatformat:0 }}</div>
+                                                {% endwith %}
+                                            {% else %}
+                                                <span class="text-muted extra-small">—</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Time -->
+                                    <td class="text-muted extra-small">
+                                        {{ attendee.attended_at|date:"g:i A" }}
+                                    </td>
+                                    
+                                    <!-- Actions -->
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary btn-sm py-1 px-2" 
+                                                    onclick="showAttendeeDetails({{ attendee.id }})"
+                                                    title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn {% if attendee.has_registration %}btn-warning{% else %}btn-success{% endif %} btn-sm py-1 px-2" 
+                                                    onclick="openRegistrationModal({{ attendee.id }})"
+                                                    title="{% if attendee.has_registration %}Update Registration{% else %}Add Registration{% endif %}">
+                                                <i class="bi bi-{% if attendee.has_registration %}pencil{% else %}plus{% endif %}"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="10" class="text-center py-4">
+                                        <div class="empty-state">
+                                            <i class="bi bi-person-x fs-1 text-muted"></i>
+                                            <p class="mt-2 mb-0 text-muted">No attendees have checked in yet</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
                     </div>
-                    {% else %}
-                    <div class="empty-state" id="emptyAttendeesState">
-                        <i class="bi bi-person-x"></i>
-                        <p class="mt-2 mb-0">No attendees have checked in yet</p>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -1934,9 +2763,39 @@
     </div>
 </div>
 
-<!-- Registration Modal -->
+<!-- Attendee Details Modal - LEFT-ALIGNED LAYOUT -->
+<div class="modal fade attendee-modal" id="attendeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-left-aligned">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-circle text-primary"></i>
+                    Attendee Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="attendeeModalBody">
+                <!-- Content will be loaded via AJAX -->
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading complete attendee details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="printAttendeeForm()" id="printAttendeeBtn" style="display: none;">
+                    <i class="bi bi-printer me-2"></i>Print Application Form
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Registration Modal - COMPACT LAYOUT -->
 <div class="modal fade" id="registrationModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -1945,83 +2804,76 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            
             <div class="modal-body">
                 <form id="registrationForm">
                     {% csrf_token %}
                     <input type="hidden" id="attendeeId" name="attendee_id">
                     
-                    <!-- Attendee Info Display -->
-                    <div class="attendee-preview mb-4 p-3 border rounded bg-light">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="fw-bold" id="previewName">Loading...</h6>
-                                <div class="small" id="previewEmail">Loading...</div>
-                                <div class="small" id="previewPhone">Loading...</div>
+                    <!-- UPDATED: Compact Attendee Preview with Last Update Time -->
+                    <div class="attendee-preview-compact">
+                        <div class="attendee-preview-grid">
+                            <div class="attendee-preview-item">
+                                <span class="attendee-preview-label">Name</span>
+                                <span class="attendee-preview-value" id="previewName">Loading...</span>
                             </div>
-                            <div class="col-md-6 text-md-end">
-                                <div class="small text-muted" id="previewCheckInTime">Checked in: Loading...</div>
-                                <div class="small" id="previewInvitingOfficer">Referral Number: Loading...</div>
+                            <div class="attendee-preview-item">
+                                <span class="attendee-preview-label">Email</span>
+                                <span class="attendee-preview-value" id="previewEmail">Loading...</span>
+                            </div>
+                            <div class="attendee-preview-item">
+                                <span class="attendee-preview-label">Phone</span>
+                                <span class="attendee-preview-value" id="previewPhone">Loading...</span>
+                            </div>
+                            <div class="attendee-preview-item">
+                                <span class="attendee-preview-label">Checked In</span>
+                                <span class="attendee-preview-value" id="previewCheckInTime">Loading...</span>
+                            </div>
+                            <!-- NEW: Last Update Time -->
+                            <div class="attendee-preview-item">
+                                <span class="attendee-preview-label">Last Updated</span>
+                                <span class="attendee-preview-value" id="previewLastUpdatedTime">—</span>
+                            </div>
+                            <div class="attendee-preview-item">
+                                <span class="attendee-preview-label">Referral</span>
+                                <span class="attendee-preview-value" id="previewInvitingOfficer">Loading...</span>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="row">
+                    <!-- Alert for existing registration -->
+                    <div class="alert alert-info d-none" id="checkoutTimeAlert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-clock-history me-2"></i>
+                            <div>
+                                <small><strong>Updating existing registration</strong></small><br>
+                                <small>Last updated: <span id="lastUpdatedTime">-</span></small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Compact Form Grid -->
+                    <div class="registration-form-grid">
                         <!-- Course & College -->
-                        <div class="col-md-6 mb-3">
+                        <div class="form-group">
                             <label for="course" class="form-label">Course Applied *</label>
                             <input type="text" class="form-control" id="course" name="course" required>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
+                        <div class="form-group">
                             <label for="college" class="form-label">College/Branch *</label>
                             <input type="text" class="form-control" id="college" name="college" required>
                         </div>
-                    </div>
-                    
-                    <div class="row">
+                        
                         <!-- Registration Date -->
-                        <div class="col-md-4 mb-3">
+                        <div class="form-group">
                             <label for="register_date" class="form-label">Registration Date *</label>
                             <input type="date" class="form-control" id="register_date" name="register_date" 
                                    value="{% now 'Y-m-d' %}" required>
                         </div>
                         
-                        <!-- Fees -->
-                        <div class="col-md-4 mb-3">
-                            <label for="pre_registration_fee" class="form-label">Pre-Registration Fee (RM)</label>
-                            <input type="number" class="form-control" id="pre_registration_fee" 
-                                   name="pre_registration_fee" step="0.01" min="0" value="0.00">
-                        </div>
-                        
-                        <div class="col-md-4 mb-3">
-                            <label for="registration_fee" class="form-label">Registration Fee (RM) *</label>
-                            <input type="number" class="form-control" id="registration_fee" 
-                                   name="registration_fee" step="0.01" min="0" required>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <!-- Payment Status -->
-                        <div class="col-md-4 mb-3">
-                            <label for="payment_status" class="form-label">Payment Status *</label>
-                            <select class="form-control" id="payment_status" name="payment_status" required 
-                                    onchange="updateAmountPaidField()">
-                                <option value="PENDING">Pending</option>
-                                <option value="PARTIAL">Partially Paid</option>
-                                <option value="DONE">Completed</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Amount Paid -->
-                        <div class="col-md-4 mb-3">
-                            <label for="amount_paid" class="form-label">Amount Paid (RM) *</label>
-                            <input type="number" class="form-control" id="amount_paid" 
-                                   name="amount_paid" step="0.01" min="0" required value="0.00">
-                            <small class="text-muted" id="amountPaidHelp">Amount actually received</small>
-                        </div>
-                        
                         <!-- Payment Type -->
-                        <div class="col-md-4 mb-3">
+                        <div class="form-group">
                             <label for="payment_type" class="form-label">Payment Type</label>
                             <select class="form-control" id="payment_type" name="payment_type">
                                 <option value="">Select Payment Type</option>
@@ -2030,72 +2882,93 @@
                                 <option value="QR_PAYMENT">QR Payment</option>
                             </select>
                         </div>
-                    </div>
-                    
-                    <div class="row">
+                        
+                        <!-- Fees -->
+                        <div class="form-group">
+                            <label for="pre_registration_fee" class="form-label">Pre-Registration Fee (RM)</label>
+                            <input type="number" class="form-control" id="pre_registration_fee" 
+                                   name="pre_registration_fee" step="0.01" min="0" value="0.00"
+                                   oninput="updateAmountPaidField()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="registration_fee" class="form-label">Registration Fee (RM) *</label>
+                            <input type="number" class="form-control" id="registration_fee" 
+                                   name="registration_fee" step="0.01" min="0" required value="0.00"
+                                   oninput="updateAmountPaidField()">
+                        </div>
+                        
+                        <!-- Payment Status -->
+                        <div class="form-group">
+                            <label for="payment_status" class="form-label">Payment Status *</label>
+                            <select class="form-control" id="payment_status" name="payment_status" required 
+                                    onchange="updatePaymentSummary()">
+                                <option value="PENDING">Pending</option>
+                                <option value="PARTIAL">Partially Paid</option>
+                                <option value="DONE">Completed</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Amount Paid -->
+                        <div class="form-group">
+                            <label for="amount_paid" class="form-label">Amount Paid (RM) *</label>
+                            <input type="number" class="form-control" id="amount_paid" 
+                                   name="amount_paid" step="0.01" min="0" required value="0.00"
+                                   oninput="updatePaymentSummary()">
+                            <small class="text-muted">Amount actually received</small>
+                        </div>
+                        
                         <!-- Closer -->
-                        <div class="col-md-6 mb-3">
+                        <div class="form-group">
                             <label for="closer" class="form-label">Closer (Staff Name) *</label>
                             <input type="text" class="form-control" id="closer" name="closer" 
                                    value="{{ request.user.get_full_name|default:request.user.username }}" required>
                         </div>
                         
                         <!-- Referral Number -->
-                        <div class="col-md-6 mb-3">
+                        <div class="form-group">
                             <label for="referral_number" class="form-label">Referral Number</label>
                             <input type="text" class="form-control" id="referral_number" name="referral_number">
                         </div>
                     </div>
                     
-                    <!-- Payment Summary -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h6 class="mb-0">Payment Summary</h6>
+                    <!-- Compact Payment Summary -->
+                    <div class="payment-summary-compact">
+                        <div class="payment-summary-grid">
+                            <div class="payment-summary-item">
+                                <span class="payment-summary-label">Total Fee</span>
+                                <span class="payment-summary-value total-fee" id="totalFeeDisplay">RM 0.00</span>
+                            </div>
+                            <div class="payment-summary-item">
+                                <span class="payment-summary-label">Amount Paid</span>
+                                <span class="payment-summary-value amount-paid" id="displayAmountPaid">RM 0.00</span>
+                            </div>
+                            <div class="payment-summary-item">
+                                <span class="payment-summary-label">Balance</span>
+                                <span class="payment-summary-value" id="balanceDisplay">—</span>
+                            </div>
+                            <div class="payment-summary-item">
+                                <span class="payment-summary-label">Payment %</span>
+                                <span class="payment-summary-value" id="paymentPercentage">0%</span>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <small class="text-muted d-block">Total Fee</small>
-                                    <div class="fw-bold" id="totalFeeDisplay">RM 0.00</div>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="text-muted d-block">Amount Paid</small>
-                                    <div class="fw-bold text-success" id="displayAmountPaid">RM 0.00</div>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="text-muted d-block">Balance</small>
-                                    <div class="fw-bold text-danger" id="balanceDisplay">RM 0.00</div>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="text-muted d-block">Payment %</small>
-                                    <div class="fw-bold" id="paymentPercentage">0%</div>
-                                </div>
-                            </div>
-                            <div class="progress mt-2" style="height: 8px;">
-                                <div class="progress-bar bg-success" id="paymentProgressBar" 
-                                     role="progressbar" style="width: 0%"></div>
-                            </div>
+                        
+                        <!-- Progress Bar -->
+                        <div class="payment-progress-compact">
+                            <div class="payment-progress-bar-compact" id="paymentProgressBar" 
+                                 role="progressbar" style="width: 0%"></div>
                         </div>
                     </div>
                     
                     <!-- Remarks -->
-                    <div class="mb-3">
+                    <div class="form-group full-width">
                         <label for="remark" class="form-label">Staff Remarks</label>
-                        <textarea class="form-control" id="remark" name="remark" rows="3"></textarea>
-                    </div>
-                    
-                    <!-- Checkout Time (for updates) -->
-                    <div class="alert alert-info d-none" id="checkoutTimeAlert">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-clock-history me-2"></i>
-                            <div>
-                                <small><strong>Last Updated:</strong> <span id="lastUpdatedTime">-</span></small><br>
-                                <small>This update will be recorded with current timestamp.</small>
-                            </div>
-                        </div>
+                        <textarea class="form-control" id="remark" name="remark" rows="2" 
+                                  placeholder="Any additional notes..."></textarea>
                     </div>
                 </form>
             </div>
+            
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="saveRegistration()">
@@ -2228,10 +3101,55 @@
     const toastMessage = document.getElementById('toastMessage');
     
     // ============================================
+    // MODAL SCROLL CONTROL
+    // ============================================
+    
+    function setupModalScrollControl() {
+        // Get modal elements
+        const attendeeModal = document.getElementById('attendeeModal');
+        const registrationModal = document.getElementById('registrationModal');
+        const statsModal = document.getElementById('statsModal');
+        
+        // Function to disable page scroll
+        function disablePageScroll() {
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+            document.body.style.paddingRight = '0';
+        }
+        
+        // Function to enable page scroll
+        function enablePageScroll() {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }
+        
+        // Setup for all modals
+        [attendeeModal, registrationModal, statsModal].forEach(modal => {
+            if (modal) {
+                modal.addEventListener('show.bs.modal', disablePageScroll);
+                modal.addEventListener('hidden.bs.modal', enablePageScroll);
+                
+                // Also handle escape key
+                modal.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        enablePageScroll();
+                    }
+                });
+            }
+        });
+        
+        // Handle modal backdrop clicks
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+            backdrop.addEventListener('click', enablePageScroll);
+        });
+    }
+    
+    // ============================================
     // CORE FUNCTIONS - COMPLETE VERSION
     // ============================================
     
-    // 1. SHOW ATTENDEE DETAILS - COMPLETE INFORMATION
+    // 1. SHOW ATTENDEE DETAILS - COMPLETE INFORMATION (NO REGISTRATION SECTION)
     window.showAttendeeDetails = function(attendeeId) {
         console.log('showAttendeeDetails called for:', attendeeId);
         
@@ -2249,7 +3167,8 @@
         `;
         
         // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('attendeeModal'));
+        const modalElement = document.getElementById('attendeeModal');
+        const modal = new bootstrap.Modal(modalElement);
         modal.show();
         
         // Show/hide print button
@@ -2267,7 +3186,7 @@
                 currentAttendeeData = data;
                 
                 if (data.attendee) {
-                    // Build modal content with COMPLETE information
+                    // Build modal content with COMPLETE information (NO REGISTRATION)
                     modalBody.innerHTML = buildCompleteAttendeeDetailsHTML(data);
                     
                     // Show print button if application exists
@@ -2294,11 +3213,10 @@
             });
     };
     
-    // Build HTML for COMPLETE attendee details
+    // Build HTML for COMPLETE attendee details (NO REGISTRATION SECTION)
     function buildCompleteAttendeeDetailsHTML(data) {
         const attendee = data.attendee;
         const application = data.application;
-        const registration = data.registration;
         
         let html = `
             <div class="attendee-details-section">
@@ -2536,167 +3454,6 @@
                         <h4 class="mt-3">No Application Form</h4>
                         <p class="text-muted">This attendee hasn't submitted an application form yet.</p>
                         <p class="text-muted small">They may have checked in via QR code without filling the form.</p>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Registration Details - COMPLETE with NEW fields
-        if (registration) {
-            // Payment type badge
-            let paymentTypeBadge = '';
-            if (registration.payment_type === 'CASH') {
-                paymentTypeBadge = '<span class="badge badge-payment-cash status-badge">Cash</span>';
-            } else if (registration.payment_type === 'ONLINE_BANKING') {
-                paymentTypeBadge = '<span class="badge badge-payment-online status-badge">Online Banking</span>';
-            } else if (registration.payment_type === 'QR_PAYMENT') {
-                paymentTypeBadge = '<span class="badge badge-payment-qr status-badge">QR Payment</span>';
-            } else if (registration.payment_type === 'CREDIT_CARD' || registration.payment_type === 'DEBIT_CARD') {
-                paymentTypeBadge = '<span class="badge badge-payment-card status-badge">Card</span>';
-            } else if (registration.payment_type) {
-                paymentTypeBadge = `<span class="badge badge-payment-other status-badge">${registration.payment_type}</span>`;
-            } else {
-                paymentTypeBadge = '<span class="badge bg-light text-muted">Not specified</span>';
-            }
-            
-            // Payment status badge
-            let paymentStatusBadge = '';
-            if (registration.payment_status === 'DONE') {
-                paymentStatusBadge = '<span class="badge badge-payment-done status-badge">Completed</span>';
-            } else if (registration.payment_status === 'PARTIAL') {
-                paymentStatusBadge = '<span class="badge badge-payment-partial status-badge">Partially Paid</span>';
-            } else if (registration.payment_status === 'PENDING') {
-                paymentStatusBadge = '<span class="badge badge-payment-pending status-badge">Pending</span>';
-            } else {
-                paymentStatusBadge = `<span class="badge bg-secondary">${registration.payment_status}</span>`;
-            }
-            
-            html += `
-                <div class="attendee-details-section">
-                    <h6><i class="bi bi-cash-coin"></i> Registration Details</h6>
-                    <div class="detail-grid">
-                        <!-- Academic Information -->
-                        <div class="detail-grid-item">
-                            <div class="detail-grid-title">Academic Information</div>
-                            <div class="detail-grid-content">
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Course Applied:</span>
-                                    <span class="detail-grid-value">${registration.course || 'N/A'}</span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">College/Branch:</span>
-                                    <span class="detail-grid-value">${registration.college || 'N/A'}</span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Registration Date:</span>
-                                    <span class="detail-grid-value">${registration.register_date || 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Payment Information -->
-                        <div class="detail-grid-item">
-                            <div class="detail-grid-title">Payment Information</div>
-                            <div class="detail-grid-content">
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Payment Type:</span>
-                                    <span class="detail-grid-value">
-                                        ${paymentTypeBadge}
-                                    </span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Payment Status:</span>
-                                    <span class="detail-grid-value">
-                                        ${paymentStatusBadge}
-                                    </span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Amount Paid:</span>
-                                    <span class="detail-grid-value">RM ${parseFloat(registration.amount_paid || 0).toFixed(2)}</span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Total Fee:</span>
-                                    <span class="detail-grid-value">RM ${parseFloat(registration.total_fee || 0).toFixed(2)}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Staff Information -->
-                        <div class="detail-grid-item">
-                            <div class="detail-grid-title">Staff Information</div>
-                            <div class="detail-grid-content">
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Closer (Staff):</span>
-                                    <span class="detail-grid-value">${registration.closer || 'N/A'}</span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Referral Number:</span>
-                                    <span class="detail-grid-value">${registration.referral_number || 'N/A'}</span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Registration ID:</span>
-                                    <span class="detail-grid-value">${registration.id || 'N/A'}</span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Last Updated:</span>
-                                    <span class="detail-grid-value">${registration.updated_at || 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Fee Details -->
-                    <div class="mt-3">
-                        <div class="detail-grid-item">
-                            <div class="detail-grid-title">Fee Breakdown</div>
-                            <div class="detail-grid-content">
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Pre-Registration Fee:</span>
-                                    <span class="detail-grid-value">RM ${parseFloat(registration.pre_registration_fee || 0).toFixed(2)}</span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Registration Fee:</span>
-                                    <span class="detail-grid-value">RM ${parseFloat(registration.registration_fee || 0).toFixed(2)}</span>
-                                </div>
-                                ${registration.payment_status === 'PARTIAL' ? `
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Balance Amount:</span>
-                                    <span class="detail-grid-value text-danger">RM ${parseFloat(registration.balance_amount || 0).toFixed(2)}</span>
-                                </div>
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-label">Payment Percentage:</span>
-                                    <span class="detail-grid-value">${parseFloat(registration.payment_percentage || 0).toFixed(1)}%</span>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    ${registration.remark ? `
-                    <div class="mt-3">
-                        <div class="detail-grid-item">
-                            <div class="detail-grid-title">Staff Remarks</div>
-                            <div class="detail-grid-content">
-                                <div class="detail-grid-row">
-                                    <span class="detail-grid-value" style="text-align: left; width: 100%;">${registration.remark}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    ` : ''}
-                </div>
-            `;
-        } else {
-            html += `
-                <div class="attendee-details-section">
-                    <h6><i class="bi bi-cash"></i> Registration</h6>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>This attendee hasn't been registered yet.</strong><br>
-                        <small class="d-block mt-1">Click the button below to add registration details including course, fees, payment type, and payment status.</small>
-                        <button class="btn btn-sm btn-primary mt-2" onclick="openRegistrationModal(${attendee.id})">
-                            <i class="bi bi-plus-circle"></i> Add Registration Now
-                        </button>
                     </div>
                 </div>
             `;
@@ -3013,7 +3770,7 @@
             /* Field rows - Compact */
             .field-row { 
                 display: flex; 
-                align-items: flex-start; /* Changed to flex-start for better alignment */
+                align-items: flex-start;
                 margin-bottom: 5px !important; 
                 min-height: 18px !important;
                 line-height: 1.2;
@@ -3024,7 +3781,7 @@
             .field-label-dual {
                 display: flex;
                 flex-direction: column;
-                justify-content: flex-start; /* Changed for better alignment */
+                justify-content: flex-start;
                 font-weight: bold; 
                 font-size: 10pt !important; 
                 width: 160px !important; 
@@ -3034,7 +3791,7 @@
                 flex-shrink: 0; 
                 color: #000;
                 line-height: 1.1;
-                margin-top: 2px !important; /* Added for vertical alignment */
+                margin-top: 2px !important;
             }
             
             .field-label-malay {
@@ -3062,7 +3819,7 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
-                margin-top: 2px !important; /* Added for vertical alignment */
+                margin-top: 2px !important;
             }
             
             /* Two-column grid for Referral Number and SPM Credit side by side */
@@ -3132,7 +3889,7 @@
             
             .applied-programme-line {
                 display: flex;
-                align-items: flex-start; /* Changed for better alignment */
+                align-items: flex-start;
                 gap: 10px !important;
                 margin-bottom: 5px !important;
             }
@@ -3140,7 +3897,7 @@
             .programme-label-dual {
                 display: flex;
                 flex-direction: column;
-                justify-content: flex-start; /* Changed for better alignment */
+                justify-content: flex-start;
                 font-weight: bold;
                 font-size: 10pt !important;
                 color: #000;
@@ -3171,7 +3928,7 @@
                 gap: 15px !important;
                 flex-wrap: wrap;
                 align-items: center;
-                margin-top: 2px !important; /* Added for vertical alignment */
+                margin-top: 2px !important;
             }
             
             .programme-option-inline {
@@ -3193,7 +3950,7 @@
                 justify-content: center;
                 font-size: 8pt !important;
                 flex-shrink: 0;
-                margin-top: 2px !important; /* Added for vertical alignment */
+                margin-top: 2px !important;
             }
             
             .tickbox-inline.checked::after {
@@ -3215,7 +3972,7 @@
             
             .attended-with-line {
                 display: flex;
-                align-items: flex-start; /* Changed for better alignment */
+                align-items: flex-start;
                 gap: 10px !important;
                 margin-bottom: 5px !important;
             }
@@ -3223,7 +3980,7 @@
             .attended-with-label-dual {
                 display: flex;
                 flex-direction: column;
-                justify-content: flex-start; /* Changed for better alignment */
+                justify-content: flex-start;
                 font-weight: bold;
                 font-size: 10pt !important;
                 color: #000;
@@ -3254,7 +4011,7 @@
                 gap: 15px !important;
                 flex-wrap: wrap;
                 align-items: center;
-                margin-top: 2px !important; /* Added for vertical alignment */
+                margin-top: 2px !important;
             }
             
             .attended-with-option-inline {
@@ -4037,6 +4794,426 @@
     }
     
     // ============================================
+    // UPDATED REGISTRATION FORM FUNCTIONS - COMPACT LAYOUT WITH AUTO-FILL
+    // ============================================
+    
+    window.openRegistrationModal = function(attendeeId) {
+        console.log('openRegistrationModal called for:', attendeeId);
+        
+        currentAttendeeId = attendeeId;
+        const modalElement = document.getElementById('registrationModal');
+        
+        if (!modalElement) {
+            console.error('❌ Registration modal element not found in DOM');
+            alert('Registration form is not available. Please refresh the page.');
+            return;
+        }
+        
+        if (typeof bootstrap === 'undefined') {
+            console.error('❌ Bootstrap is not loaded');
+            alert('Please refresh the page. System components not loaded properly.');
+            return;
+        }
+        
+        const modal = new bootstrap.Modal(modalElement);
+        
+        // Reset form
+        const form = document.getElementById('registrationForm');
+        const attendeeIdField = document.getElementById('attendeeId');
+        
+        if (form) {
+            form.reset();
+        }
+        
+        if (attendeeIdField) {
+            attendeeIdField.value = attendeeId;
+        }
+        
+        // Set default values
+        const registerDateField = document.getElementById('register_date');
+        const closerField = document.getElementById('closer');
+        const checkoutAlert = document.getElementById('checkoutTimeAlert');
+        
+        if (registerDateField) {
+            registerDateField.value = new Date().toISOString().split('T')[0];
+        }
+        
+        if (closerField) {
+            closerField.value = "{{ request.user.get_full_name|default:request.user.username }}";
+        }
+        
+        if (checkoutAlert && checkoutAlert.classList) {
+            checkoutAlert.classList.add('d-none');
+        }
+        
+        // Set modal title
+        const modalTitle = document.getElementById('modalTitle');
+        const saveBtnText = document.getElementById('saveBtnText');
+        
+        if (modalTitle) {
+            modalTitle.textContent = 'Registration Form';
+        }
+        
+        if (saveBtnText) {
+            saveBtnText.textContent = 'Save Registration';
+        }
+        
+        // Load attendee info and registration data
+        Promise.all([
+            fetch(`/attsys/api/attendee/${attendeeId}/details/`),
+            fetch(`/attsys/api/attendee/${attendeeId}/registration/`)
+        ])
+        .then(async ([attendeeRes, regRes]) => {
+            const attendeeData = await attendeeRes.json();
+            const regData = await regRes.json();
+            
+            // Debug log
+            console.log('Loaded data:', {
+                attendeeData,
+                regData,
+                hasApplication: !!attendeeData.application,
+                applicationReferral: attendeeData.application?.registration_officer
+            });
+            
+            // Combine all data
+            const combinedData = {
+                ...attendeeData,
+                registration: regData.registration
+            };
+            
+            // Update attendee preview with all data
+            updateAttendeePreview(combinedData);
+            
+            // Check if registration exists
+            if (regData.registration) {
+                // Update modal for existing registration
+                if (modalTitle) modalTitle.textContent = 'Update Registration';
+                if (saveBtnText) saveBtnText.textContent = 'Update Registration';
+                
+                if (checkoutAlert && checkoutAlert.classList) {
+                    checkoutAlert.classList.remove('d-none');
+                    const timeSpan = document.getElementById('lastUpdatedTime');
+                    if (timeSpan) {
+                        // Show checkout time (created_at) if exists
+                        if (regData.registration.created_at) {
+                            const checkoutDate = new Date(regData.registration.created_at);
+                            timeSpan.textContent = checkoutDate.toLocaleString('en-MY', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            });
+                        } else {
+                            timeSpan.textContent = new Date().toLocaleString('en-MY', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            });
+                        }
+                    }
+                }
+                
+                populateRegistrationForm(regData.registration, attendeeData.application);
+            } else {
+                // New registration
+                populateRegistrationForm(null, attendeeData.application);
+                updateAmountPaidField();
+                updatePaymentSummary();
+            }
+            
+            // Show modal
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error loading data:', error);
+            
+            // Initialize fields even if fetch fails
+            updateAmountPaidField();
+            updatePaymentSummary();
+            
+            // Show modal anyway
+            modal.show();
+        });
+    };
+    
+    // Update attendee preview with compact layout and last update time
+    function updateAttendeePreview(data) {
+        const attendee = data.attendee;
+        const application = data.application;
+        const registration = data.registration;
+        
+        // Update preview elements
+        const previewName = document.getElementById('previewName');
+        const previewEmail = document.getElementById('previewEmail');
+        const previewPhone = document.getElementById('previewPhone');
+        const previewCheckInTime = document.getElementById('previewCheckInTime');
+        const previewLastUpdatedTime = document.getElementById('previewLastUpdatedTime');
+        const previewInvitingOfficer = document.getElementById('previewInvitingOfficer');
+        
+        if (previewName) previewName.textContent = attendee.name;
+        if (previewEmail) previewEmail.textContent = attendee.email;
+        if (previewPhone) previewPhone.textContent = attendee.phone_number || 'N/A';
+        
+        if (previewCheckInTime) {
+            previewCheckInTime.textContent = 
+                `Checked in: ${attendee.attended_at_display}`;
+        }
+        
+        // NEW: Last Update Time (from registration or check-in time)
+        if (previewLastUpdatedTime) {
+            let lastUpdatedText = '—';
+            
+            if (registration && registration.updated_at) {
+                // Format registration update time
+                const updateDate = new Date(registration.updated_at);
+                lastUpdatedText = updateDate.toLocaleTimeString('en-MY', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) + ' (reg)';
+            } else if (attendee.attended_at) {
+                // Use check-in time if no registration
+                lastUpdatedText = `Checked in: ${attendee.attended_at_display}`;
+            }
+            
+            previewLastUpdatedTime.textContent = lastUpdatedText;
+        }
+        
+        // Auto-fill referral number from application
+        if (previewInvitingOfficer && application && application.registration_officer) {
+            previewInvitingOfficer.textContent = 
+                `Referral: ${application.registration_officer}`;
+            
+            // Auto-fill the referral number field in the form
+            const referralField = document.getElementById('referral_number');
+            if (referralField && !referralField.value) {
+                referralField.value = application.registration_officer;
+            }
+        }
+    }
+    
+    // Update amount paid field
+    function updateAmountPaidField() {
+        const preFee = parseFloat(document.getElementById('pre_registration_fee').value) || 0;
+        const regFee = parseFloat(document.getElementById('registration_fee').value) || 0;
+        const total = preFee + regFee;
+        
+        // Always set amount paid to the total of both fees
+        const amountPaidInput = document.getElementById('amount_paid');
+        amountPaidInput.value = total.toFixed(2);
+        amountPaidInput.readOnly = false;
+        
+        updatePaymentSummary();
+    }
+    
+    // Compact payment summary update
+    function updatePaymentSummary() {
+        const preFee = parseFloat(document.getElementById('pre_registration_fee').value) || 0;
+        const regFee = parseFloat(document.getElementById('registration_fee').value) || 0;
+        const total = preFee + regFee;
+        const amountPaid = parseFloat(document.getElementById('amount_paid').value) || 0;
+        const paymentStatus = document.getElementById('payment_status').value;
+        
+        // Calculate percentage
+        const paymentPercentage = total > 0 ? (amountPaid / total) * 100 : 0;
+        const balance = total - amountPaid;
+        
+        // Update compact summary display
+        const totalFeeDisplay = document.getElementById('totalFeeDisplay');
+        const displayAmountPaid = document.getElementById('displayAmountPaid');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const paymentPercentageDisplay = document.getElementById('paymentPercentage');
+        const progressBar = document.getElementById('paymentProgressBar');
+        
+        if (totalFeeDisplay) totalFeeDisplay.textContent = `RM ${total.toFixed(2)}`;
+        if (displayAmountPaid) displayAmountPaid.textContent = `RM ${amountPaid.toFixed(2)}`;
+        
+        if (balanceDisplay) {
+            if (balance > 0) {
+                balanceDisplay.textContent = `RM ${balance.toFixed(2)}`;
+                balanceDisplay.className = 'payment-summary-value text-danger';
+            } else if (balance < 0) {
+                balanceDisplay.textContent = `(RM ${Math.abs(balance).toFixed(2)})`;
+                balanceDisplay.className = 'payment-summary-value text-success';
+            } else {
+                balanceDisplay.textContent = 'RM 0.00';
+                balanceDisplay.className = 'payment-summary-value';
+            }
+        }
+        
+        if (paymentPercentageDisplay) paymentPercentageDisplay.textContent = `${paymentPercentage.toFixed(1)}%`;
+        
+        // Update progress bar
+        if (progressBar) {
+            progressBar.style.width = `${paymentPercentage}%`;
+            
+            // Color based on payment status
+            if (paymentStatus === 'DONE') {
+                progressBar.className = 'payment-progress-bar-compact bg-success';
+            } else if (paymentStatus === 'PARTIAL') {
+                progressBar.className = 'payment-progress-bar-compact bg-warning';
+            } else if (paymentStatus === 'PENDING') {
+                progressBar.className = 'payment-progress-bar-compact bg-danger';
+            } else {
+                progressBar.className = 'payment-progress-bar-compact bg-secondary';
+            }
+        }
+    }
+    
+    function populateRegistrationForm(registration, application) {
+        console.log('Populating form with:', { registration, application });
+        
+        // Get all form fields
+        const fields = {
+            'course': document.getElementById('course'),
+            'college': document.getElementById('college'),
+            'register_date': document.getElementById('register_date'),
+            'pre_registration_fee': document.getElementById('pre_registration_fee'),
+            'registration_fee': document.getElementById('registration_fee'),
+            'payment_status': document.getElementById('payment_status'),
+            'amount_paid': document.getElementById('amount_paid'),
+            'payment_type': document.getElementById('payment_type'),
+            'closer': document.getElementById('closer'),
+            'referral_number': document.getElementById('referral_number'),
+            'remark': document.getElementById('remark')
+        };
+        
+        // Set values only if elements exist
+        if (fields.course) fields.course.value = registration?.course || '';
+        if (fields.college) fields.college.value = registration?.college || '';
+        if (fields.register_date) {
+            fields.register_date.value = registration?.register_date || new Date().toISOString().split('T')[0];
+        }
+        if (fields.pre_registration_fee) {
+            fields.pre_registration_fee.value = registration?.pre_registration_fee || '0.00';
+        }
+        if (fields.registration_fee) {
+            fields.registration_fee.value = registration?.registration_fee || '0.00';
+        }
+        if (fields.payment_status) {
+            fields.payment_status.value = registration?.payment_status || 'PENDING';
+        }
+        if (fields.amount_paid) {
+            // If there's already an amount saved, use it
+            if (registration?.amount_paid && parseFloat(registration.amount_paid) > 0) {
+                fields.amount_paid.value = registration.amount_paid;
+            } else {
+                // Otherwise calculate from fees
+                const preFee = parseFloat(fields.pre_registration_fee.value) || 0;
+                const regFee = parseFloat(fields.registration_fee.value) || 0;
+                fields.amount_paid.value = (preFee + regFee).toFixed(2);
+            }
+        }
+        if (fields.payment_type) {
+            fields.payment_type.value = registration?.payment_type || '';
+        }
+        if (fields.closer) {
+            fields.closer.value = registration?.closer || '';
+        }
+        
+        // AUTO-FILL REFERRAL NUMBER FROM APPLICATION
+        if (fields.referral_number) {
+            console.log('Auto-filling referral number:', {
+                hasRegistration: !!registration,
+                regReferral: registration?.referral_number,
+                hasApplication: !!application,
+                appReferral: application?.registration_officer
+            });
+            
+            // If registration already has a referral number, use it
+            // Otherwise use the application's referral number
+            if (registration?.referral_number) {
+                fields.referral_number.value = registration.referral_number;
+            } else if (application?.registration_officer) {
+                fields.referral_number.value = application.registration_officer;
+            } else {
+                fields.referral_number.value = '';
+            }
+        }
+        
+        if (fields.remark) {
+            fields.remark.value = registration?.remark || '';
+        }
+        
+        // Update last update time in preview if registration exists
+        const previewLastUpdatedTime = document.getElementById('previewLastUpdatedTime');
+        if (previewLastUpdatedTime && registration?.updated_at) {
+            const updateDate = new Date(registration.updated_at);
+            previewLastUpdatedTime.textContent = 
+                updateDate.toLocaleTimeString('en-MY', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) + ' (saved)';
+        }
+        
+        updateAmountPaidField();
+        updatePaymentSummary();
+    }
+    
+    // Update the saveRegistration function
+    window.saveRegistration = function() {
+        const form = document.getElementById('registrationForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const saveBtn = document.querySelector('#registrationModal .btn-primary');
+        const spinner = document.getElementById('saveSpinner');
+        const btnText = document.getElementById('saveBtnText');
+        
+        saveBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.textContent = 'Saving...';
+        
+        const formData = new FormData(form);
+        
+        fetch('/attsys/api/registration/save/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Registration saved successfully!');
+                
+                // Update UI
+                updateAttendeeRegistrationDisplay(currentAttendeeId, data.registration);
+                
+                // Update preview with new last update time
+                const previewLastUpdatedTime = document.getElementById('previewLastUpdatedTime');
+                if (previewLastUpdatedTime && data.registration.updated_at) {
+                    const updateDate = new Date(data.registration.updated_at);
+                    previewLastUpdatedTime.textContent = 
+                        updateDate.toLocaleTimeString('en-MY', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) + ' (updated)';
+                }
+                
+                // Update statistics
+                updateRegistrationStats();
+                
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('registrationModal')).hide();
+            } else {
+                showToast(data.error || 'Failed to save registration', true);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred. Please try again.', true);
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            spinner.classList.add('d-none');
+            btnText.textContent = document.getElementById('modalTitle').textContent === 'Registration Form' ? 
+                'Save Registration' : 'Update Registration';
+        });
+    };
+    
+    // ============================================
     // SEARCH AND FILTER FUNCTIONS
     // ============================================
     
@@ -4215,335 +5392,6 @@
     }
     
     // ============================================
-    // UPDATED REGISTRATION FORM FUNCTIONS
-    // ============================================
-    
-    window.openRegistrationModal = function(attendeeId) {
-        console.log('openRegistrationModal called for:', attendeeId);
-        
-        currentAttendeeId = attendeeId;
-        const modalElement = document.getElementById('registrationModal');
-        
-        // Check if modal element exists
-        if (!modalElement) {
-            console.error('❌ Registration modal element not found in DOM');
-            // Use alert as fallback
-            alert('Registration form is not available. Please refresh the page.');
-            return;
-        }
-        
-        // Check if Bootstrap is available
-        if (typeof bootstrap === 'undefined') {
-            console.error('❌ Bootstrap is not loaded');
-            alert('Please refresh the page. System components not loaded properly.');
-            return;
-        }
-        
-        const modal = new bootstrap.Modal(modalElement);
-        
-        // Reset form with null checks
-        const form = document.getElementById('registrationForm');
-        const attendeeIdField = document.getElementById('attendeeId');
-        
-        if (form) {
-            form.reset();
-        }
-        
-        if (attendeeIdField) {
-            attendeeIdField.value = attendeeId;
-        }
-        
-        // Set default values with null checks
-        const registerDateField = document.getElementById('register_date');
-        const closerField = document.getElementById('closer');
-        const checkoutAlert = document.getElementById('checkoutTimeAlert');
-        
-        if (registerDateField) {
-            registerDateField.value = new Date().toISOString().split('T')[0];
-        }
-        
-        if (closerField) {
-            closerField.value = "{{ request.user.get_full_name|default:request.user.username }}";
-        }
-        
-        if (checkoutAlert && checkoutAlert.classList) {
-            checkoutAlert.classList.add('d-none');
-        }
-        
-        // Set modal title with null check
-        const modalTitle = document.getElementById('modalTitle');
-        const saveBtnText = document.getElementById('saveBtnText');
-        
-        if (modalTitle) {
-            modalTitle.textContent = 'Registration Form';
-        }
-        
-        if (saveBtnText) {
-            saveBtnText.textContent = 'Save Registration';
-        }
-        
-        // Load attendee info with better error handling
-        fetch(`/attsys/api/attendee/${attendeeId}/details/`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.attendee) {
-                    const attendee = data.attendee;
-                    
-                    // Update preview fields with null checks
-                    const previewName = document.getElementById('previewName');
-                    const previewEmail = document.getElementById('previewEmail');
-                    const previewPhone = document.getElementById('previewPhone');
-                    const previewCheckInTime = document.getElementById('previewCheckInTime');
-                    const previewInvitingOfficer = document.getElementById('previewInvitingOfficer');
-                    
-                    if (previewName) previewName.textContent = attendee.name;
-                    if (previewEmail) previewEmail.textContent = attendee.email;
-                    if (previewPhone) previewPhone.textContent = attendee.phone_number || 'N/A';
-                    if (previewCheckInTime) {
-                        previewCheckInTime.textContent = 
-                            `Checked in: ${attendee.attended_at_display} (${attendee.attended_date_display})`;
-                    }
-                    
-                    // Load inviting officer if available
-                    if (data.application && data.application.registration_officer) {
-                        if (previewInvitingOfficer) {
-                            previewInvitingOfficer.textContent = 
-                                `Referral Number: ${data.application.registration_officer}`;
-                        }
-                    }
-                    
-                    // Check if registration exists
-                    return fetch(`/attsys/api/attendee/${attendeeId}/registration/`);
-                } else {
-                    throw new Error('Attendee data not found');
-                }
-            })
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}`);
-                }
-                return res.json();
-            })
-            .then(regData => {
-                if (regData.registration) {
-                    // Update modal for existing registration
-                    const modalTitle = document.getElementById('modalTitle');
-                    const saveBtnText = document.getElementById('saveBtnText');
-                    const alertDiv = document.getElementById('checkoutTimeAlert');
-                    const timeSpan = document.getElementById('lastUpdatedTime');
-                    
-                    if (modalTitle) modalTitle.textContent = 'Update Registration';
-                    if (saveBtnText) saveBtnText.textContent = 'Update Registration';
-                    
-                    if (alertDiv && alertDiv.classList) {
-                        alertDiv.classList.remove('d-none');
-                    }
-                    
-                    if (timeSpan) {
-                        timeSpan.textContent = new Date().toLocaleString('en-MY', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit'
-                        });
-                    }
-                    
-                    populateRegistrationForm(regData.registration);
-                } else {
-                    // New registration - initialize fields
-                    updateAmountPaidField();
-                    updatePaymentSummary();
-                }
-            })
-            .catch(error => {
-                console.error('Error loading attendee/registration:', error);
-                
-                // Initialize fields even if fetch fails
-                updateAmountPaidField();
-                updatePaymentSummary();
-                
-                // Show error to user
-                const previewName = document.getElementById('previewName');
-                if (previewName) {
-                    previewName.textContent = 'Error loading data';
-                }
-            })
-            .finally(() => {
-                // Show the modal after data is loaded
-                try {
-                    modal.show();
-                } catch (modalError) {
-                    console.error('Error showing modal:', modalError);
-                    alert('Unable to open registration form. Please try again.');
-                }
-            });
-    };
-    
-    function updateAmountPaidField() {
-        const paymentStatus = document.getElementById('payment_status').value;
-        const amountPaidInput = document.getElementById('amount_paid');
-        const totalFee = parseFloat(document.getElementById('totalFeeDisplay').textContent.replace('RM ', '')) || 0;
-        
-        switch(paymentStatus) {
-            case 'PENDING':
-                amountPaidInput.value = '0.00';
-                amountPaidInput.readOnly = true;
-                break;
-            case 'PARTIAL':
-                amountPaidInput.readOnly = false;
-                if (totalFee > 0) {
-                    // Suggest 50% as partial payment
-                    amountPaidInput.value = (totalFee * 0.5).toFixed(2);
-                }
-                break;
-            case 'DONE':
-                amountPaidInput.readOnly = false;
-                amountPaidInput.value = totalFee.toFixed(2);
-                break;
-        }
-        
-        updatePaymentSummary();
-    }
-    
-    function updatePaymentSummary() {
-        const preFee = parseFloat(document.getElementById('pre_registration_fee').value) || 0;
-        const regFee = parseFloat(document.getElementById('registration_fee').value) || 0;
-        const total = preFee + regFee;
-        const amountPaid = parseFloat(document.getElementById('amount_paid').value) || 0;
-        const balance = total - amountPaid;
-        const paymentPercentage = total > 0 ? (amountPaid / total) * 100 : 0;
-        
-        // Update displays
-        document.getElementById('totalFeeDisplay').textContent = `RM ${total.toFixed(2)}`;
-        document.getElementById('displayAmountPaid').textContent = `RM ${amountPaid.toFixed(2)}`;
-        document.getElementById('balanceDisplay').textContent = `RM ${balance.toFixed(2)}`;
-        document.getElementById('paymentPercentage').textContent = `${paymentPercentage.toFixed(1)}%`;
-        
-        // Update progress bar
-        const progressBar = document.getElementById('paymentProgressBar');
-        progressBar.style.width = `${paymentPercentage}%`;
-        
-        // Color code based on status
-        if (paymentPercentage >= 100) {
-            progressBar.className = 'payment-progress-bar bg-success';
-        } else if (paymentPercentage >= 50) {
-            progressBar.className = 'payment-progress-bar bg-warning';
-        } else if (paymentPercentage > 0) {
-            progressBar.className = 'payment-progress-bar bg-danger';
-        } else {
-            progressBar.className = 'payment-progress-bar bg-secondary';
-        }
-    }
-    
-    function populateRegistrationForm(registration) {
-        // Get all form fields with null checks
-        const fields = {
-            'course': document.getElementById('course'),
-            'college': document.getElementById('college'),
-            'register_date': document.getElementById('register_date'),
-            'pre_registration_fee': document.getElementById('pre_registration_fee'),
-            'registration_fee': document.getElementById('registration_fee'),
-            'payment_status': document.getElementById('payment_status'),
-            'amount_paid': document.getElementById('amount_paid'),
-            'payment_type': document.getElementById('payment_type'),
-            'closer': document.getElementById('closer'),
-            'referral_number': document.getElementById('referral_number'),
-            'remark': document.getElementById('remark')
-        };
-        
-        // Set values only if elements exist
-        if (fields.course) fields.course.value = registration.course || '';
-        if (fields.college) fields.college.value = registration.college || '';
-        if (fields.register_date) {
-            fields.register_date.value = registration.register_date || new Date().toISOString().split('T')[0];
-        }
-        if (fields.pre_registration_fee) {
-            fields.pre_registration_fee.value = registration.pre_registration_fee || '0.00';
-        }
-        if (fields.registration_fee) {
-            fields.registration_fee.value = registration.registration_fee || '0.00';
-        }
-        if (fields.payment_status) {
-            fields.payment_status.value = registration.payment_status || 'PENDING';
-        }
-        if (fields.amount_paid) {
-            fields.amount_paid.value = registration.amount_paid || '0.00';
-        }
-        if (fields.payment_type) {
-            fields.payment_type.value = registration.payment_type || '';
-        }
-        if (fields.closer) {
-            fields.closer.value = registration.closer || '';
-        }
-        if (fields.referral_number) {
-            fields.referral_number.value = registration.referral_number || '';
-        }
-        if (fields.remark) {
-            fields.remark.value = registration.remark || '';
-        }
-        
-        updateAmountPaidField();
-        updatePaymentSummary();
-    }
-    
-    window.saveRegistration = function() {
-        const form = document.getElementById('registrationForm');
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-        
-        const saveBtn = document.querySelector('#registrationModal .btn-primary');
-        const spinner = document.getElementById('saveSpinner');
-        const btnText = document.getElementById('saveBtnText');
-        
-        saveBtn.disabled = true;
-        spinner.classList.remove('d-none');
-        btnText.textContent = 'Saving...';
-        
-        const formData = new FormData(form);
-        
-        fetch('/attsys/api/registration/save/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Registration saved successfully!');
-                
-                // Update UI
-                updateAttendeeRegistrationDisplay(currentAttendeeId, data.registration);
-                
-                // Update statistics
-                updateRegistrationStats();
-                
-                // Close modal
-                bootstrap.Modal.getInstance(document.getElementById('registrationModal')).hide();
-            } else {
-                showToast(data.error || 'Failed to save registration', true);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('An error occurred. Please try again.', true);
-        })
-        .finally(() => {
-            saveBtn.disabled = false;
-            spinner.classList.add('d-none');
-            btnText.textContent = document.getElementById('modalTitle').textContent === 'Registration Form' ? 
-                'Save Registration' : 'Update Registration';
-        });
-    };
-    
-    // ============================================
     // UPDATE ATTENDEE REGISTRATION DISPLAY
     // ============================================
     
@@ -4634,7 +5482,7 @@
         if (amountDiv) {
             const amountPaid = parseFloat(registration.amount_paid || 0).toFixed(2);
             const balance = registration.payment_status === 'PARTIAL' ? 
-                `<div class="text-danger small">Balance: RM ${parseFloat(registration.balance_amount || 0).toFixed(2)}</div>` : '';
+                `<div class="text-danger small"></div>` : '';
             
             amountDiv.innerHTML = `
                 <div class="small">
@@ -4886,6 +5734,9 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ Page fully loaded');
         
+        // Initialize modal scroll control
+        setupModalScrollControl();
+        
         // QR Code Modal Setup
         if (qrImage) {
             qrImage.addEventListener('click', function() {
@@ -4942,8 +5793,12 @@
         });
         
         // Update fee display when fee inputs change
-        document.getElementById('pre_registration_fee')?.addEventListener('input', updatePaymentSummary);
-        document.getElementById('registration_fee')?.addEventListener('input', updatePaymentSummary);
+        document.getElementById('pre_registration_fee')?.addEventListener('input', function() {
+            updateAmountPaidField();
+        });
+        document.getElementById('registration_fee')?.addEventListener('input', function() {
+            updateAmountPaidField();
+        });
         document.getElementById('amount_paid')?.addEventListener('input', updatePaymentSummary);
         document.getElementById('payment_status')?.addEventListener('change', updatePaymentSummary);
         

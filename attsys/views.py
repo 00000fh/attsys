@@ -1417,7 +1417,7 @@ def get_attendee_registration(request, attendee_id):
 @login_required
 @csrf_exempt
 def save_registration(request):
-    """Save or update registration data with better validation"""
+    """Save or update registration data with auto-filled referral number"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
@@ -1435,6 +1435,19 @@ def save_registration(request):
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
     try:
+        # Get or auto-fill referral number from application
+        referral_number = request.POST.get('referral_number', '').strip()
+        if not referral_number:
+            # Try to get from application
+            try:
+                application = Application.objects.get(
+                    event=attendee.event,
+                    email__iexact=attendee.email
+                )
+                referral_number = application.registration_officer or ''
+            except Application.DoesNotExist:
+                referral_number = ''
+        
         # Validate and parse data
         course = request.POST.get('course', '').strip()
         college = request.POST.get('college', '').strip()
@@ -1448,7 +1461,7 @@ def save_registration(request):
         if not closer:
             return JsonResponse({'error': 'Closer name is required'}, status=400)
         
-        # Parse date
+        # Parse date - FIXED: Define register_date here
         register_date_str = request.POST.get('register_date', '')
         if not register_date_str:
             return JsonResponse({'error': 'Registration date is required'}, status=400)
@@ -1498,12 +1511,13 @@ def save_registration(request):
         payment_type = request.POST.get('payment_type', '').strip()
         payment_status = request.POST.get('payment_status', 'PENDING')
         
-        # Validate amount_paid based on payment_status
+        # SIMPLIFIED VALIDATION - Amount paid is independent of total fee
         total_fee_calculated = pre_registration_fee + registration_fee
         
-        if payment_status == 'DONE' and amount_paid != total_fee_calculated:
+        # Only basic validation based on payment status
+        if payment_status == 'DONE' and amount_paid <= 0:
             return JsonResponse({
-                'error': f'For completed payment, amount paid ({amount_paid}) must equal total fee ({total_fee_calculated})'
+                'error': f'For completed payment, amount paid ({amount_paid}) must be greater than 0'
             }, status=400)
         
         if payment_status == 'PENDING' and amount_paid > 0:
@@ -1511,9 +1525,9 @@ def save_registration(request):
                 'error': 'For pending payment, amount paid should be 0.00'
             }, status=400)
         
-        if payment_status == 'PARTIAL' and (amount_paid <= 0 or amount_paid >= total_fee_calculated):
+        if payment_status == 'PARTIAL' and amount_paid <= 0:
             return JsonResponse({
-                'error': f'For partial payment, amount paid ({amount_paid}) must be between 0 and total fee ({total_fee_calculated})'
+                'error': f'For partial payment, amount paid ({amount_paid}) must be greater than 0'
             }, status=400)
         
         # Get or create registration
@@ -1522,7 +1536,7 @@ def save_registration(request):
             defaults={
                 'course': course,
                 'college': college,
-                'register_date': register_date,
+                'register_date': register_date,  # Use the defined register_date
                 'pre_registration_fee': pre_registration_fee,
                 'registration_fee': registration_fee,
                 'payment_type': payment_type if payment_type else None,
@@ -1530,7 +1544,7 @@ def save_registration(request):
                 'amount_paid': amount_paid,
                 'remark': request.POST.get('remark', '').strip(),
                 'closer': closer,
-                'referral_number': request.POST.get('referral_number', '').strip()
+                'referral_number': referral_number
             }
         )
         
@@ -1538,7 +1552,7 @@ def save_registration(request):
         if not created:
             registration.course = course
             registration.college = college
-            registration.register_date = register_date
+            registration.register_date = register_date  # Use the defined register_date
             registration.pre_registration_fee = pre_registration_fee
             registration.registration_fee = registration_fee
             registration.payment_type = payment_type if payment_type else None
@@ -1546,10 +1560,10 @@ def save_registration(request):
             registration.amount_paid = amount_paid
             registration.remark = request.POST.get('remark', '').strip()
             registration.closer = closer
-            registration.referral_number = request.POST.get('referral_number', '').strip()
+            registration.referral_number = referral_number
             registration.save()
         
-        # Prepare response data - FIX: Use property without parentheses
+        # Prepare response data with checkout time
         response_data = {
             'success': True,
             'message': 'Registration saved successfully',
@@ -1557,17 +1571,20 @@ def save_registration(request):
                 'id': registration.id,
                 'course': registration.course,
                 'college': registration.college,
-                'register_date': registration.register_date.strftime('%Y-%m-%d'),
+                'register_date': registration.register_date.strftime('%Y-%m-%d') if registration.register_date else '',
                 'pre_registration_fee': str(registration.pre_registration_fee),
                 'registration_fee': str(registration.registration_fee),
                 'amount_paid': str(registration.amount_paid),
-                'total_fee': str(registration.total_fee),  # FIXED: No parentheses
-                'balance_amount': str(registration.balance_amount),  # Also a property
+                'total_fee': str(registration.total_fee),
+                'balance_amount': str(registration.balance_amount),
                 'payment_type': registration.payment_type,
                 'payment_status': registration.payment_status,
                 'closer': registration.closer,
                 'referral_number': registration.referral_number,
-                'updated_at': timezone.localtime(registration.updated_at).strftime('%Y-%m-%d %H:%M:%S')
+                'created_at': timezone.localtime(registration.created_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'updated_at': timezone.localtime(registration.updated_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'checkout_time': timezone.localtime(registration.created_at).strftime('%I:%M %p'),  # Added checkout time
+                'checkout_date': timezone.localtime(registration.created_at).strftime('%b %d')  # Added checkout date
             }
         }
         
