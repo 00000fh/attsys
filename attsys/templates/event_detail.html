@@ -1144,10 +1144,12 @@
         transition: all 0.2s ease;
     }
     
-    /* Table-specific badge adjustments - FIXED NO TRUNCATION */
+    /* =============================================== */
+    /* FIXED: PROPER BADGE SIZES - NOT TOO SMALL */
+    /* =============================================== */
     #attendeesTable .badge {
-        font-size: 0.7rem !important;
-        padding: 0.2rem 0.5rem !important;
+        font-size: 0.75rem !important;  /* RESTORED to readable size */
+        padding: 0.25rem 0.5rem !important;  /* RESTORED proper padding */
         border-radius: 10px !important;
         font-weight: 500 !important;
         display: inline-block !important;
@@ -1156,8 +1158,24 @@
         line-height: 1.2 !important;
     }
     
-    /* Column width adjustments for better display - INCREASED WIDTHS */
-    #attendeesTable th:nth-child(1), /* # column */
+    /* Ensure consistent badge sizes for all columns */
+    #attendeesTable td:nth-child(3) .badge, /* Applied Program */
+    #attendeesTable td:nth-child(4) .badge, /* Attended With */
+    #attendeesTable td:nth-child(6) .badge, /* Payment Type */
+    #attendeesTable td:nth-child(7) .badge { /* Status */
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0.5rem !important;
+        min-width: fit-content !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+    }
+    
+    /* =============================================== */
+    /* OPTIMIZED COLUMN WIDTHS */
+    /* =============================================== */
+    
+    /* # column */
+    #attendeesTable th:nth-child(1),
     #attendeesTable td:nth-child(1) {
         width: 50px;
         min-width: 50px;
@@ -1168,64 +1186,21 @@
         border-right: 1px solid var(--gray-200) !important;
     }
     
-    #attendeesTable th:nth-child(2), /* Attendee Info */
+    /* Attendee Info - INCREASED for long names */
+    #attendeesTable th:nth-child(2),
     #attendeesTable td:nth-child(2) {
-        min-width: 200px;
-        max-width: 220px;
+        min-width: 220px; /* Increased for longer names */
+        max-width: 260px;
         padding-left: 0.75rem !important;
         padding-right: 0.75rem !important;
         border-right: 1px solid var(--gray-200) !important;
     }
     
-    #attendeesTable th:nth-child(3), /* Applied Program */
+    /* Applied Program - REDUCED WIDTH */
+    #attendeesTable th:nth-child(3),
     #attendeesTable td:nth-child(3) {
-        min-width: 130px;
-        max-width: 150px;
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
-        text-align: center !important;
-        border-right: 1px solid var(--gray-200) !important;
-    }
-    
-    /* Attended With column - CONSISTENT BORDER */
-    #attendeesTable th:nth-child(4),
-    #attendeesTable td:nth-child(4) {
-        width: 120px;
-        min-width: 120px;
-        max-width: 140px;
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
-        text-align: center !important;
-        border-right: 1px solid var(--gray-200) !important;
-    }
-    
-    /* Referral column - CONSISTENT BORDER (SAME AS OTHERS) */
-    #attendeesTable th:nth-child(5),
-    #attendeesTable td:nth-child(5) {
         width: 110px;
         min-width: 110px;
-        max-width: 130px;
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
-        text-align: center !important;
-        border-right: 1px solid var(--gray-200) !important;
-    }
-    
-    #attendeesTable th:nth-child(6), /* Payment Type */
-    #attendeesTable td:nth-child(6) {
-        width: 120px;
-        min-width: 120px;
-        max-width: 140px;
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
-        text-align: center !important;
-        border-right: 1px solid var(--gray-200) !important;
-    }
-    
-    #attendeesTable th:nth-child(7), /* Status */
-    #attendeesTable td:nth-child(7) {
-        width: 100px;
-        min-width: 100px;
         max-width: 120px;
         padding-left: 0.75rem !important;
         padding-right: 0.75rem !important;
@@ -1233,7 +1208,56 @@
         border-right: 1px solid var(--gray-200) !important;
     }
     
-    #attendeesTable th:nth-child(8), /* Amount */
+    /* Attended With - OPTIMIZED */
+    #attendeesTable th:nth-child(4),
+    #attendeesTable td:nth-child(4) {
+        width: 130px;
+        min-width: 130px;
+        max-width: 140px;
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    /* Referral - OPTIMIZED */
+    #attendeesTable th:nth-child(5),
+    #attendeesTable td:nth-child(5) {
+        width: 100px;
+        min-width: 100px;
+        max-width: 110px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    /* Payment Type - OPTIMIZED */
+    #attendeesTable th:nth-child(6),
+    #attendeesTable td:nth-child(6) {
+        width: 110px;
+        min-width: 110px;
+        max-width: 120px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    /* Status - OPTIMIZED */
+    #attendeesTable th:nth-child(7),
+    #attendeesTable td:nth-child(7) {
+        width: 100px;
+        min-width: 100px;
+        max-width: 110px;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        text-align: center !important;
+        border-right: 1px solid var(--gray-200) !important;
+    }
+    
+    /* Amount */
+    #attendeesTable th:nth-child(8),
     #attendeesTable td:nth-child(8) {
         width: 90px;
         min-width: 90px;
@@ -1244,7 +1268,8 @@
         border-right: 1px solid var(--gray-200) !important;
     }
     
-    #attendeesTable th:nth-child(9), /* Time */
+    /* Time */
+    #attendeesTable th:nth-child(9),
     #attendeesTable td:nth-child(9) {
         width: 85px;
         min-width: 85px;
@@ -1255,11 +1280,12 @@
         border-right: 1px solid var(--gray-200) !important;
     }
     
-    #attendeesTable th:nth-child(10), /* Actions */
+    /* Actions - REDUCED WIDTH */
+    #attendeesTable th:nth-child(10),
     #attendeesTable td:nth-child(10) {
-        width: 120px;
-        min-width: 120px;
-        max-width: 130px;
+        width: 110px;
+        min-width: 110px;
+        max-width: 120px;
         padding-left: 0.75rem !important;
         padding-right: 0.75rem !important;
         text-align: center !important;
@@ -1272,16 +1298,6 @@
     #attendeesTable td:nth-child(6), /* Payment Type */
     #attendeesTable td:nth-child(7) { /* Status */
         text-align: center !important;
-    }
-    
-    #attendeesTable td:nth-child(3) .badge,
-    #attendeesTable td:nth-child(4) .badge,
-    #attendeesTable td:nth-child(6) .badge,
-    #attendeesTable td:nth-child(7) .badge {
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        min-width: 60px;
     }
     
     /* Text truncation - only for specific columns */
@@ -1297,9 +1313,10 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        max-width: 240px; /* Increased for longer names */
     }
     
-    /* Referral column - allow truncation but with more width */
+    /* Referral column - allow truncation */
     #attendeesTable td:nth-child(5) div {
         white-space: nowrap;
         overflow: hidden;
@@ -1322,7 +1339,7 @@
     
     /* Extra small text */
     .extra-small {
-        font-size: 0.7rem !important;
+        font-size: 0.75rem !important; /* Adjusted from 0.7rem */
     }
     
     .small {
@@ -1332,7 +1349,7 @@
     /* Button group adjustments for table */
     .btn-group-sm > .btn {
         padding: 0.25rem 0.4rem;
-        font-size: 0.7rem;
+        font-size: 0.75rem; /* Adjusted from 0.7rem */
     }
     
     /* Empty state for table */
@@ -1356,8 +1373,8 @@
     
     /* Status badges for different fields - ensure no truncation */
     .status-badge {
-        font-size: 0.7rem !important;
-        padding: 0.2rem 0.5rem !important;
+        font-size: 0.75rem !important; /* Adjusted from 0.7rem */
+        padding: 0.25rem 0.5rem !important; /* Adjusted from 0.2rem 0.5rem */
         border-radius: 10px !important;
         font-weight: 500 !important;
         display: inline-block !important;
@@ -1365,52 +1382,64 @@
         max-width: none !important;
     }
     
+    /* =============================================== */
+    /* BADGE COLOR STYLES - WITH PROPER SIZES */
+    /* =============================================== */
+    
     .badge-parent {
         background: rgba(13, 110, 253, 0.1) !important;
         color: #0d6efd !important;
         border: 1px solid rgba(13, 110, 253, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-guardian {
         background: rgba(108, 117, 125, 0.1) !important;
         color: #6c757d !important;
         border: 1px solid rgba(108, 117, 125, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-male {
         background: rgba(13, 110, 253, 0.1) !important;
         color: #0d6efd !important;
         border: 1px solid rgba(13, 110, 253, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-female {
         background: rgba(220, 53, 69, 0.1) !important;
         color: #dc3545 !important;
         border: 1px solid rgba(220, 53, 69, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-single {
         background: rgba(25, 135, 84, 0.1) !important;
         color: #198754 !important;
         border: 1px solid rgba(25, 135, 84, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-married {
         background: rgba(253, 126, 20, 0.1) !important;
         color: #fd7e14 !important;
         border: 1px solid rgba(253, 126, 20, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-divorced {
         background: rgba(108, 117, 125, 0.1) !important;
         color: #6c757d !important;
         border: 1px solid rgba(108, 117, 125, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-widowed {
         background: rgba(102, 16, 242, 0.1) !important;
         color: #6610f2 !important;
         border: 1px solid rgba(102, 16, 242, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     /* Programme badges */
@@ -1418,61 +1447,71 @@
         background: rgba(0, 123, 255, 0.1) !important;
         color: #007bff !important;
         border: 1px solid rgba(0, 123, 255, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-pra-diploma {
         background: rgba(40, 167, 69, 0.1) !important;
         color: #28a745 !important;
         border: 1px solid rgba(40, 167, 69, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-tvet {
         background: rgba(255, 193, 7, 0.1) !important;
         color: #ffc107 !important;
         border: 1px solid rgba(255, 193, 7, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-smart-tahfiz {
         background: rgba(111, 66, 193, 0.1) !important;
         color: #6f42c1 !important;
         border: 1px solid rgba(111, 66, 193, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-other {
         background: rgba(23, 162, 184, 0.1) !important;
         color: #17a2b8 !important;
         border: 1px solid rgba(23, 162, 184, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
-    /* Payment Type Badges - NO TRUNCATION */
+    /* Payment Type Badges */
     .badge-payment-cash {
         background: rgba(13, 110, 253, 0.1) !important;
         color: #0d6efd !important;
         border: 1px solid rgba(13, 110, 253, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-payment-online {
         background: rgba(23, 162, 184, 0.1) !important;
         color: #17a2b8 !important;
         border: 1px solid rgba(23, 162, 184, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-payment-qr {
         background: rgba(25, 135, 84, 0.1) !important;
         color: #198754 !important;
         border: 1px solid rgba(25, 135, 84, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-payment-card {
         background: rgba(255, 193, 7, 0.1) !important;
         color: #ffc107 !important;
         border: 1px solid rgba(255, 193, 7, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-payment-other {
         background: rgba(108, 117, 125, 0.1) !important;
         color: #6c757d !important;
         border: 1px solid rgba(108, 117, 125, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     /* Payment Status Badges */
@@ -1480,18 +1519,21 @@
         background: rgba(220, 53, 69, 0.1) !important;
         color: #dc3545 !important;
         border: 1px solid rgba(220, 53, 69, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-payment-partial {
         background: rgba(255, 193, 7, 0.1) !important;
         color: #ffc107 !important;
         border: 1px solid rgba(255, 193, 7, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     .badge-payment-done {
         background: rgba(25, 135, 84, 0.1) !important;
         color: #198754 !important;
         border: 1px solid rgba(25, 135, 84, 0.2) !important;
+        font-size: 0.75rem !important; /* Added */
     }
     
     /* Print button styling */
@@ -1949,8 +1991,8 @@
     /* For extra small screens */
     @media (max-width: 400px) {
         .badge {
-            font-size: 0.6rem !important;
-            padding: 0.1rem 0.25rem !important;
+            font-size: 0.65rem !important;
+            padding: 0.15rem 0.3rem !important;
         }
         
         .attendee-name {
@@ -1958,13 +2000,13 @@
         }
         
         .attendee-contact {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
         }
         
         /* Ensure badges still show full text */
         #attendeesTable .badge {
-            font-size: 0.6rem !important;
-            padding: 0.1rem 0.25rem !important;
+            font-size: 0.65rem !important;
+            padding: 0.15rem 0.3rem !important;
             white-space: nowrap !important;
         }
     }
@@ -2483,15 +2525,15 @@
                             <thead class="table-light">
                                 <tr>
                                     <th class="text-center" style="width: 35px;"></th>
-                                    <th style="min-width: 180px;">Attendee Info</th>
-                                    <th style="min-width: 120px;">Applied Program</th>
+                                    <th style="min-width: 220px;">Attendee Info</th>
+                                    <th style="min-width: 80px;">Program</th>
                                     <th style="width: 100px;">Attended With</th>
                                     <th style="width: 100px;">Referral</th>
                                     <th style="width: 100px;">Payment Type</th>
-                                    <th style="width: 100px;">Status</th>
+                                    <th style="width: 90px;">Status</th>
                                     <th style="width: 90px;">Amount</th>
                                     <th style="width: 80px;">Time</th>
-                                    <th style="width: 120px;" class="text-center"></th>
+                                    <th style="width: 100px;"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2509,14 +2551,14 @@
                                     <!-- Attendee Info -->
                                     <td>
                                         <div class="d-flex flex-column">
-                                            <div class="fw-bold text-truncate" style="max-width: 180px;" title="{{ attendee.name }}">
+                                            <div class="fw-bold text-truncate" style="max-width: 240px;" title="{{ attendee.name }}">
                                                 {{ attendee.name }}
                                             </div>
-                                            <div class="text-muted extra-small text-truncate" style="max-width: 180px;" title="{{ attendee.email }}">
+                                            <div class="text-muted extra-small text-truncate" style="max-width: 240px;" title="{{ attendee.email }}">
                                                 {{ attendee.email }}
                                             </div>
                                             {% if attendee.phone_number %}
-                                            <div class="text-muted extra-small">
+                                            <div class="text-muted extra-small text-truncate" style="max-width: 240px;" title="{{ attendee.phone_number }}">
                                                 {{ attendee.phone_number }}
                                             </div>
                                             {% endif %}
