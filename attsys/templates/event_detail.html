@@ -2153,6 +2153,13 @@
     .was-validated .form-control:invalid ~ .invalid-feedback {
         display: block;
     }
+
+    #attendeesTable td:nth-child(2) .fw-bold {
+        white-space: normal !important;
+        word-wrap: break-word;
+        min-height: 1.5em;
+        line-height: 1.3;
+    }
 </style>
 
 <!-- Chart.js Library -->
@@ -2551,9 +2558,11 @@
                                     <!-- Attendee Info -->
                                     <td>
                                         <div class="d-flex flex-column">
-                                            <div class="fw-bold text-truncate" style="max-width: 240px;" title="{{ attendee.name }}">
+                                            <!-- Remove text-truncate class and max-width style -->
+                                            <div class="fw-bold" title="{{ attendee.name }}">
                                                 {{ attendee.name }}
                                             </div>
+                                            <!-- Keep email and phone truncated if needed -->
                                             <div class="text-muted extra-small text-truncate" style="max-width: 240px;" title="{{ attendee.email }}">
                                                 {{ attendee.email }}
                                             </div>
