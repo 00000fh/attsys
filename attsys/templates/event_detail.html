@@ -3298,20 +3298,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Timeline Chart - COMPACT -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6 class="mb-0">Registration Timeline (Last 7 Days)</h6>
-                            </div>
-                            <div class="card-body" style="height: 250px; padding: 10px;">
-                                <canvas id="timelineChart" style="width: 100%; height: 200px;"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             <!-- Modal Footer with EXPORT BUTTONS - ALWAYS VISIBLE -->
             <div class="modal-footer">
@@ -5831,12 +5817,10 @@
                     if (data.charts) {
                         createCompactChart('topCoursesChart', data.charts.top_courses || [], 'Courses');
                         createCompactChart('topClosersChart', data.charts.top_closers || [], 'Closers');
-                        createCompactTimelineChart('timelineChart', data.charts.timeline || []);
                     } else {
                         // Create empty charts
                         createEmptyChart('topCoursesChart', 'No course data available');
                         createEmptyChart('topClosersChart', 'No closer data available');
-                        createEmptyTimelineChart('timelineChart', 'No timeline data available');
                     }
                 } else {
                     // Show error or empty state
@@ -5847,7 +5831,6 @@
                     
                     createEmptyChart('topCoursesChart', 'Error loading data');
                     createEmptyChart('topClosersChart', 'Error loading data');
-                    createEmptyTimelineChart('timelineChart', 'Error loading data');
                 }
             })
             .catch(error => {
@@ -5860,7 +5843,6 @@
                 
                 createEmptyChart('topCoursesChart', 'Connection error');
                 createEmptyChart('topClosersChart', 'Connection error');
-                createEmptyTimelineChart('timelineChart', 'Connection error');
             });
         
         modal.show();
@@ -5929,73 +5911,6 @@
         });
     }
 
-    // Compact timeline chart
-    function createCompactTimelineChart(canvasId, data) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        
-        if (window[`${canvasId}Chart`]) {
-            window[`${canvasId}Chart`].destroy();
-        }
-        
-        if (!data || data.length === 0) {
-            createEmptyChart(canvasId, 'No timeline data available');
-            return;
-        }
-        
-        const labels = data.map(item => item.date ? item.date.split('-').slice(1).join('-') : '');
-        const values = data.map(item => item.count || 0);
-        
-        window[`${canvasId}Chart`] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Registrations',
-                    data: values,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.1,
-                    fill: true,
-                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
-                    pointRadius: 3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
-                        display: false 
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Registrations: ${context.raw}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: { 
-                            font: { size: 10 },
-                            maxRotation: 45
-                        },
-                        grid: { display: false }
-                    },
-                    y: { 
-                        beginAtZero: true, 
-                        ticks: { 
-                            precision: 0,
-                            font: { size: 10 }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
     // Empty chart function
     function createEmptyChart(canvasId, message) {
         const ctx = document.getElementById(canvasId).getContext('2d');
@@ -6011,11 +5926,6 @@
         ctx.fillStyle = '#6c757d';
         ctx.font = '14px Arial';
         ctx.fillText(message, ctx.canvas.width / 2, ctx.canvas.height / 2);
-    }
-
-    // Empty timeline chart
-    function createEmptyTimelineChart(canvasId, message) {
-        createEmptyChart(canvasId, message);
     }
     
     function updateRegistrationStats() {
@@ -6077,41 +5987,6 @@
                     backgroundColor: 'rgba(54, 162, 235, 0.8)',
                     borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 } }
-                }
-            }
-        });
-    }
-    
-    function createTimelineChart(canvasId, data) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        
-        if (window[`${canvasId}Chart`]) {
-            window[`${canvasId}Chart`].destroy();
-        }
-        
-        const labels = data.map(item => item.date);
-        const values = data.map(item => item.count);
-        
-        window[`${canvasId}Chart`] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Registrations',
-                    data: values,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderWidth: 2,
-                    tension: 0.1,
-                    fill: true
                 }]
             },
             options: {
