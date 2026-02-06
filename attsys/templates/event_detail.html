@@ -2467,6 +2467,7 @@
                             <div class="col-md-3 col-6">
                                 <div class="card bg-light border-0">
                                     <div class="card-body text-center py-2">
+                                        <!-- CHANGE THIS LINE: Use total_partial instead of total_pending -->
                                         <h5 class="card-title text-warning mb-0" id="totalPartial">{{ total_partial }}</h5>
                                         <small class="text-muted">Payment Partial</small>
                                     </div>
@@ -2487,12 +2488,14 @@
                     <div class="search-filter-section">
                         <div class="row">
                             <div class="col-md-8">
+                                <!-- In your event_detail.html, update the search input: -->
                                 <div class="input-group">
                                     <span class="input-group-text">
                                         <i class="bi bi-search"></i>
                                     </span>
+                                    <!-- Update placeholder text to include IC number -->
                                     <input type="text" class="form-control" id="attendeeSearch" 
-                                        placeholder="Search by name, email, phone, IC, or referral number...">
+                                        placeholder="Search by name, email, IC number, or referral...">
                                     <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
                                         <i class="bi bi-x"></i>
                                     </button>
@@ -5288,16 +5291,16 @@
         };
     }
     
-    // Search attendees
+    // Update the searchAttendees function to include IC number search
     const searchAttendees = debounce(function(searchTerm) {
         const searchLower = searchTerm.toLowerCase().trim();
-        const attendees = document.querySelectorAll('.attendee-item');
+        const tableRows = document.querySelectorAll('#attendeesTable tbody tr');
         let visibleCount = 0;
         
         if (!searchTerm) {
             // Show all if search is empty
-            attendees.forEach(attendee => {
-                attendee.style.display = '';
+            tableRows.forEach(row => {
+                row.style.display = '';
                 visibleCount++;
             });
             document.getElementById('searchResultsInfo').classList.remove('show');
@@ -5305,37 +5308,31 @@
             return;
         }
         
-        attendees.forEach(attendee => {
-            const attendeeId = attendee.getAttribute('data-attendee-id');
-            const attendeeName = attendee.querySelector('.attendee-name')?.textContent.toLowerCase() || '';
-            const attendeeEmail = attendee.querySelector('.attendee-contact')?.textContent.toLowerCase() || '';
-            const attendeePhone = attendee.querySelector('.attendee-contact')?.textContent.toLowerCase() || '';
+        tableRows.forEach(row => {
+            const attendeeId = row.getAttribute('data-attendee-id');
+            const attendeeName = row.querySelector('.fw-bold')?.textContent.toLowerCase() || '';
+            const attendeeEmail = row.querySelector('.text-muted')?.textContent.toLowerCase() || '';
             
-            // Check if we need to get application data for IC search
+            // Get IC number from data attribute
+            const icNumber = row.getAttribute('data-ic-number') || '';
+            const icLower = icNumber.toLowerCase();
+            
+            // Search in attendee info
             let hasMatch = attendeeName.includes(searchLower) || 
-                           attendeeEmail.includes(searchLower) ||
-                           attendeePhone.includes(searchLower);
+                        attendeeEmail.includes(searchLower) ||
+                        icLower.includes(searchLower);
             
-            // Search in inviting officer
-            const invitingOfficerDiv = document.getElementById(`inviting-officer-${attendeeId}`);
-            if (invitingOfficerDiv) {
-                const officerText = invitingOfficerDiv.textContent.toLowerCase();
-                if (officerText.includes(searchLower)) {
-                    hasMatch = true;
-                }
-            }
-            
-            // Search in registration info
-            const registrationInfo = document.getElementById(`registration-info-${attendeeId}`);
-            if (registrationInfo) {
-                const regText = registrationInfo.textContent.toLowerCase();
-                if (regText.includes(searchLower)) {
+            // Search in referral column
+            const referralDiv = document.getElementById(`inviting-officer-cell-${attendeeId}`);
+            if (referralDiv) {
+                const referralText = referralDiv.textContent.toLowerCase();
+                if (referralText.includes(searchLower)) {
                     hasMatch = true;
                 }
             }
             
             // Search in payment type
-            const paymentTypeDiv = document.getElementById(`payment-type-${attendeeId}`);
+            const paymentTypeDiv = document.getElementById(`payment-type-cell-${attendeeId}`);
             if (paymentTypeDiv) {
                 const paymentTypeText = paymentTypeDiv.textContent.toLowerCase();
                 if (paymentTypeText.includes(searchLower)) {
@@ -5343,17 +5340,20 @@
                 }
             }
             
-            // Search in IC number from data attribute
-            const icNumber = attendee.getAttribute('data-ic-number');
-            if (icNumber && icNumber.toLowerCase().includes(searchLower)) {
-                hasMatch = true;
+            // Search in payment status
+            const paymentStatusDiv = document.getElementById(`payment-status-cell-${attendeeId}`);
+            if (paymentStatusDiv) {
+                const paymentStatusText = paymentStatusDiv.textContent.toLowerCase();
+                if (paymentStatusText.includes(searchLower)) {
+                    hasMatch = true;
+                }
             }
             
             if (hasMatch) {
-                attendee.style.display = '';
+                row.style.display = '';
                 visibleCount++;
             } else {
-                attendee.style.display = 'none';
+                row.style.display = 'none';
             }
         });
         
@@ -5372,15 +5372,15 @@
     
     // Filter attendees by payment status
     function filterAttendees(status) {
-        const attendees = document.querySelectorAll('.attendee-item');
+        const tableRows = document.querySelectorAll('#attendeesTable tbody tr');
         let visibleCount = 0;
         
-        attendees.forEach(attendee => {
-            const attendeeId = attendee.getAttribute('data-attendee-id');
-            const paymentStatusDiv = document.getElementById(`payment-status-${attendeeId}`);
+        tableRows.forEach(row => {
+            const attendeeId = row.getAttribute('data-attendee-id');
+            const paymentStatusDiv = document.getElementById(`payment-status-cell-${attendeeId}`);
             
             if (status === 'all') {
-                attendee.style.display = '';
+                row.style.display = '';
                 visibleCount++;
             } else if (paymentStatusDiv) {
                 const statusText = paymentStatusDiv.textContent.toLowerCase();
@@ -5388,7 +5388,7 @@
                 
                 switch(status) {
                     case 'paid':
-                        shouldShow = statusText.includes('completed');
+                        shouldShow = statusText.includes('paid') || statusText.includes('completed') || statusText.includes('done');
                         break;
                     case 'partial':
                         shouldShow = statusText.includes('partial');
@@ -5399,10 +5399,10 @@
                 }
                 
                 if (shouldShow) {
-                    attendee.style.display = '';
+                    row.style.display = '';
                     visibleCount++;
                 } else {
-                    attendee.style.display = 'none';
+                    row.style.display = 'none';
                 }
             }
         });

@@ -497,6 +497,21 @@ def event_detail(request, event_id):
         'event__applications'
     )
     
+    # Get all applications for this event in one query for IC lookup
+    applications_dict = {}
+    try:
+        applications = Application.objects.filter(event=event)
+        for app in applications:
+            applications_dict[app.email.lower()] = {
+                'ic_no': app.ic_no,
+                'registration_officer': app.registration_officer,
+                'applied_programme': app.applied_programme,
+                'attended_with': app.attended_with,
+                'full_name': app.full_name
+            }
+    except Exception as e:
+        print(f"Error getting applications: {e}")
+    
     for attendee in attendees_with_prefetch:
         # Check for registration
         try:
@@ -508,16 +523,16 @@ def event_detail(request, event_id):
             attendee.registration = None
         
         # Check for application (case-insensitive email match)
-        try:
-            application = Application.objects.get(
-                event=event, 
-                email__iexact=attendee.email
-            )
+        app_data = applications_dict.get(attendee.email.lower())
+        if app_data:
             attendee.has_application = True
-            attendee.application = application
-        except Application.DoesNotExist:
+            # Add IC number to attendee object for search
+            attendee.ic_number = app_data.get('ic_no', '')
+            attendee.application_data = app_data
+        else:
             attendee.has_application = False
-            attendee.application = None
+            attendee.ic_number = ''
+            attendee.application_data = None
         
         attendee_list.append(attendee)
 
@@ -556,13 +571,15 @@ def event_detail(request, event_id):
         registrations = Registration.objects.filter(attendee__event=event)
         total_registered = registrations.count()
         
-        # Get counts in a single query
+        # Get counts in a single query for ALL payment statuses
         status_counts = registrations.aggregate(
             total_paid_count=Count('id', filter=Q(payment_status='DONE')),
+            total_partial_count=Count('id', filter=Q(payment_status='PARTIAL')),
             total_pending_count=Count('id', filter=Q(payment_status='PENDING'))
         )
         
         total_paid = status_counts['total_paid_count'] or 0
+        total_partial = status_counts['total_partial_count'] or 0  # ADDED: Partial payment count
         total_pending = status_counts['total_pending_count'] or 0
         
         # Calculate total revenue efficiently
@@ -573,11 +590,26 @@ def event_detail(request, event_id):
         )
         total_revenue = revenue_data['total_revenue'] or Decimal('0.00')
         
+        # Calculate partial payment revenue separately if needed
+        partial_payments = registrations.filter(payment_status='PARTIAL')
+        if partial_payments.exists():
+            partial_revenue_data = partial_payments.aggregate(
+                partial_revenue=Sum(
+                    F('pre_registration_fee') + F('registration_fee')
+                )
+            )
+            partial_revenue = partial_revenue_data['partial_revenue'] or Decimal('0.00')
+        else:
+            partial_revenue = Decimal('0.00')
+            
     except Exception as e:
+        print(f"Error calculating registration stats: {e}")
         total_registered = 0
         total_paid = 0
+        total_partial = 0  # ADDED: Initialize partial count
         total_pending = 0
         total_revenue = Decimal('0.00')
+        partial_revenue = Decimal('0.00')
 
     # 🔹 Applications count
     total_applications = Application.objects.filter(event=event).count()
@@ -613,8 +645,10 @@ def event_detail(request, event_id):
         'avg_rating': round(avg_rating, 1),
         'total_registered': total_registered,
         'total_paid': total_paid,
+        'total_partial': total_partial,  # ADDED: Partial payment count
         'total_pending': total_pending,
         'total_revenue': f"{total_revenue:.2f}",
+        'partial_revenue': f"{partial_revenue:.2f}",  # Optional: Add if you want to display partial revenue
         'total_applications': total_applications,
         'today_checkins': today_checkins,
         'now_malaysia': now_malaysia,
@@ -631,16 +665,31 @@ def toggle_event(request, event_id):
         return HttpResponseForbidden()
 
     event = get_object_or_404(Event, id=event_id)
-
+    
+    # Check if event has ended (optional - you might want to allow manual override)
+    now_malaysia = malaysia_now()
+    event_end = timezone.make_aware(
+        timezone.datetime.combine(event.date, event.end_time)
+    )
+    event_end = timezone.localtime(event_end, timezone.get_current_timezone())
+    
+    is_event_ended = now_malaysia > event_end
+    
+    # Allow staff to manually start/stop regardless of time
+    # Or add a warning if trying to start an ended event
+    
     if not event.is_active:
-        # Starting the event: Activate it and generate new token
+        # Starting the event
+        if is_event_ended:
+            # Event has passed - ask for confirmation or just allow it
+            messages.warning(request, f'Event "{event.title}" has already ended, but you can still activate it for manual check-ins.')
+        
         event.is_active = True
         event.check_in_token = uuid.uuid4()
         event.save()
     else:
-        # Stopping the event: Keep token but mark as inactive
+        # Stopping the event
         event.is_active = False
-        # DON'T change the token when stopping
         event.save()
 
     return redirect('event_detail', event_id=event.id)
@@ -1614,6 +1663,7 @@ def get_registration_stats(request, event_id):
     
     total_registered = registrations.count()
     total_paid = registrations.filter(payment_status='DONE').count()
+    total_partial = registrations.filter(payment_status='PARTIAL').count()  # ADD THIS
     total_pending = registrations.filter(payment_status='PENDING').count()
     
     # Calculate total revenue
@@ -1625,6 +1675,7 @@ def get_registration_stats(request, event_id):
         'success': True,
         'total_registered': total_registered,
         'total_paid': total_paid,
+        'total_partial': total_partial,  # ADD THIS
         'total_pending': total_pending,
         'total_revenue': f"{total_revenue:.2f}"
     })
@@ -3807,7 +3858,7 @@ def get_printable_attendee_details(request, attendee_id):
 @login_required
 @require_GET
 def get_live_stats(request, event_id):
-    """Get live statistics for dashboard"""
+    """Get live statistics for dashboard - UPDATED with partial payments"""
     event = get_object_or_404(Event, id=event_id)
     
     # Check permissions
@@ -3828,13 +3879,15 @@ def get_live_stats(request, event_id):
         total_applications = applications.count()
         total_registered = registrations.count()
         
-        # Payment status breakdown
+        # Payment status breakdown - UPDATED to include PARTIAL
         payment_status_counts = registrations.aggregate(
             total_paid=Count('id', filter=Q(payment_status='DONE')),
+            total_partial=Count('id', filter=Q(payment_status='PARTIAL')),  # ADDED
             total_pending=Count('id', filter=Q(payment_status='PENDING'))
         )
         
         total_paid = payment_status_counts['total_paid'] or 0
+        total_partial = payment_status_counts['total_partial'] or 0  # ADDED
         total_pending = payment_status_counts['total_pending'] or 0
         
         # Calculate total revenue
@@ -3844,6 +3897,14 @@ def get_live_stats(request, event_id):
             )
         )
         total_revenue = revenue_sum['total'] or Decimal('0.00')
+        
+        # Calculate partial payment revenue
+        partial_revenue_sum = registrations.filter(payment_status='PARTIAL').aggregate(
+            total=Sum(
+                models.F('pre_registration_fee') + models.F('registration_fee')
+            )
+        )
+        partial_revenue = partial_revenue_sum['total'] or Decimal('0.00')
         
         # Today's check-ins (using Malaysia time)
         today_start = timezone.localtime(
@@ -3880,9 +3941,12 @@ def get_live_stats(request, event_id):
                 'registrations': {
                     'total': total_registered,
                     'paid': total_paid,
+                    'partial': total_partial,  # ADDED
                     'pending': total_pending,
                     'percentage_paid': round((total_paid / total_registered * 100) if total_registered > 0 else 0, 1),
+                    'percentage_partial': round((total_partial / total_registered * 100) if total_registered > 0 else 0, 1),  # ADDED
                     'revenue': float(total_revenue),
+                    'partial_revenue': float(partial_revenue),  # ADDED
                     'avg_revenue': float(total_revenue / total_registered) if total_registered > 0 else 0
                 },
                 'feedback': {
@@ -3892,8 +3956,10 @@ def get_live_stats(request, event_id):
             },
             'summary': {
                 'total_revenue': f"RM {total_revenue:,.2f}",
+                'partial_revenue': f"RM {partial_revenue:,.2f}",  # ADDED
                 'total_attendees': total_attendees,
                 'completion_rate': f"{round((total_registered / total_attendees * 100) if total_attendees > 0 else 0, 1)}%",
+                'payment_status_summary': f"Paid: {total_paid} | Partial: {total_partial} | Pending: {total_pending}",  # ADDED
                 'current_time': malaysia_now().strftime('%I:%M %p')
             }
         }
@@ -3902,6 +3968,44 @@ def get_live_stats(request, event_id):
         
     except Exception as e:
         print(f"Error getting live stats: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+@require_GET
+def get_attendee_ic(request, attendee_id):
+    """Get IC number for an attendee (for search functionality)"""
+    attendee = get_object_or_404(Attendee, id=attendee_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and attendee.event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        # Try to get application for this attendee
+        application = Application.objects.get(
+            event=attendee.event,
+            email__iexact=attendee.email
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'ic_number': application.ic_no or '',
+            'name': attendee.name,
+            'email': attendee.email
+        })
+        
+    except Application.DoesNotExist:
+        return JsonResponse({
+            'success': True,
+            'ic_number': '',
+            'name': attendee.name,
+            'email': attendee.email
+        })
+    except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e)
