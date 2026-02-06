@@ -1891,6 +1891,37 @@
         .search-filter-section .col-md-4 {
             width: 100%;
         }
+
+        #statsModal .modal-dialog {
+            max-width: 95% !important;
+            width: 95% !important;
+            margin: 0.5rem auto !important;
+        }
+        
+        #statsModal .modal-body {
+            padding: 1rem;
+        }
+        
+        #statsModal .row.mb-4 > div {
+            margin-bottom: 0.5rem;
+        }
+        
+        #statsModal .card-title {
+            font-size: 1.25rem !important;
+        }
+        
+        #statsModal .modal-footer {
+            flex-direction: column;
+        }
+        
+        #statsModal .modal-footer .btn-group {
+            width: 100%;
+        }
+        
+        #statsModal .modal-footer .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
     }
     
     @media (max-width: 576px) {
@@ -1985,6 +2016,18 @@
         .btn-sm {
             padding: 0.15rem 0.3rem;
             font-size: 0.7rem;
+        }
+
+        #statsModal .card {
+            margin-bottom: 0.75rem;
+        }
+        
+        #statsModal .card-title {
+            font-size: 1.1rem !important;
+        }
+        
+        #statsModal .card-text {
+            font-size: 0.8rem !important;
         }
     }
 
@@ -2159,6 +2202,93 @@
         word-wrap: break-word;
         min-height: 1.5em;
         line-height: 1.3;
+    }
+
+    /* ========================= */
+    /* STATS MODAL - WIDER, SHORTER, SAME HEIGHT AS ATTENDEE MODAL */
+    /* ========================= */
+    #statsModal .modal-dialog {
+        max-width: 1100px !important; /* WIDER than before */
+        width: 92% !important;
+        margin: 1.75rem auto !important;
+        max-height: 92vh !important; /* SAME HEIGHT as attendee modal */
+    }
+
+    #statsModal .modal-content {
+        max-height: 92vh !important;
+        display: flex;
+        flex-direction: column;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: none;
+    }
+
+    #statsModal .modal-header {
+        flex-shrink: 0;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        background: white;
+    }
+
+    #statsModal .modal-body {
+        flex: 1;
+        overflow-y: auto;
+        max-height: calc(92vh - 150px) !important; /* Adjusted for footer */
+        padding: 1.5rem;
+        background: white;
+    }
+
+    #statsModal .modal-footer {
+        flex-shrink: 0;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--gray-200);
+        background: var(--gray-50);
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    /* Compact Stats Cards */
+    #statsModal .card {
+        min-height: 90px; /* Smaller cards */
+    }
+
+    #statsModal .card-title {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    #statsModal .card-text {
+        font-size: 0.85rem !important;
+    }
+
+    /* Progress Bars */
+    #statsModal .progress {
+        background-color: var(--gray-100);
+    }
+
+    /* Chart Containers */
+    #statsModal .chart-mini {
+        height: 200px !important; /* Smaller charts */
+        width: 100% !important;
+    }
+
+    /* Card Header Styling */
+    #statsModal .card-header {
+        padding: 0.75rem 1rem;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    #statsModal .card-header h6 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--dark);
+    }
+
+    #statsModal .card-body {
+        padding: 1rem;
     }
 </style>
 
@@ -3040,9 +3170,9 @@
     </div>
 </div>
 
-<!-- Registration Statistics Modal -->
+<!-- Registration Statistics Modal - WIDER and OPTIMIZED -->
 <div class="modal fade" id="statsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-left-aligned">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -3052,75 +3182,138 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <!-- COMPACT Stats Cards with SMALLER HEIGHT -->
                 <div class="row mb-4">
-                    <div class="col-md-3 col-6">
-                        <div class="card border-primary">
-                            <div class="card-body text-center">
-                                <h3 class="card-title text-primary" id="statsTotalRegistered">0</h3>
-                                <p class="card-text text-muted mb-0">Total Registered</p>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center py-3">
+                                <h3 class="card-title text-primary mb-1" id="statsTotalRegistered">0</h3>
+                                <p class="card-text text-muted mb-0 small">Total Registered</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6">
-                        <div class="card border-success">
-                            <div class="card-body text-center">
-                                <h3 class="card-title text-success" id="statsPreRegAmount">RM 0.00</h3>
-                                <p class="card-text text-muted mb-0">Pre-Registration</p>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card border-success h-100">
+                            <div class="card-body text-center py-3">
+                                <h3 class="card-title text-success mb-1" id="statsPreRegAmount">RM 0.00</h3>
+                                <p class="card-text text-muted mb-0 small">Pre-Registration</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6">
-                        <div class="card border-warning">
-                            <div class="card-body text-center">
-                                <h3 class="card-title text-warning" id="statsRegAmount">RM 0.00</h3>
-                                <p class="card-text text-muted mb-0">Registration</p>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card border-warning h-100">
+                            <div class="card-body text-center py-3">
+                                <h3 class="card-title text-warning mb-1" id="statsRegAmount">RM 0.00</h3>
+                                <p class="card-text text-muted mb-0 small">Registration</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6">
-                        <div class="card border-info">
-                            <div class="card-body text-center">
-                                <h3 class="card-title text-info" id="statsTotalRevenue">RM 0.00</h3>
-                                <p class="card-text text-muted mb-0">Total Revenue</p>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card border-info h-100">
+                            <div class="card-body text-center py-3">
+                                <h3 class="card-title text-info mb-1" id="statsTotalRevenue">RM 0.00</h3>
+                                <p class="card-text text-muted mb-0 small">Total Revenue</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-6">
+                <!-- Payment Status Breakdown -->
+                <div class="row mb-4">
+                    <div class="col-12">
                         <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Payment Status Breakdown</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-success rounded-circle me-3" style="width: 12px; height: 12px;"></div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="small text-muted">Completed</span>
+                                                    <span class="small fw-bold" id="statsCompletedCount">0</span>
+                                                </div>
+                                                <div class="progress mt-1" style="height: 5px;">
+                                                    <div class="progress-bar bg-success" id="statsCompletedBar" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-warning rounded-circle me-3" style="width: 12px; height: 12px;"></div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="small text-muted">Partial</span>
+                                                    <span class="small fw-bold" id="statsPartialCount">0</span>
+                                                </div>
+                                                <div class="progress mt-1" style="height: 5px;">
+                                                    <div class="progress-bar bg-warning" id="statsPartialBar" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-danger rounded-circle me-3" style="width: 12px; height: 12px;"></div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="small text-muted">Pending</span>
+                                                    <span class="small fw-bold" id="statsPendingCount">0</span>
+                                                </div>
+                                                <div class="progress mt-1" style="height: 5px;">
+                                                    <div class="progress-bar bg-danger" id="statsPendingBar" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts Section - ADJUSTED LAYOUT -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="card h-100">
                             <div class="card-header">
                                 <h6 class="mb-0">Top Courses</h6>
                             </div>
-                            <div class="card-body">
-                                <canvas id="topCoursesChart" class="chart-mini"></canvas>
+                            <div class="card-body" style="height: 250px; padding: 10px;">
+                                <canvas id="topCoursesChart" style="width: 100%; height: 200px;"></canvas>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card">
+                        <div class="card h-100">
                             <div class="card-header">
                                 <h6 class="mb-0">Top Closers</h6>
                             </div>
-                            <div class="card-body">
-                                <canvas id="topClosersChart" class="chart-mini"></canvas>
+                            <div class="card-body" style="height: 250px; padding: 10px;">
+                                <canvas id="topClosersChart" style="width: 100%; height: 200px;"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="mt-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">Registration Timeline (Last 7 Days)</h6>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="timelineChart" class="chart-mini"></canvas>
+                <!-- Timeline Chart - COMPACT -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Registration Timeline (Last 7 Days)</h6>
+                            </div>
+                            <div class="card-body" style="height: 250px; padding: 10px;">
+                                <canvas id="timelineChart" style="width: 100%; height: 200px;"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <!-- Modal Footer with EXPORT BUTTONS - ALWAYS VISIBLE -->
             <div class="modal-footer">
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-outline-primary" onclick="exportRegistrationCSV()">
@@ -5600,24 +5793,230 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update stats cards
-                    document.getElementById('statsTotalRegistered').textContent = data.total_registered;
-                    document.getElementById('statsPreRegAmount').textContent = `RM ${data.total_pre_reg || '0.00'}`;
-                    document.getElementById('statsRegAmount').textContent = `RM ${data.total_reg || '0.00'}`;
-                    document.getElementById('statsTotalRevenue').textContent = `RM ${data.total_revenue}`;
+                    // Update stats cards with actual values or 0
+                    const basicStats = data.basic_stats || {};
                     
-                    // Create charts
+                    document.getElementById('statsTotalRegistered').textContent = 
+                        basicStats.total_registered || 0;
+                    
+                    document.getElementById('statsPreRegAmount').textContent = 
+                        basicStats.total_pre_reg ? `RM ${parseFloat(basicStats.total_pre_reg).toFixed(2)}` : 'RM 0.00';
+                    
+                    document.getElementById('statsRegAmount').textContent = 
+                        basicStats.total_reg ? `RM ${parseFloat(basicStats.total_reg).toFixed(2)}` : 'RM 0.00';
+                    
+                    document.getElementById('statsTotalRevenue').textContent = 
+                        basicStats.total_revenue ? `RM ${parseFloat(basicStats.total_revenue).toFixed(2)}` : 'RM 0.00';
+                    
+                    // Update payment status breakdown
+                    const totalRegistered = basicStats.total_registered || 0;
+                    const completed = basicStats.total_completed || 0;
+                    const partial = basicStats.total_partial || 0;
+                    const pending = basicStats.total_pending || 0;
+                    
+                    document.getElementById('statsCompletedCount').textContent = completed;
+                    document.getElementById('statsPartialCount').textContent = partial;
+                    document.getElementById('statsPendingCount').textContent = pending;
+                    
+                    // Calculate percentages for progress bars
+                    const completedPercent = totalRegistered > 0 ? (completed / totalRegistered * 100) : 0;
+                    const partialPercent = totalRegistered > 0 ? (partial / totalRegistered * 100) : 0;
+                    const pendingPercent = totalRegistered > 0 ? (pending / totalRegistered * 100) : 0;
+                    
+                    document.getElementById('statsCompletedBar').style.width = `${completedPercent}%`;
+                    document.getElementById('statsPartialBar').style.width = `${partialPercent}%`;
+                    document.getElementById('statsPendingBar').style.width = `${pendingPercent}%`;
+                    
+                    // Create charts if data exists
                     if (data.charts) {
-                        createChart('topCoursesChart', data.charts.top_courses, 'Courses');
-                        createChart('topClosersChart', data.charts.top_closers, 'Closers');
-                        createTimelineChart('timelineChart', data.charts.timeline);
+                        createCompactChart('topCoursesChart', data.charts.top_courses || [], 'Courses');
+                        createCompactChart('topClosersChart', data.charts.top_closers || [], 'Closers');
+                        createCompactTimelineChart('timelineChart', data.charts.timeline || []);
+                    } else {
+                        // Create empty charts
+                        createEmptyChart('topCoursesChart', 'No course data available');
+                        createEmptyChart('topClosersChart', 'No closer data available');
+                        createEmptyTimelineChart('timelineChart', 'No timeline data available');
                     }
+                } else {
+                    // Show error or empty state
+                    document.getElementById('statsTotalRegistered').textContent = '0';
+                    document.getElementById('statsPreRegAmount').textContent = 'RM 0.00';
+                    document.getElementById('statsRegAmount').textContent = 'RM 0.00';
+                    document.getElementById('statsTotalRevenue').textContent = 'RM 0.00';
+                    
+                    createEmptyChart('topCoursesChart', 'Error loading data');
+                    createEmptyChart('topClosersChart', 'Error loading data');
+                    createEmptyTimelineChart('timelineChart', 'Error loading data');
                 }
             })
-            .catch(error => console.error('Error loading full stats:', error));
+            .catch(error => {
+                console.error('Error loading full stats:', error);
+                // Set all values to 0 on error
+                document.getElementById('statsTotalRegistered').textContent = '0';
+                document.getElementById('statsPreRegAmount').textContent = 'RM 0.00';
+                document.getElementById('statsRegAmount').textContent = 'RM 0.00';
+                document.getElementById('statsTotalRevenue').textContent = 'RM 0.00';
+                
+                createEmptyChart('topCoursesChart', 'Connection error');
+                createEmptyChart('topClosersChart', 'Connection error');
+                createEmptyTimelineChart('timelineChart', 'Connection error');
+            });
         
         modal.show();
     };
+
+    // Compact chart creation function
+    function createCompactChart(canvasId, data, label) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        if (window[`${canvasId}Chart`]) {
+            window[`${canvasId}Chart`].destroy();
+        }
+        
+        if (!data || data.length === 0) {
+            createEmptyChart(canvasId, `No ${label.toLowerCase()} data available`);
+            return;
+        }
+        
+        const labels = data.map(item => item.label || 'Unknown');
+        const values = data.map(item => item.value || 0);
+        
+        window[`${canvasId}Chart`] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: values,
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        display: false 
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { 
+                            font: { size: 10 },
+                            maxRotation: 45
+                        },
+                        grid: { display: false }
+                    },
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { 
+                            precision: 0,
+                            font: { size: 10 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Compact timeline chart
+    function createCompactTimelineChart(canvasId, data) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        if (window[`${canvasId}Chart`]) {
+            window[`${canvasId}Chart`].destroy();
+        }
+        
+        if (!data || data.length === 0) {
+            createEmptyChart(canvasId, 'No timeline data available');
+            return;
+        }
+        
+        const labels = data.map(item => item.date ? item.date.split('-').slice(1).join('-') : '');
+        const values = data.map(item => item.count || 0);
+        
+        window[`${canvasId}Chart`] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Registrations',
+                    data: values,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    fill: true,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        display: false 
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Registrations: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { 
+                            font: { size: 10 },
+                            maxRotation: 45
+                        },
+                        grid: { display: false }
+                    },
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { 
+                            precision: 0,
+                            font: { size: 10 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Empty chart function
+    function createEmptyChart(canvasId, message) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        if (window[`${canvasId}Chart`]) {
+            window[`${canvasId}Chart`].destroy();
+        }
+        
+        // Draw empty state
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#6c757d';
+        ctx.font = '14px Arial';
+        ctx.fillText(message, ctx.canvas.width / 2, ctx.canvas.height / 2);
+    }
+
+    // Empty timeline chart
+    function createEmptyTimelineChart(canvasId, message) {
+        createEmptyChart(canvasId, message);
+    }
     
     function updateRegistrationStats() {
         fetch(`/attsys/api/event/{{ event.id }}/registration-stats/`)
