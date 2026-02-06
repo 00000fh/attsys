@@ -2577,39 +2577,45 @@
                                         </div>
                                     </td>
                                     
-                                    <!-- Applied Program -->
+                                    <!-- Applied Programme -->
                                     <td>
                                         <div id="applied-program-cell-{{ attendee.id }}">
-                                            {% if attendee.application %}
+                                            {% if attendee.has_application %}
+                                                {% with app=attendee.application_data %}
                                                 <div class="program-badge-container">
-                                                    {% if attendee.application.applied_programme == 'Diploma' %}
+                                                    {% if app.applied_programme == 'Diploma' or app.applied_programme == 'DIPLOMA' %}
                                                         <span class="badge badge-diploma status-badge small">Diploma</span>
-                                                    {% elif attendee.application.applied_programme == 'Pra-Diploma' %}
+                                                    {% elif app.applied_programme == 'Pra-Diploma' or app.applied_programme == 'PRA_DIPLOMA' %}
                                                         <span class="badge badge-pra-diploma status-badge small">Pra-Diploma</span>
-                                                    {% elif attendee.application.applied_programme == 'TVET' %}
+                                                    {% elif app.applied_programme == 'TVET' %}
                                                         <span class="badge badge-tvet status-badge small">TVET</span>
-                                                    {% elif attendee.application.applied_programme == 'Smart Tahfiz' %}
+                                                    {% elif app.applied_programme == 'Smart Tahfiz' or app.applied_programme == 'SMART_TAHFIZ' %}
                                                         <span class="badge badge-smart-tahfiz status-badge small">Smart Tahfiz</span>
+                                                    {% elif app.applied_programme %}
+                                                        <span class="badge badge-other status-badge small">{{ app.applied_programme }}</span>
                                                     {% else %}
-                                                        <span class="badge badge-other status-badge small">{{ attendee.application.applied_programme|default:"—" }}</span>
+                                                        <span class="badge bg-light text-muted small">—</span>
                                                     {% endif %}
                                                 </div>
+                                                {% endwith %}
                                             {% else %}
                                                 <span class="badge bg-light text-muted small">—</span>
                                             {% endif %}
                                         </div>
                                     </td>
-                                    
+
                                     <!-- Attended With -->
                                     <td>
                                         <div id="attended-with-cell-{{ attendee.id }}">
                                             {% if attendee.has_application %}
-                                                {% with app=attendee.application %}
+                                                {% with app=attendee.application_data %}
                                                 <div class="attended-with-badge-container">
                                                     {% if app.attended_with == 'PARENT' %}
                                                         <span class="badge badge-parent status-badge extra-small">Parent</span>
                                                     {% elif app.attended_with == 'GUARDIAN' %}
                                                         <span class="badge badge-guardian status-badge extra-small">Guardian</span>
+                                                    {% elif app.attended_with %}
+                                                        <span class="badge bg-secondary status-badge extra-small">{{ app.attended_with }}</span>
                                                     {% else %}
                                                         <span class="badge bg-light text-muted extra-small">—</span>
                                                     {% endif %}
@@ -2620,12 +2626,12 @@
                                             {% endif %}
                                         </div>
                                     </td>
-                                    
-                                    <!-- Referral -->
+
+                                    <!-- Referral (Registration Officer) -->
                                     <td>
                                         <div id="inviting-officer-cell-{{ attendee.id }}" class="small">
                                             {% if attendee.has_application %}
-                                                {% with app=attendee.application %}
+                                                {% with app=attendee.application_data %}
                                                 <div class="text-truncate" title="{{ app.registration_officer|default:'—' }}" style="max-width: 100px;">
                                                     {{ app.registration_officer|truncatechars:12|default:"—" }}
                                                 </div>
