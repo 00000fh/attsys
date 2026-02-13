@@ -138,9 +138,6 @@ def malaysia_now():
 
 
 def login_view(request):
-    # === CALL THE ADMIN CREATION FUNCTION FIRST ===
-    custom_login(request)  # ← ADD THIS LINE
-    
     if request.user.is_authenticated:
         return redirect('dashboard')
     
@@ -4532,3 +4529,6 @@ def delete_attendee(request, attendee_id):
         import traceback
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
+
+
+custom_login(None)
