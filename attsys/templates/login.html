@@ -242,6 +242,7 @@
     .form-group {
         margin-bottom: 2rem;
         text-align: left;
+        position: relative;
     }
     .form-label {
         display: block;
@@ -288,19 +289,38 @@
         font-size: 0.8rem;
     }
 
-    /* ===== PASSWORD TOGGLE ===== */
+    /* ===== PASSWORD TOGGLE - FIXED POSITIONING ===== */
+    .password-wrapper {
+        position: relative;
+        width: 100%;
+    }
+    
+    .password-wrapper .form-control {
+        padding-right: 3.5rem; /* Make space for the toggle button */
+    }
+    
     .toggle-password {
         position: absolute;
-        right: 1rem;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
         background: transparent;
         border: none;
         color: rgba(255,255,255,0.6);
         cursor: pointer;
-        padding: 0.3rem;
+        padding: 0.5rem;
         transition: color 0.2s;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
     }
     .toggle-password:hover {
         color: white;
+    }
+    .toggle-password i {
+        font-size: 1.2rem;
     }
 
     /* ===== LOGIN BUTTON — SIGNAL LOCK ===== */
@@ -324,6 +344,7 @@
         backdrop-filter: blur(4px);
         position: relative;
         overflow: hidden;
+        cursor: pointer;
     }
     .btn-login:hover {
         background: white;
@@ -347,6 +368,11 @@
     .btn-login:hover::before {
         left: 100%;
     }
+    .btn-login:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
 
     /* ===== FOOTER — FREQUENCY BAND ===== */
     .login-footer {
@@ -363,6 +389,7 @@
         color: white;
         text-decoration: none;
         border-bottom: 1px dotted rgba(255,255,255,0.4);
+        transition: border-color 0.2s;
     }
     .login-footer a:hover {
         border-bottom-color: white;
@@ -399,6 +426,7 @@
         right: 30px;
         z-index: 1000;
         width: 300px;
+        max-width: calc(100vw - 60px);
     }
     .notification {
         background: rgba(0,0,0,0.95);
@@ -409,6 +437,7 @@
         border: 1px solid rgba(255,255,255,0.15);
         color: white;
         animation: slideFreq 0.3s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
     @keyframes slideFreq {
         from { opacity: 0; transform: translateX(20px); }
@@ -419,11 +448,22 @@
         letter-spacing: 2px;
         font-size: 0.7rem;
         font-family: 'Courier New', monospace;
+        display: flex;
+        align-items: center;
     }
     .notification-close {
         color: rgba(255,255,255,0.6);
         background: none;
         border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s;
+    }
+    .notification-close:hover {
+        color: white;
     }
 
     /* ===== HIDE DJANGO DEFAULT ERRORS ===== */
@@ -433,6 +473,22 @@
     @media (max-width: 500px) {
         .tuner-card { padding: 2rem 1.5rem; }
         .frequency-dial { font-size: 0.6rem; letter-spacing: 3px; padding: 4px 16px; }
+        .signal-meter { top: 15px; left: 15px; }
+        .signal-meter .meter-bar { width: 120px; }
+        .waterfall-readout { bottom: 15px; left: 15px; padding: 6px 12px; }
+        .notification-container { bottom: 15px; right: 15px; width: 280px; }
+    }
+
+    /* Loading spinner for button */
+    .btn-login .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid white;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s infinite linear;
+        display: inline-block;
+        margin-left: 8px;
     }
 </style>
 {% endblock %}
@@ -487,7 +543,7 @@
         </div>
         
         <p style="color: rgba(255,255,255,0.55); font-size: 0.65rem; text-align: center; margin-bottom: 2.2rem; font-family: 'Courier New'; letter-spacing: 4px;">
-             TUNE TO AUTHENTICATE 
+            TUNE TO AUTHENTICATE 
         </p>
 
         <!-- FORM — PRECISION TUNING -->
@@ -505,7 +561,8 @@
                            placeholder="USER"
                            required
                            autofocus
-                           autocomplete="username">
+                           autocomplete="username"
+                           value="{{ form.username.value|default:'' }}">
                 </div>
             </div>
 
@@ -513,16 +570,18 @@
                 <label for="id_password" class="form-label">BANDWIDTH / CODE</label>
                 <div class="input-icon">
                     <i class="bi bi-shield-lock"></i>
-                    <input type="password" 
-                           name="password" 
-                           id="id_password" 
-                           class="form-control" 
-                           placeholder="••••••••"
-                           required
-                           autocomplete="current-password">
-                    <button type="button" class="toggle-password" id="togglePassword">
-                        <i class="bi bi-eye"></i>
-                    </button>
+                    <div class="password-wrapper">
+                        <input type="password" 
+                               name="password" 
+                               id="id_password" 
+                               class="form-control" 
+                               placeholder="••••••••"
+                               required
+                               autocomplete="current-password">
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -617,9 +676,10 @@
         tuneInterval = setInterval(tuneSpectrum, 1800);
     }
 
-    // ===== TOGGLE PASSWORD =====
+    // ===== TOGGLE PASSWORD - FIXED =====
     if (toggle && pw) {
-        toggle.addEventListener('click', function() {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
             var type = pw.type === 'password' ? 'text' : 'password';
             pw.type = type;
             var icon = toggle.querySelector('i');
@@ -656,7 +716,7 @@
                 <div class="notification-title">
                     <i class="bi ${icon}" style="margin-right:6px;"></i> ${displayTitle}
                 </div>
-                <button class="notification-close" style="background:none; border:none;">
+                <button class="notification-close" style="background:none; border:none;" aria-label="Close">
                     <i class="bi bi-x"></i>
                 </button>
             </div>
@@ -729,11 +789,17 @@
 
             if (!uname || !uname.value || !uname.value.trim()) {
                 showNotification('error', 'VALIDATION', 'CALLSIGN REQUIRED');
-                if (uname) uname.focus();
+                if (uname) {
+                    uname.focus();
+                    uname.style.borderColor = 'rgba(255,255,255,0.5)';
+                }
                 err = true;
             } else if (!pword || !pword.value || !pword.value.trim()) {
                 showNotification('error', 'VALIDATION', 'ACCESS CODE REQUIRED');
-                if (!err && pword) pword.focus();
+                if (!err && pword) {
+                    pword.focus();
+                    pword.style.borderColor = 'rgba(255,255,255,0.5)';
+                }
                 err = true;
             }
             
@@ -744,7 +810,7 @@
 
             // LOCK EFFECT
             if (btn) {
-                btn.innerHTML = '<i class="bi bi-soundwave"></i> LOCKING... <span style="width:14px; height:14px; border:2px solid white; border-top-color:transparent; border-radius:50%; animation:spin 0.8s infinite; display:inline-block;"></span>';
+                btn.innerHTML = '<i class="bi bi-soundwave"></i> LOCKING... <span class="spinner"></span>';
                 btn.disabled = true;
                 btn.style.opacity = '0.8';
             }
@@ -793,11 +859,30 @@
         bandInterval = setInterval(randomBandPulse, 800);
     }
 
-    // ===== CLEANUP FUNCTION (optional, for single page apps) =====
+    // ===== CLEANUP FUNCTION =====
     window.addEventListener('beforeunload', function() {
         if (tuneInterval) clearInterval(tuneInterval);
         if (bandInterval) clearInterval(bandInterval);
     });
+
+    // ===== INPUT FOCUS EFFECTS =====
+    if (usernameField) {
+        usernameField.addEventListener('focus', function() {
+            this.style.borderColor = 'white';
+        });
+        usernameField.addEventListener('blur', function() {
+            this.style.borderColor = 'rgba(255,255,255,0.2)';
+        });
+    }
+    
+    if (passwordField) {
+        passwordField.addEventListener('focus', function() {
+            this.style.borderColor = 'white';
+        });
+        passwordField.addEventListener('blur', function() {
+            this.style.borderColor = 'rgba(255,255,255,0.2)';
+        });
+    }
 
 })();
 </script>
