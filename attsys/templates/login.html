@@ -242,7 +242,6 @@
     .form-group {
         margin-bottom: 2rem;
         text-align: left;
-        position: relative;
     }
     .form-label {
         display: block;
@@ -259,14 +258,80 @@
         display: flex;
         align-items: center;
     }
-    .input-icon i {
+    .input-icon i:not(.toggle-password i) {
         position: absolute;
         left: 1rem;
         color: rgba(255,255,255,0.8);
         font-size: 1rem;
         z-index: 3;
     }
-    .form-control {
+    
+    /* ===== PASSWORD FIELD WITH EYE ICON - FIXED POSITIONING ===== */
+    .password-field-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .password-field-container .form-control {
+        width: 100%;
+        padding: 1rem 3rem 1rem 3rem; /* Right padding for eye, left padding for icon */
+        background: rgba(0,0,0,0.8);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 0;
+        font-size: 0.95rem;
+        color: white;
+        font-family: 'Courier New', monospace;
+        transition: all 0.2s ease;
+        box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
+    }
+    
+    .password-field-container .form-control:focus {
+        border-color: white;
+        background: black;
+        box-shadow: inset 0 0 20px black, 0 0 20px rgba(255,255,255,0.2);
+        outline: none;
+    }
+    
+    .password-field-container .form-control::placeholder {
+        color: rgba(255,255,255,0.25);
+        font-size: 0.8rem;
+    }
+    
+    .password-field-container .toggle-password {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: rgba(255,255,255,0.6);
+        cursor: pointer;
+        padding: 0.25rem;
+        transition: color 0.2s;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+    }
+    
+    .password-field-container .toggle-password:hover {
+        color: white;
+    }
+    
+    .password-field-container .toggle-password i {
+        font-size: 1.2rem;
+        position: static; /* Override the absolute positioning from .input-icon i */
+    }
+
+    /* ===== USERNAME FIELD (unchanged) ===== */
+    .username-field-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .username-field-container .form-control {
         width: 100%;
         padding: 1rem 1rem 1rem 3rem;
         background: rgba(0,0,0,0.8);
@@ -278,49 +343,12 @@
         transition: all 0.2s ease;
         box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
     }
-    .form-control:focus {
+    
+    .username-field-container .form-control:focus {
         border-color: white;
         background: black;
         box-shadow: inset 0 0 20px black, 0 0 20px rgba(255,255,255,0.2);
         outline: none;
-    }
-    .form-control::placeholder {
-        color: rgba(255,255,255,0.25);
-        font-size: 0.8rem;
-    }
-
-    /* ===== PASSWORD TOGGLE - FIXED POSITIONING ===== */
-    .password-wrapper {
-        position: relative;
-        width: 100%;
-    }
-    
-    .password-wrapper .form-control {
-        padding-right: 3.5rem; /* Make space for the toggle button */
-    }
-    
-    .toggle-password {
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        background: transparent;
-        border: none;
-        color: rgba(255,255,255,0.6);
-        cursor: pointer;
-        padding: 0.5rem;
-        transition: color 0.2s;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-    }
-    .toggle-password:hover {
-        color: white;
-    }
-    .toggle-password i {
-        font-size: 1.2rem;
     }
 
     /* ===== LOGIN BUTTON — SIGNAL LOCK ===== */
@@ -490,6 +518,7 @@
         display: inline-block;
         margin-left: 8px;
     }
+}
 </style>
 {% endblock %}
 
@@ -554,15 +583,17 @@
                 <label for="id_username" class="form-label">FREQUENCY / CALLSIGN</label>
                 <div class="input-icon">
                     <i class="bi bi-person-badge"></i>
-                    <input type="text" 
-                           name="username" 
-                           id="id_username" 
-                           class="form-control" 
-                           placeholder="USER"
-                           required
-                           autofocus
-                           autocomplete="username"
-                           value="{{ form.username.value|default:'' }}">
+                    <div class="username-field-container">
+                        <input type="text" 
+                               name="username" 
+                               id="id_username" 
+                               class="form-control" 
+                               placeholder="USER"
+                               required
+                               autofocus
+                               autocomplete="username"
+                               value="{{ form.username.value|default:'' }}">
+                    </div>
                 </div>
             </div>
 
@@ -570,7 +601,7 @@
                 <label for="id_password" class="form-label">BANDWIDTH / CODE</label>
                 <div class="input-icon">
                     <i class="bi bi-shield-lock"></i>
-                    <div class="password-wrapper">
+                    <div class="password-field-container">
                         <input type="password" 
                                name="password" 
                                id="id_password" 
@@ -680,12 +711,15 @@
     if (toggle && pw) {
         toggle.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             var type = pw.type === 'password' ? 'text' : 'password';
             pw.type = type;
             var icon = toggle.querySelector('i');
             if (icon) {
                 icon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             }
+            // Keep focus on password field
+            pw.focus();
         });
     }
 
