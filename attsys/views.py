@@ -141,6 +141,36 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     
+    # AUTO-CREATE ADMIN IF NO USERS EXIST
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    # Check if ANY users exist
+    if User.objects.count() == 0:
+        print("⚠️ No users found, creating default admin...")
+        try:
+            admin_user = User.objects.create_user(
+                username='pejaladmin46',
+                email='faizalhussin45@gmail.com',
+                password='canon990',
+                role='ADMIN'
+            )
+            admin_user.is_staff = True
+            admin_user.is_superuser = True
+            admin_user.save()
+            print(f"✅ Created default admin: pejaladmin46 / canon990")
+        except Exception as e:
+            print(f"Error creating admin: {e}")
+    
+    # Also check if specific admin exists but maybe password wrong
+    try:
+        admin = User.objects.get(username='pejaladmin46')
+        # Reset password if needed (optional)
+        # admin.set_password('canon990')
+        # admin.save()
+    except User.DoesNotExist:
+        pass  # Already handled above
+    
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -4529,6 +4559,3 @@ def delete_attendee(request, attendee_id):
         import traceback
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
-
-
-custom_login(None)
