@@ -571,162 +571,242 @@
 
 {% block extra_js %}
 <script>
-    (function(){
-        'use strict';
+(function() {
+    'use strict';
 
-        // ===== SPECTRUM ANALYZER — FREQUENCY GENERATOR =====
-        const freqEl = document.getElementById('spectrumFreq');
-        const meterFill = document.getElementById('signalMeterFill');
-        let baseFreq = 104.7;
-        
-        function tuneSpectrum() {
-            if (freqEl) {
-                let drift = (Math.random() * 0.9 - 0.45).toFixed(1);
-                let newFreq = (baseFreq + parseFloat(drift)).toFixed(1);
-                freqEl.textContent = newFreq;
-                
-                // meter movement
-                if (meterFill) {
-                    let randomWidth = Math.floor(Math.random() * 60 + 30);
-                    meterFill.style.width = randomWidth + '%';
-                }
-                
-                // occasional glitch
-                if (Math.random() > 0.8) {
-                    freqEl.style.opacity = '0.5';
-                    setTimeout(() => freqEl.style.opacity = '1', 120);
-                }
-            }
+    // ===== SAFELY GET ELEMENTS =====
+    var freqEl = document.getElementById('spectrumFreq');
+    var meterFill = document.getElementById('signalMeterFill');
+    var toggle = document.getElementById('togglePassword');
+    var pw = document.getElementById('id_password');
+    var notifContainer = document.getElementById('notificationContainer');
+    var form = document.getElementById('loginForm');
+    var btn = document.getElementById('loginButton');
+    var usernameField = document.getElementById('id_username');
+    var passwordField = document.getElementById('id_password');
+    
+    var baseFreq = 104.7;
+    var tuneInterval = null;
+    var bandInterval = null;
+
+    // ===== SPECTRUM ANALYZER — FREQUENCY GENERATOR =====
+    function tuneSpectrum() {
+        if (freqEl) {
+            var drift = (Math.random() * 0.9 - 0.45).toFixed(1);
+            var newFreq = (baseFreq + parseFloat(drift)).toFixed(1);
+            freqEl.textContent = newFreq;
         }
-        setInterval(tuneSpectrum, 1800);
+        
+        if (meterFill) {
+            var randomWidth = Math.floor(Math.random() * 60 + 30);
+            meterFill.style.width = randomWidth + '%';
+        }
+        
+        // occasional glitch
+        if (freqEl && Math.random() > 0.8) {
+            freqEl.style.opacity = '0.5';
+            setTimeout(function() {
+                if (freqEl) freqEl.style.opacity = '1';
+            }, 120);
+        }
+    }
+    
+    // Start spectrum animation if elements exist
+    if (freqEl || meterFill) {
         tuneSpectrum();
+        tuneInterval = setInterval(tuneSpectrum, 1800);
+    }
 
-        // ===== TOGGLE PASSWORD =====
-        const toggle = document.getElementById('togglePassword');
-        const pw = document.getElementById('id_password');
-        if (toggle && pw) {
-            toggle.addEventListener('click', () => {
-                const type = pw.type === 'password' ? 'text' : 'password';
-                pw.type = type;
-                toggle.querySelector('i').className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+    // ===== TOGGLE PASSWORD =====
+    if (toggle && pw) {
+        toggle.addEventListener('click', function() {
+            var type = pw.type === 'password' ? 'text' : 'password';
+            pw.type = type;
+            var icon = toggle.querySelector('i');
+            if (icon) {
+                icon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+            }
+        });
+    }
+
+    // ===== NOTIFICATION SYSTEM =====
+    function showNotification(type, title, msg) {
+        if (!notifContainer) return;
+        
+        var icon = 'bi-info-circle-fill';
+        var displayTitle = title || 'INFO';
+        
+        if (type === 'success') { 
+            icon = 'bi-check-circle-fill'; 
+            displayTitle = 'LOCKED'; 
+        }
+        if (type === 'error') { 
+            icon = 'bi-exclamation-circle-fill'; 
+            displayTitle = 'FREQ ERROR'; 
+        }
+        if (type === 'warning') { 
+            icon = 'bi-exclamation-triangle-fill'; 
+            displayTitle = 'INTERFERENCE'; 
+        }
+
+        var n = document.createElement('div');
+        n.className = 'notification ' + type;
+        n.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <div class="notification-title">
+                    <i class="bi ${icon}" style="margin-right:6px;"></i> ${displayTitle}
+                </div>
+                <button class="notification-close" style="background:none; border:none;">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <p class="notification-message" style="margin:0; font-size:0.75rem; color:#ccc;">${msg}</p>
+        `;
+        
+        notifContainer.appendChild(n);
+        
+        var closeBtn = n.querySelector('.notification-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) { 
+                e.stopPropagation(); 
+                if (n.parentNode) n.parentNode.removeChild(n);
             });
         }
+        
+        setTimeout(function() { 
+            if (n.parentNode) n.parentNode.removeChild(n);
+        }, 5000);
+    }
 
-        // ===== NOTIFICATION SYSTEM =====
-        const notifContainer = document.getElementById('notificationContainer');
-        function showNotification(type, title, msg) {
-            if (!notifContainer) return;
-            let icon = 'bi-info-circle-fill';
-            let displayTitle = title || 'INFO';
-            if (type === 'success') { icon = 'bi-check-circle-fill'; displayTitle = 'LOCKED'; }
-            if (type === 'error') { icon = 'bi-exclamation-circle-fill'; displayTitle = 'FREQ ERROR'; }
-            if (type === 'warning') { icon = 'bi-exclamation-triangle-fill'; displayTitle = 'INTERFERENCE'; }
-
-            const n = document.createElement('div');
-            n.className = `notification ${type}`;
-            n.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <div class="notification-title">
-                        <i class="bi ${icon}" style="margin-right:6px;"></i> ${displayTitle}
-                    </div>
-                    <button class="notification-close" style="background:none; border:none;">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-                <p class="notification-message" style="margin:0; font-size:0.75rem; color:#ccc;">${msg}</p>
-            `;
-            notifContainer.appendChild(n);
-            const closeBtn = n.querySelector('.notification-close');
-            closeBtn.addEventListener('click', (e) => { e.stopPropagation(); n.remove(); });
-            setTimeout(() => n.remove(), 5000);
-        }
-
-        // ===== LOAD DJANGO ERRORS =====
-        function loadMessages() {
-            const djangoMsgs = document.getElementById('djangoMessages');
-            if (djangoMsgs) {
-                djangoMsgs.querySelectorAll('.message').forEach(m => {
-                    let tag = m.getAttribute('data-tag') || 'info';
-                    showNotification(tag, '', m.textContent.trim());
-                });
-            }
-            const fErrors = document.getElementById('formErrors');
-            if (fErrors) {
-                fErrors.querySelectorAll('.error').forEach(e => showNotification('error', 'AUTH FAILED', e.textContent.trim()));
-            }
-            const uErrors = document.getElementById('usernameErrors');
-            if (uErrors) {
-                uErrors.querySelectorAll('.error').forEach(e => showNotification('error', 'CALLSIGN ERROR', e.textContent.trim()));
-            }
-            const pErrors = document.getElementById('passwordErrors');
-            if (pErrors) {
-                pErrors.querySelectorAll('.error').forEach(e => showNotification('error', 'BANDWIDTH ERROR', e.textContent.trim()));
+    // ===== LOAD DJANGO ERRORS =====
+    function loadMessages() {
+        var djangoMsgs = document.getElementById('djangoMessages');
+        if (djangoMsgs) {
+            var messages = djangoMsgs.querySelectorAll('.message');
+            for (var i = 0; i < messages.length; i++) {
+                var m = messages[i];
+                var tag = m.getAttribute('data-tag') || 'info';
+                showNotification(tag, '', m.textContent.trim());
             }
         }
-        setTimeout(loadMessages, 150);
+        
+        var fErrors = document.getElementById('formErrors');
+        if (fErrors) {
+            var errors = fErrors.querySelectorAll('.error');
+            for (var i = 0; i < errors.length; i++) {
+                showNotification('error', 'AUTH FAILED', errors[i].textContent.trim());
+            }
+        }
+        
+        var uErrors = document.getElementById('usernameErrors');
+        if (uErrors) {
+            var uerrs = uErrors.querySelectorAll('.error');
+            for (var i = 0; i < uerrs.length; i++) {
+                showNotification('error', 'CALLSIGN ERROR', uerrs[i].textContent.trim());
+            }
+        }
+        
+        var pErrors = document.getElementById('passwordErrors');
+        if (pErrors) {
+            var perrs = pErrors.querySelectorAll('.error');
+            for (var i = 0; i < perrs.length; i++) {
+                showNotification('error', 'BANDWIDTH ERROR', perrs[i].textContent.trim());
+            }
+        }
+    }
+    
+    // Load messages after a short delay
+    setTimeout(loadMessages, 150);
 
-        // ===== FORM SUBMIT: VALIDATION + SPECTRUM EFFECT =====
-        const form = document.getElementById('loginForm');
-        const btn = document.getElementById('loginButton');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const uname = document.getElementById('id_username');
-                const pword = document.getElementById('id_password');
-                let err = false;
-                if (notifContainer) notifContainer.innerHTML = '';
+    // ===== FORM SUBMIT: VALIDATION + SPECTRUM EFFECT =====
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            var uname = usernameField;
+            var pword = passwordField;
+            var err = false;
+            
+            if (notifContainer) notifContainer.innerHTML = '';
 
-                if (!uname.value.trim()) {
-                    showNotification('error', 'VALIDATION', 'CALLSIGN REQUIRED');
-                    uname.focus();
-                    err = true;
-                } else if (!pword.value.trim()) {
-                    showNotification('error', 'VALIDATION', 'ACCESS CODE REQUIRED');
-                    if (!err) pword.focus();
-                    err = true;
-                }
-                if (err) {
-                    e.preventDefault();
-                    return false;
-                }
+            if (!uname || !uname.value || !uname.value.trim()) {
+                showNotification('error', 'VALIDATION', 'CALLSIGN REQUIRED');
+                if (uname) uname.focus();
+                err = true;
+            } else if (!pword || !pword.value || !pword.value.trim()) {
+                showNotification('error', 'VALIDATION', 'ACCESS CODE REQUIRED');
+                if (!err && pword) pword.focus();
+                err = true;
+            }
+            
+            if (err) {
+                e.preventDefault();
+                return false;
+            }
 
-                // LOCK EFFECT
+            // LOCK EFFECT
+            if (btn) {
                 btn.innerHTML = '<i class="bi bi-soundwave"></i> LOCKING... <span style="width:14px; height:14px; border:2px solid white; border-top-color:transparent; border-radius:50%; animation:spin 0.8s infinite; display:inline-block;"></span>';
                 btn.disabled = true;
                 btn.style.opacity = '0.8';
-                
-                // FREQUENCY BURST
-                baseFreq = 104.7 + (Math.random() * 0.8 - 0.4);
-                if (freqEl) freqEl.textContent = baseFreq.toFixed(1);
-                if (meterFill) meterFill.style.width = '92%';
-                
-                // CARD PULSE
-                document.querySelector('.tuner-card').style.transform = 'scale(0.99)';
-                setTimeout(() => document.querySelector('.tuner-card').style.transform = 'scale(1)', 200);
-                
-                // SPECTRUM BURST
-                const bands = document.querySelectorAll('.band');
-                bands.forEach(b => {
-                    b.style.height = Math.floor(Math.random() * 90 + 30) + 'px';
-                });
-            });
+            }
+            
+            // FREQUENCY BURST
+            baseFreq = 104.7 + (Math.random() * 0.8 - 0.4);
+            if (freqEl) freqEl.textContent = baseFreq.toFixed(1);
+            if (meterFill) meterFill.style.width = '92%';
+            
+            // CARD PULSE
+            var card = document.querySelector('.tuner-card');
+            if (card) {
+                card.style.transform = 'scale(0.99)';
+                setTimeout(function() {
+                    if (card) card.style.transform = 'scale(1)';
+                }, 200);
+            }
+            
+            // SPECTRUM BURST
+            var bands = document.querySelectorAll('.band');
+            for (var i = 0; i < bands.length; i++) {
+                bands[i].style.height = Math.floor(Math.random() * 90 + 30) + 'px';
+            }
+        });
+    }
+
+    // ===== FOCUS USERNAME =====
+    if (usernameField) {
+        usernameField.focus();
+    }
+    
+    // ===== PREVENT BODY SCROLL =====
+    document.body.style.overflow = 'hidden';
+    
+    // ===== RANDOM BAND PULSE =====
+    function randomBandPulse() {
+        var bands = document.querySelectorAll('.band');
+        for (var i = 0; i < bands.length; i++) {
+            if (Math.random() > 0.7) {
+                bands[i].style.height = Math.floor(Math.random() * 80 + 25) + 'px';
+            }
         }
+    }
+    
+    if (document.querySelectorAll('.band').length > 0) {
+        bandInterval = setInterval(randomBandPulse, 800);
+    }
 
-        // ===== FOCUS USERNAME =====
-        document.getElementById('id_username')?.focus();
-        
-        // ===== PREVENT BODY SCROLL =====
-        document.body.style.overflow = 'hidden';
-        window.addEventListener('touchmove', (e) => { if (e.target === document.body) e.preventDefault(); }, { passive: false });
+    // ===== CLEANUP FUNCTION (optional, for single page apps) =====
+    window.addEventListener('beforeunload', function() {
+        if (tuneInterval) clearInterval(tuneInterval);
+        if (bandInterval) clearInterval(bandInterval);
+    });
 
-        // ===== RANDOM BAND PULSE =====
-        setInterval(() => {
-            const bands = document.querySelectorAll('.band');
-            bands.forEach(b => {
-                if (Math.random() > 0.7) {
-                    b.style.height = Math.floor(Math.random() * 80 + 25) + 'px';
-                }
-            });
-        }, 800);
-    })();
+})();
 </script>
+
+<!-- Add spin animation keyframes if not already present -->
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
 {% endblock %}
