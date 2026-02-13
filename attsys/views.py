@@ -149,27 +149,21 @@ def login_view(request):
     if User.objects.count() == 0:
         print("⚠️ No users found, creating default admin...")
         try:
+            # FIXED: Create user properly
             admin_user = User.objects.create_user(
                 username='pejaladmin46',
                 email='faizalhussin45@gmail.com',
-                password='canon990',
-                role='ADMIN'
+                password='canon990'
             )
+            # Set role and permissions AFTER creation
+            admin_user.role = 'ADMIN'
             admin_user.is_staff = True
             admin_user.is_superuser = True
             admin_user.save()
             print(f"✅ Created default admin: pejaladmin46 / canon990")
+            print(f"✅ Admin can access Django admin at /admin/")
         except Exception as e:
             print(f"Error creating admin: {e}")
-    
-    # Also check if specific admin exists but maybe password wrong
-    try:
-        admin = User.objects.get(username='pejaladmin46')
-        # Reset password if needed (optional)
-        # admin.set_password('canon990')
-        # admin.save()
-    except User.DoesNotExist:
-        pass  # Already handled above
     
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
