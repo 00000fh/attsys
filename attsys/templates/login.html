@@ -274,7 +274,7 @@
     
     .password-field-container .form-control {
         width: 100%;
-        padding: 1rem 3rem 1rem 3rem; /* Right padding for eye, left padding for icon */
+        padding: 1rem 3rem 1rem 3rem;
         background: rgba(0,0,0,0.8);
         border: 1px solid rgba(255,255,255,0.2);
         border-radius: 0;
@@ -322,10 +322,10 @@
     
     .password-field-container .toggle-password i {
         font-size: 1.2rem;
-        position: static; /* Override the absolute positioning from .input-icon i */
+        position: static;
     }
 
-    /* ===== USERNAME FIELD (unchanged) ===== */
+    /* ===== USERNAME FIELD ===== */
     .username-field-container {
         position: relative;
         width: 100%;
@@ -402,7 +402,7 @@
         pointer-events: none;
     }
 
-    /* ===== FOOTER — FREQUENCY BAND ===== */
+    /* ===== FOOTER ===== */
     .login-footer {
         margin-top: 2.2rem;
         padding-top: 1.5rem;
@@ -447,7 +447,7 @@
         50% { opacity: 0.4; }
     }
 
-    /* ===== NOTIFICATION — SPECTRUM ALERT ===== */
+    /* ===== NOTIFICATION CONTAINER ===== */
     .notification-container {
         position: fixed;
         bottom: 30px;
@@ -507,7 +507,7 @@
         .notification-container { bottom: 15px; right: 15px; width: 280px; }
     }
 
-    /* Loading spinner for button */
+    /* Loading spinner */
     .btn-login .spinner {
         width: 14px;
         height: 14px;
@@ -517,6 +517,139 @@
         animation: spin 0.8s infinite linear;
         display: inline-block;
         margin-left: 8px;
+    }
+
+    /* ===== ELEGANT TRANSITION STYLES ===== */
+    .transition-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+    }
+    
+    .transition-overlay.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: all;
+    }
+    
+    .transition-content {
+        text-align: center;
+        color: white;
+        font-family: 'Courier New', monospace;
+        transform: translateY(20px);
+        opacity: 0;
+        transition: all 0.6s cubic-bezier(0.65, 0, 0.35, 1) 0.2s;
+    }
+    
+    .transition-overlay.active .transition-content {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .transition-frequency {
+        font-size: 5rem;
+        font-weight: 300;
+        letter-spacing: 8px;
+        margin-bottom: 1rem;
+        text-shadow: 0 0 20px rgba(255,255,255,0.3);
+        animation: frequencyPulse 2s infinite;
+    }
+    
+    @keyframes frequencyPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+    
+    .transition-lock {
+        font-size: 1.2rem;
+        letter-spacing: 12px;
+        text-transform: uppercase;
+        margin-bottom: 2rem;
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .transition-progress-container {
+        width: 300px;
+        height: 2px;
+        background: rgba(255,255,255,0.1);
+        margin: 2rem auto;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .transition-progress-bar {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: white;
+        animation: progressSweep 2.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+    }
+    
+    @keyframes progressSweep {
+        0% { left: -100%; }
+        50% { left: 0; }
+        100% { left: 100%; }
+    }
+    
+    .transition-status {
+        font-size: 0.8rem;
+        letter-spacing: 4px;
+        color: rgba(255,255,255,0.5);
+        margin-top: 1rem;
+    }
+    
+    .transition-wave {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 30%;
+        background: linear-gradient(180deg, transparent, rgba(255,255,255,0.02));
+        pointer-events: none;
+    }
+    
+    .transition-wave::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 20px,
+            rgba(255,255,255,0.02) 21px,
+            transparent 22px
+        );
+        animation: waveShift 3s linear infinite;
+    }
+    
+    @keyframes waveShift {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(40px); }
+    }
+    
+    .btn-login.transitioning {
+        animation: buttonGlow 1s infinite alternate;
+    }
+    
+    @keyframes buttonGlow {
+        0% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        100% { box-shadow: 0 0 30px rgba(255,255,255,0.8); }
     }
 }
 </style>
@@ -631,6 +764,19 @@
     </div>
 </div>
 
+<!-- ELEGANT TRANSITION OVERLAY -->
+<div class="transition-overlay" id="transitionOverlay">
+    <div class="transition-content">
+        <div class="transition-frequency" id="transitionFrequency">104.7 MHz</div>
+        <div class="transition-lock">ESTABLISHING LINK</div>
+        <div class="transition-progress-container">
+            <div class="transition-progress-bar"></div>
+        </div>
+        <div class="transition-status" id="transitionStatus">TUNING TO SECURE CHANNEL</div>
+    </div>
+    <div class="transition-wave"></div>
+</div>
+
 <!-- NOTIFICATION CONTAINER -->
 <div class="notification-container" id="notificationContainer"></div>
 
@@ -674,6 +820,9 @@
     var btn = document.getElementById('loginButton');
     var usernameField = document.getElementById('id_username');
     var passwordField = document.getElementById('id_password');
+    var transitionOverlay = document.getElementById('transitionOverlay');
+    var transitionFreq = document.getElementById('transitionFrequency');
+    var transitionStatus = document.getElementById('transitionStatus');
     
     var baseFreq = 104.7;
     var tuneInterval = null;
@@ -692,7 +841,6 @@
             meterFill.style.width = randomWidth + '%';
         }
         
-        // occasional glitch
         if (freqEl && Math.random() > 0.8) {
             freqEl.style.opacity = '0.5';
             setTimeout(function() {
@@ -701,13 +849,12 @@
         }
     }
     
-    // Start spectrum animation if elements exist
     if (freqEl || meterFill) {
         tuneSpectrum();
         tuneInterval = setInterval(tuneSpectrum, 1800);
     }
 
-    // ===== TOGGLE PASSWORD - FIXED =====
+    // ===== TOGGLE PASSWORD =====
     if (toggle && pw) {
         toggle.addEventListener('click', function(e) {
             e.preventDefault();
@@ -718,7 +865,6 @@
             if (icon) {
                 icon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             }
-            // Keep focus on password field
             pw.focus();
         });
     }
@@ -809,12 +955,13 @@
         }
     }
     
-    // Load messages after a short delay
     setTimeout(loadMessages, 150);
 
-    // ===== FORM SUBMIT: VALIDATION + SPECTRUM EFFECT =====
+    // ===== ELEGANT TRANSITION =====
     if (form) {
         form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
             var uname = usernameField;
             var pword = passwordField;
             var err = false;
@@ -838,36 +985,108 @@
             }
             
             if (err) {
-                e.preventDefault();
                 return false;
             }
 
-            // LOCK EFFECT
+            // Button animation
             if (btn) {
-                btn.innerHTML = '<i class="bi bi-soundwave"></i> LOCKING... <span class="spinner"></span>';
+                btn.classList.add('transitioning');
+                btn.innerHTML = '<i class="bi bi-soundwave"></i> LOCKING <span class="spinner"></span>';
                 btn.disabled = true;
-                btn.style.opacity = '0.8';
             }
             
-            // FREQUENCY BURST
-            baseFreq = 104.7 + (Math.random() * 0.8 - 0.4);
-            if (freqEl) freqEl.textContent = baseFreq.toFixed(1);
-            if (meterFill) meterFill.style.width = '92%';
+            // Show transition overlay
+            transitionOverlay.classList.add('active');
             
-            // CARD PULSE
-            var card = document.querySelector('.tuner-card');
-            if (card) {
-                card.style.transform = 'scale(0.99)';
-                setTimeout(function() {
-                    if (card) card.style.transform = 'scale(1)';
-                }, 200);
-            }
+            // Animate frequency
+            const frequencies = ['104.7 MHz', '98.3 MHz', '101.5 MHz', '106.9 MHz', '104.7 MHz'];
+            let freqIndex = 0;
+            const freqInterval = setInterval(() => {
+                if (freqIndex < frequencies.length) {
+                    if (transitionFreq) {
+                        transitionFreq.textContent = frequencies[freqIndex];
+                    }
+                    freqIndex++;
+                } else {
+                    clearInterval(freqInterval);
+                }
+            }, 300);
             
-            // SPECTRUM BURST
-            var bands = document.querySelectorAll('.band');
-            for (var i = 0; i < bands.length; i++) {
-                bands[i].style.height = Math.floor(Math.random() * 90 + 30) + 'px';
-            }
+            // Update status messages
+            const statuses = [
+                'TUNING TO SECURE CHANNEL',
+                'ESTABLISHING LINK',
+                'VERIFYING CREDENTIALS',
+                'SIGNAL LOCKED',
+                'CONNECTING TO DASHBOARD'
+            ];
+            
+            let statusIndex = 0;
+            const statusInterval = setInterval(() => {
+                if (statusIndex < statuses.length) {
+                    if (transitionStatus) {
+                        transitionStatus.textContent = statuses[statusIndex];
+                    }
+                    statusIndex++;
+                } else {
+                    clearInterval(statusInterval);
+                }
+            }, 400);
+            
+            // Submit form
+            setTimeout(() => {
+                const formData = new FormData(form);
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        // Successful login - redirect
+                        window.location.href = response.url;
+                    } else {
+                        // Login failed - reset
+                        transitionOverlay.classList.remove('active');
+                        btn.classList.remove('transitioning');
+                        btn.innerHTML = '<i class="bi bi-soundwave"></i> LOGIN <i class="bi bi-arrow-right-short"></i>';
+                        btn.disabled = false;
+                        
+                        clearInterval(freqInterval);
+                        clearInterval(statusInterval);
+                        
+                        return response.text().then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const errors = doc.getElementById('formErrors') || doc.getElementById('djangoMessages');
+                            
+                            if (errors) {
+                                const errorMsgs = errors.querySelectorAll('.error, .message');
+                                errorMsgs.forEach(msg => {
+                                    showNotification('error', 'AUTH FAILED', msg.textContent.trim());
+                                });
+                            } else {
+                                showNotification('error', 'AUTH FAILED', 'Invalid credentials');
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Login error:', error);
+                    transitionOverlay.classList.remove('active');
+                    btn.classList.remove('transitioning');
+                    btn.innerHTML = '<i class="bi bi-soundwave"></i> LOGIN <i class="bi bi-arrow-right-short"></i>';
+                    btn.disabled = false;
+                    
+                    clearInterval(freqInterval);
+                    clearInterval(statusInterval);
+                    
+                    showNotification('error', 'SYSTEM ERROR', 'Connection failed');
+                });
+            }, 800);
         });
     }
 
@@ -893,7 +1112,7 @@
         bandInterval = setInterval(randomBandPulse, 800);
     }
 
-    // ===== CLEANUP FUNCTION =====
+    // ===== CLEANUP =====
     window.addEventListener('beforeunload', function() {
         if (tuneInterval) clearInterval(tuneInterval);
         if (bandInterval) clearInterval(bandInterval);
@@ -921,7 +1140,6 @@
 })();
 </script>
 
-<!-- Add spin animation keyframes if not already present -->
 <style>
 @keyframes spin {
     0% { transform: rotate(0deg); }
