@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/event/<int:event_id>/export-registrations/', views.export_registrations_csv, name='export_registrations_csv'),
     path('api/event/<int:event_id>/export-registrations-pdf/', views.export_registrations_pdf, name='export_registrations_pdf'),
     path('api/attendee/<int:attendee_id>/delete/', views.delete_attendee, name='delete_attendee'),
+    path('api/staff/create/', views.create_staff, name='create_staff'),
     
     # Admin staff management
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),

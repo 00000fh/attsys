@@ -138,6 +138,9 @@ def malaysia_now():
 
 
 def login_view(request):
+    # === CALL THE ADMIN CREATION FUNCTION FIRST ===
+    custom_login(request)  # ← ADD THIS LINE
+    
     if request.user.is_authenticated:
         return redirect('dashboard')
     
@@ -1272,6 +1275,65 @@ def toggle_staff_status(request, user_id):
     )
 
     return redirect('manage_staff')
+
+
+@login_required
+@csrf_exempt
+def create_staff(request):
+    """API endpoint to create new staff member"""
+    if not request.user.is_active or request.user.role != 'ADMIN':
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        # Validation
+        if not username or not password:
+            return JsonResponse({'error': 'Username and password required'}, status=400)
+        
+        if len(username) < 3:
+            return JsonResponse({'error': 'Username must be at least 3 characters'}, status=400)
+        
+        if len(password) < 6:
+            return JsonResponse({'error': 'Password must be at least 6 characters'}, status=400)
+        
+        # Check if username exists
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'error': 'Username already exists'}, status=400)
+        
+        # Create staff user
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            role='STAFF',
+            is_active=True
+        )
+        
+        # Store default password for display (in real system, you'd encrypt this)
+        # For demo purposes, we're storing it - in production, you'd never store plain passwords
+        user.default_password = password
+        user.last_password_update = timezone.now()
+        user.save()
+        
+        return JsonResponse({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'role': user.role
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        print(f"Error creating staff: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def submit_feedback(request, event_id):

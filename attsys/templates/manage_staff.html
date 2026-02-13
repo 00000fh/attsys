@@ -1,232 +1,342 @@
 {% extends 'base.html' %}
-{% block title %}Manage Staff{% endblock %}
+
+{% block title %}STAFF CONTROL · ATTSYS SIGNAL LOCK{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Staff Management specific styles */
+    /* ===== STAFF MANAGEMENT - NEUROMORPHIC DARK ===== */
     :root {
         --staff-card-bg: white;
         --staff-card-border: #e9ecef;
-        --status-active: #198754;
-        --status-inactive: #dc3545;
-        --status-pending: #fd7e14;
+        --status-active: #10b981;
+        --status-inactive: #ef4444;
+        --status-pending: #f59e0b;
     }
 
-    .page-header {
-        margin-bottom: 2rem;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
+    /* ===== STAT CARDS ===== */
     .stat-card {
-        background: var(--staff-card-bg);
-        border: 1px solid var(--staff-card-border);
-        border-radius: 12px;
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 24px;
         padding: 1.5rem;
-        transition: all 0.2s ease;
+        transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
         height: 100%;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--neu-raised-sm);
     }
 
     .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        transform: translateY(-4px);
+        box-shadow: var(--neu-raised-deep);
     }
 
     .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
+        width: 52px;
+        height: 52px;
+        border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 1rem;
-        background: var(--gray-100);
+        background: linear-gradient(145deg, var(--gray-100), var(--gray-200));
+        box-shadow: var(--neu-inset-flat);
     }
 
     .stat-icon i {
-        font-size: 1.25rem;
-        color: var(--dark);
+        font-size: 1.5rem;
+        color: var(--black);
     }
 
     .stat-value {
-        font-size: 2rem;
+        font-size: 2.25rem;
         font-weight: 700;
-        color: var(--dark);
+        color: var(--black);
         line-height: 1;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.35rem;
+        font-feature-settings: "tnum";
     }
 
     .stat-label {
-        font-size: 0.875rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
         color: var(--gray-600);
-        margin-bottom: 1rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-thin {
+        height: 4px;
+        background: var(--gray-200);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .progress-bar {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 1s ease-in-out;
+    }
+
+    .progress-bar.bg-dark { background: var(--black); }
+    .progress-bar.bg-success { background: var(--status-active); }
+    .progress-bar.bg-danger { background: var(--status-inactive); }
+
+    /* ===== STAFF TABLE ===== */
+    .staff-table-container {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        box-shadow: var(--neu-raised-sm);
+        margin-top: 1.5rem;
     }
 
     .staff-table {
-        background: white;
-        border-radius: 12px;
-        border: 1px solid #e9ecef;
-        overflow: hidden;
-        margin-bottom: 2rem;
-    }
-
-    .staff-table thead {
-        background: var(--gray-50);
-        border-bottom: 2px solid var(--gray-200);
+        width: 100%;
+        border-collapse: collapse;
     }
 
     .staff-table th {
-        font-weight: 600;
+        background: var(--gray-50);
         color: var(--gray-700);
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
         padding: 1rem 1.5rem;
-        border: none;
-        white-space: nowrap;
+        text-align: left;
+        border-bottom: 2px solid var(--gray-200);
     }
 
     .staff-table td {
-        padding: 1rem 1.5rem;
-        border-color: var(--gray-100);
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-800);
+        font-size: 0.85rem;
+        transition: background 0.15s ease;
         vertical-align: middle;
+    }
+
+    .staff-table tbody tr {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        animation: fadeIn 0.3s ease-out;
     }
 
     .staff-table tbody tr:hover {
         background: var(--gray-50);
+        transform: translateX(4px);
     }
 
+    .staff-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== USER AVATAR ===== */
     .user-avatar {
-        width: 36px;
-        height: 36px;
-        background: var(--primary-light);
-        border-radius: 50%;
+        width: 42px;
+        height: 42px;
+        background: var(--black);
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 600;
-        color: var(--primary);
-        font-size: 0.875rem;
+        font-weight: 700;
+        color: white;
+        font-size: 1rem;
+        box-shadow: var(--neu-raised-sm);
     }
 
     .staff-name {
-        font-weight: 500;
-        color: var(--dark);
+        font-weight: 600;
+        color: var(--black);
         margin-bottom: 0.125rem;
+        font-size: 0.9rem;
     }
 
-    .staff-email {
-        font-size: 0.75rem;
-        color: var(--gray-600);
+    .staff-role {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        letter-spacing: 0.3px;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
+    /* ===== STATUS BADGES ===== */
     .status-badge {
         display: inline-flex;
         align-items: center;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 500;
+        padding: 0.35rem 1rem;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
     }
 
     .status-active {
-        background: rgba(25, 135, 84, 0.1);
+        background: rgba(16, 185, 129, 0.1);
         color: var(--status-active);
+        border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
     .status-inactive {
-        background: rgba(220, 53, 69, 0.1);
+        background: rgba(239, 68, 68, 0.1);
         color: var(--status-inactive);
+        border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
-    .event-count {
+    /* ===== PASSWORD DISPLAY ===== */
+    .password-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--gray-100);
+        padding: 0.35rem 1rem;
+        border-radius: 40px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .password-text {
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
         font-weight: 600;
-        color: var(--dark);
-        font-size: 1.125rem;
+        color: var(--black);
+        letter-spacing: 0.5px;
     }
 
-    .event-label {
-        font-size: 0.75rem;
-        color: var(--gray-600);
+    .password-toggle {
+        cursor: pointer;
+        color: var(--gray-500);
+        transition: color 0.2s ease;
     }
 
+    .password-toggle:hover {
+        color: var(--black);
+    }
+
+    .password-hidden {
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--gray-500);
+        letter-spacing: 2px;
+    }
+
+    /* ===== ACTION BUTTONS ===== */
     .action-buttons {
         display: flex;
         gap: 0.5rem;
         justify-content: flex-end;
     }
 
-    .btn-toggle {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
-        border-radius: 8px;
-        font-weight: 500;
-        min-width: 90px;
-        display: flex;
+    .btn-action {
+        padding: 0.5rem 1.25rem;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.2s ease;
+        border: 1px solid var(--gray-200);
+        background: white;
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
         gap: 0.5rem;
-        transition: all 0.2s;
     }
 
-    .btn-toggle:hover {
+    .btn-action:hover {
+        background: var(--gray-100);
+        border-color: var(--gray-400);
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-toggle {
+        padding: 0.5rem 1.25rem;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .btn-toggle-success {
-        background: var(--success);
-        border: 1px solid var(--success);
-        color: white;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--status-active);
+        border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
     .btn-toggle-success:hover {
-        background: #157347;
-        border-color: #157347;
+        background: var(--status-active);
         color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
     .btn-toggle-danger {
-        background: #dc3545;
-        border: 1px solid #dc3545;
-        color: white;
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--status-inactive);
+        border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
     .btn-toggle-danger:hover {
-        background: #bb2d3b;
-        border-color: #bb2d3b;
+        background: var(--status-inactive);
         color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
     }
 
-    .empty-state {
-        padding: 3rem 1rem;
-        text-align: center;
-        color: var(--gray-600);
+    .btn-add-staff {
+        background: var(--black) !important;
+        color: white !important;
+        border: 1px solid var(--gray-700) !important;
+        padding: 0.7rem 1.8rem !important;
+        border-radius: 40px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.25s ease !important;
+        box-shadow: 0 8px 20px -6px rgba(0,0,0,0.3) !important;
     }
 
-    .empty-state i {
-        font-size: 3rem;
-        color: var(--gray-300);
-        margin-bottom: 1rem;
+    .btn-add-staff:hover {
+        background: var(--gray-800) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 14px 28px -8px rgba(0,0,0,0.4) !important;
     }
 
-    .last-active {
-        font-size: 0.75rem;
-        color: var(--gray-600);
-    }
-
+    /* ===== SEARCH ===== */
     .search-container {
         position: relative;
-        margin-bottom: 1.5rem;
+        max-width: 300px;
     }
 
     .search-input {
-        padding-left: 2.5rem;
-        border-radius: 10px;
-        border: 1px solid var(--gray-300);
-        height: 44px;
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border-radius: 40px;
+        border: 1px solid var(--gray-200);
+        background: white;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--black);
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
     }
 
     .search-icon {
@@ -235,505 +345,873 @@
         top: 50%;
         transform: translateY(-50%);
         color: var(--gray-500);
+        font-size: 0.9rem;
     }
 
-    .table-responsive {
-        border-radius: 12px;
-        overflow: hidden;
+    /* ===== MODAL - NEUROMORPHIC ===== */
+    .modal-neu {
+        background: white;
+        border-radius: 32px;
+        border: 1px solid var(--gray-200);
+        box-shadow: var(--neu-raised-deep);
     }
 
-    .badge-events {
-        background: var(--primary-light);
-        color: var(--primary);
-        font-weight: 500;
+    .modal-header {
+        padding: 1.5rem 1.5rem 0.75rem;
+        border-bottom: 1px solid var(--gray-100);
     }
 
-    .btn-add-staff {
-        background: var(--dark);
-        border: 1px solid var(--dark);
-        color: white;
-        padding: 0.5rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
-        display: inline-flex;
+    .modal-title {
+        font-weight: 700;
+        color: var(--black);
+        font-size: 1.25rem;
+        letter-spacing: -0.01em;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        padding: 1rem 1.5rem 1.5rem;
+        border-top: 1px solid var(--gray-100);
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray-600);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+        border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        background: white;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--black);
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+    }
+
+    .input-group {
+        position: relative;
+        display: flex;
         align-items: center;
-        gap: 0.5rem;
-        transition: all 0.2s;
     }
 
-    .btn-add-staff:hover {
-        background: var(--gray-800);
-        border-color: var(--gray-800);
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    .input-group .form-control {
+        padding-right: 3rem;
     }
 
+    .input-group-append {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .btn-password-toggle {
+        background: transparent;
+        border: none;
+        color: var(--gray-500);
+        padding: 0.25rem;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .btn-password-toggle:hover {
+        color: var(--black);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: var(--gray-500);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+
+    /* ===== SIGNAL BARS ===== */
+    .signal-strength {
+        display: inline-flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 20px;
+    }
+
+    .signal-bar {
+        width: 4px;
+        background: var(--black);
+        height: 12px;
+        animation: signalPulse 1.2s infinite alternate;
+        opacity: 0.7;
+        border-radius: 2px;
+    }
+
+    .signal-bar:nth-child(1) { height: 10px; animation-delay: 0s; }
+    .signal-bar:nth-child(2) { height: 14px; animation-delay: 0.2s; }
+    .signal-bar:nth-child(3) { height: 20px; animation-delay: 0.4s; }
+    .signal-bar:nth-child(4) { height: 16px; animation-delay: 0.1s; }
+    .signal-bar:nth-child(5) { height: 12px; animation-delay: 0.3s; }
+
+    @keyframes signalPulse {
+        0% { opacity: 0.3; height: 8px; }
+        100% { opacity: 1; height: 20px; }
+    }
+
+    /* ===== REVEAL ANIMATION ===== */
+    .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .staff-table {
-            font-size: 0.875rem;
-        }
-        
         .staff-table th,
         .staff-table td {
-            padding: 0.75rem 1rem;
+            padding: 1rem;
         }
         
         .action-buttons {
             flex-direction: column;
-            gap: 0.25rem;
+            gap: 0.35rem;
         }
         
+        .btn-action,
         .btn-toggle {
-            min-width: 80px;
-            padding: 0.25rem 0.5rem;
+            padding: 0.4rem 1rem;
         }
-    }
-
-    /* Animation for status changes */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(5px);
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .staff-table tbody tr {
-        animation: fadeIn 0.3s ease-out;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="staff-management-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="h2 fw-bold mb-2 text-dark">Staff Management</h1>
-                <p class="text-muted mb-0">
-                    Manage staff accounts, permissions, and access controls
-                </p>
+<div class="staff-management-container max-w-7xl mx-auto transmission-enter">
+
+    <!-- ===== HEADER ===== -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 reveal">
+        <div>
+            <div class="inline-flex items-center gap-3 px-4 py-2 neu-inset rounded-full mb-4">
+                <div class="signal-strength">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <span class="text-xs font-mono text-gray-600 tracking-wider">STAFF CONTROL · ADMIN ONLY</span>
+                <span class="text-xs font-mono bg-black text-white px-2 py-0.5 rounded-full">SECURE</span>
             </div>
-            <button class="btn-add-staff" data-bs-toggle="modal" data-bs-target="#addStaffModal">
-                <i class="bi bi-person-plus"></i>
-                Add Staff
+            
+            <h1 class="text-3xl md:text-4xl font-bold text-black tracking-tight glitch-text">
+                STAFF MANAGEMENT
+            </h1>
+            <p class="text-gray-500 text-base max-w-2xl mt-2">
+                <span class="font-mono">›</span> Manage staff accounts · toggle access · view credentials
+            </p>
+        </div>
+        
+        <div class="flex items-center gap-4 mt-4 md:mt-0">
+            <div class="neu-raised-sm px-5 py-3 rounded-xl flex items-center gap-3 transmission-ripple">
+                <i class="bi bi-shield-lock text-gray-500"></i>
+                <div>
+                    <div id="secureFreq" class="text-sm font-mono text-black font-bold">104.7 MHz</div>
+                    <div class="text-xs text-gray-400">ENCRYPTED</div>
+                </div>
+            </div>
+            
+            <button class="btn-add-staff" onclick="openAddStaffModal()">
+                <i class="bi bi-person-plus"></i> ADD STAFF
+                <i class="bi bi-arrow-right-short"></i>
             </button>
         </div>
     </div>
 
-    <!-- Stats Overview -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="bi bi-person-badge"></i>
+    <!-- ===== STATS GRID ===== -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <!-- Total Staff -->
+        <div class="stat-card reveal">
+            <div class="flex justify-between items-start mb-3">
+                <div class="stat-icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <span class="text-xs bg-gray-100 px-3 py-1.5 rounded-full font-mono">
+                    TOTAL
+                </span>
             </div>
-            <div class="stat-value">{{ staff_users|length }}</div>
-            <div class="stat-label">Total Staff Members</div>
-            <div class="progress-thin mt-2">
-                <div class="progress-bar bg-dark" role="progressbar" 
-                     style="width: {% widthratio active_staff_count staff_users|length 100 %}%"></div>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="stat-value">{{ active_staff_count }}</div>
-            <div class="stat-label">Active Staff</div>
-            <div class="progress-thin mt-2">
-                <div class="progress-bar bg-success" role="progressbar" 
-                     style="width: {% widthratio active_staff_count staff_users|length 100 %}%"></div>
+            <div class="stat-value" id="totalStaffCounter">{{ staff_users|length }}</div>
+            <div class="stat-label">STAFF MEMBERS</div>
+            <div class="progress-thin">
+                <div class="progress-bar bg-dark" style="width: 100%;"></div>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="bi bi-x-circle"></i>
+        <!-- Active Staff -->
+        <div class="stat-card reveal">
+            <div class="flex justify-between items-start mb-3">
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <span class="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-full font-mono">
+                    {{ active_staff_count }} ACTIVE
+                </span>
             </div>
-            <div class="stat-value">{{ inactive_staff_count }}</div>
-            <div class="stat-label">Inactive Staff</div>
-            <div class="progress-thin mt-2">
-                <div class="progress-bar bg-danger" role="progressbar" 
-                     style="width: {% widthratio inactive_staff_count staff_users|length 100 %}%"></div>
+            <div class="stat-value" id="activeStaffCounter">{{ active_staff_count }}</div>
+            <div class="stat-label">ACTIVE STAFF</div>
+            <div class="progress-thin">
+                <div class="progress-bar bg-success" style="width: {% widthratio active_staff_count staff_users|length 100 %}%;"></div>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="bi bi-calendar-event"></i>
+        <!-- Inactive Staff -->
+        <div class="stat-card reveal">
+            <div class="flex justify-between items-start mb-3">
+                <div class="stat-icon">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <span class="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-full font-mono">
+                    {{ inactive_staff_count }} INACTIVE
+                </span>
             </div>
-            <div class="stat-value">{{ total_events }}</div>
-            <div class="stat-label">Total Events</div>
-            <div class="progress-thin mt-2">
-                <div class="progress-bar bg-dark" role="progressbar" style="width: 100%"></div>
+            <div class="stat-value" id="inactiveStaffCounter">{{ inactive_staff_count }}</div>
+            <div class="stat-label">INACTIVE STAFF</div>
+            <div class="progress-thin">
+                <div class="progress-bar bg-danger" style="width: {% widthratio inactive_staff_count staff_users|length 100 %}%;"></div>
+            </div>
+        </div>
+
+        <!-- Total Events -->
+        <div class="stat-card reveal">
+            <div class="flex justify-between items-start mb-3">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <span class="text-xs bg-gray-100 px-3 py-1.5 rounded-full font-mono">
+                    SYSTEM
+                </span>
+            </div>
+            <div class="stat-value" id="totalEventsCounter">{{ total_events }}</div>
+            <div class="stat-label">TOTAL EVENTS</div>
+            <div class="progress-thin">
+                <div class="progress-bar bg-dark" style="width: 100%;"></div>
             </div>
         </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="search-container">
-        <i class="bi bi-search search-icon"></i>
-        <input type="text" class="form-control search-input" id="staffSearch" 
-               placeholder="Search staff by name, email, or username...">
+    <!-- ===== SEARCH ===== -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 reveal">
+        <div class="search-container">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" class="search-input" id="staffSearch" 
+                   placeholder="Search staff by name or ID...">
+        </div>
+        <div class="text-xs text-gray-400 font-mono">
+            <span id="visibleCount">{{ staff_users|length }}</span> / {{ staff_users|length }} STAFF VISIBLE
+        </div>
     </div>
 
-    <!-- Staff Table -->
-    <div class="table-responsive">
-        <table class="table table-hover mb-0 staff-table">
-            <thead>
-                <tr>
-                    <th class="ps-4">Staff Member</th>
-                    <th>Status</th>
-                    <th>Events</th>
-                    <th>Last Active</th>
-                    <th class="pe-4 text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="staffTableBody">
-                {% for staff in staff_users %}
-                <tr class="staff-row" data-search="{{ staff.username }} {{ staff.email }}">
-                    <td class="ps-4">
-                        <div class="d-flex align-items-center">
-                            <div class="user-avatar me-3">
-                                {{ staff.username|first|upper }}
+    <!-- ===== STAFF TABLE ===== -->
+    <div class="staff-table-container reveal">
+        <div class="overflow-x-auto">
+            <table class="staff-table">
+                <thead>
+                    <tr>
+                        <th class="ps-4">STAFF MEMBER</th>
+                        <th>STAFF ID</th>
+                        <th>PASSWORD</th>
+                        <th>STATUS</th>
+                        <th>EVENTS</th>
+                        <th>LAST ACTIVE</th>
+                        <th class="pe-4 text-end">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="staffTableBody">
+                    {% for staff in staff_users %}
+                    <tr class="staff-row" data-search="{{ staff.username }} {{ staff.id }}">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-3">
+                                    {{ staff.username|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="staff-name">{{ staff.username }}</div>
+                                    <div class="staff-role">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                        STAFF
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="staff-name">{{ staff.username }}</div>
-                                <div class="staff-email">{{ staff.email|default:"No email" }}</div>
+                        </td>
+                        <td>
+                            <span class="font-mono text-sm font-semibold text-black">
+                                STAFF-{{ staff.id|stringformat:"06d" }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="password-container" id="password-container-{{ staff.id }}">
+                                <span class="password-hidden" id="password-hidden-{{ staff.id }}">••••••••</span>
+                                <i class="bi bi-eye password-toggle" id="toggle-icon-{{ staff.id }}" 
+                                   onclick="togglePasswordVisibility({{ staff.id }})"
+                                   title="Show/Hide Password"></i>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        {% if staff.is_active %}
-                            <span class="status-badge status-active">
-                                <i class="bi bi-check-circle-fill me-1"></i>
-                                Active
-                            </span>
-                        {% else %}
-                            <span class="status-badge status-inactive">
-                                <i class="bi bi-x-circle-fill me-1"></i>
-                                Disabled
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="event-count">
-                            {{ staff.events.count|default:0 }}
-                        </div>
-                        <div class="event-label">
-                            events created
-                        </div>
-                    </td>
-                    <td>
-                        <div class="last-active">
-                            {% if staff.last_login %}
-                                {{ staff.last_login|date:"M d, Y" }}
-                            {% else %}
-                                Never logged in
-                            {% endif %}
-                        </div>
-                    </td>
-                    <td class="pe-4">
-                        <div class="action-buttons">
-                            <form method="post" action="{% url 'toggle_staff' staff.id %}" class="d-inline">
-                                {% csrf_token %}
-                                {% if staff.is_active %}
-                                    <button type="submit" class="btn btn-toggle-danger btn-toggle">
-                                        <i class="bi bi-person-x"></i>
-                                        Disable
-                                    </button>
+                            <div class="text-[0.6rem] text-gray-400 mt-1 font-mono">
+                                {% if staff.last_password_update %}
+                                UPDATED: {{ staff.last_password_update|date:"d/m/y" }}
                                 {% else %}
-                                    <button type="submit" class="btn btn-toggle-success btn-toggle">
-                                        <i class="bi bi-person-check"></i>
-                                        Enable
-                                    </button>
+                                DEFAULT
                                 {% endif %}
-                            </form>
-                            <button class="btn btn-outline-dark btn-toggle" 
-                                    onclick="viewStaffDetails('{{ staff.id }}')">
-                                <i class="bi bi-eye"></i>
-                                View
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-5">
-                        <div class="empty-state">
-                            <i class="bi bi-people"></i>
-                            <h6 class="mt-2 mb-3">No staff members found</h6>
-                            <p class="mb-4">Start by adding your first staff member</p>
-                            <button class="btn-add-staff" data-bs-toggle="modal" data-bs-target="#addStaffModal">
-                                <i class="bi bi-person-plus"></i>
-                                Add Staff Member
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            </div>
+                        </td>
+                        <td>
+                            {% if staff.is_active %}
+                                <span class="status-badge status-active">
+                                    <span class="w-1.5 h-1.5 bg-green-600 rounded-full mr-1.5 animate-pulse"></span>
+                                    ACTIVE
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-inactive">
+                                    <span class="w-1.5 h-1.5 bg-red-600 rounded-full mr-1.5"></span>
+                                    DISABLED
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <span class="font-bold text-black text-lg font-mono">{{ staff.events.count|default:0 }}</span>
+                                <span class="text-xs text-gray-400">EVENTS</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-sm text-gray-700">
+                                {% if staff.last_login %}
+                                    {{ staff.last_login|date:"d M Y" }}
+                                    <div class="text-xs text-gray-400">{{ staff.last_login|time:"H:i" }}</div>
+                                {% else %}
+                                    <span class="text-gray-400">NEVER</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="pe-4">
+                            <div class="action-buttons">
+                                <form method="post" action="{% url 'toggle_staff' staff.id %}" class="d-inline" 
+                                      onsubmit="return confirmToggle('{{ staff.username }}', {{ staff.is_active|yesno:"disable,enable" }})">
+                                    {% csrf_token %}
+                                    {% if staff.is_active %}
+                                        <button type="submit" class="btn-toggle btn-toggle-danger">
+                                            <i class="bi bi-person-x"></i>
+                                            DISABLE
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn-toggle btn-toggle-success">
+                                            <i class="bi bi-person-check"></i>
+                                            ENABLE
+                                        </button>
+                                    {% endif %}
+                                </form>
+                                <button class="btn-action" onclick="copyCredentials('{{ staff.username }}', '{{ staff.default_password|default:"xxxxx" }}')">
+                                    <i class="bi bi-files"></i>
+                                    COPY
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="bi bi-people"></i>
+                                <h6 class="mt-3 mb-2 text-sm font-medium text-gray-700">NO STAFF MEMBERS</h6>
+                                <p class="text-xs text-gray-400 mb-4">Initialize the system by adding your first staff member</p>
+                                <button class="btn-add-staff" onclick="openAddStaffModal()">
+                                    <i class="bi bi-person-plus"></i> ADD FIRST STAFF
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Pagination (if needed) -->
-    {% if staff_users.has_other_pages %}
-    <nav aria-label="Staff pagination">
-        <ul class="pagination justify-content-center mt-4">
-            {% if staff_users.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ staff_users.previous_page_number }}">Previous</a>
-            </li>
-            {% endif %}
-            
-            {% for num in staff_users.paginator.page_range %}
-                {% if staff_users.number == num %}
-                <li class="page-item active">
-                    <span class="page-link">{{ num }}</span>
-                </li>
-                {% elif num > staff_users.number|add:'-3' and num < staff_users.number|add:'3' %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                </li>
-                {% endif %}
-            {% endfor %}
-            
-            {% if staff_users.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ staff_users.next_page_number }}">Next</a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
+    <!-- ===== SYSTEM FOOTER ===== -->
+    <div class="mt-8 text-center text-xs text-gray-400 font-mono reveal">
+        <div class="inline-flex items-center gap-2 px-4 py-2 neu-inset rounded-full">
+            <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+            STAFF CONTROL PANEL · ENCRYPTED TRANSMISSION
+            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+            LAST SYNC: {{ now|date:"d/m/Y H:i" }}
+        </div>
+    </div>
 </div>
 
-<!-- Add Staff Modal -->
-<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addStaffModalLabel">Add New Staff Member</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- ===== ADD STAFF MODAL - SIMPLIFIED (ID + PASSWORD ONLY) ===== -->
+<div id="addStaffModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddStaffModal()"></div>
+    <div class="modal-neu relative w-full max-w-md mx-auto z-10">
+        <div class="modal-header">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-black flex items-center justify-center">
+                    <i class="bi bi-person-plus text-white text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="modal-title">ADD STAFF MEMBER</h3>
+                    <p class="text-xs text-gray-500 mt-1">Create new staff account · ID + password only</p>
+                </div>
             </div>
-            <div class="modal-body">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Staff accounts allow users to create and manage events
+        </div>
+        
+        <div class="modal-body">
+            <form id="addStaffForm" onsubmit="event.preventDefault(); addNewStaff();">
+                {% csrf_token %}
+                
+                <!-- STAFF ID (Username) -->
+                <div class="mb-5">
+                    <label class="form-label">
+                        <i class="bi bi-person me-1"></i> STAFF ID
+                    </label>
+                    <input type="text" class="form-control" id="username" 
+                           placeholder="e.g. staff_john" required 
+                           autocomplete="off" pattern="[a-zA-Z0-9_]+" 
+                           title="Letters, numbers, and underscores only">
+                    <div class="text-xs text-gray-400 mt-2 flex items-center gap-2">
+                        <i class="bi bi-info-circle"></i>
+                        Unique identifier · 3-30 characters
+                    </div>
                 </div>
                 
-                <form id="addStaffForm">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" required>
-                        <div class="form-text">Must be unique and 3-30 characters</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="email" required>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="confirmPassword" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirmPassword" required>
+                <!-- PASSWORD (With Show/Hide) -->
+                <div class="mb-4">
+                    <label class="form-label">
+                        <i class="bi bi-lock me-1"></i> PASSWORD
+                    </label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="password" 
+                               placeholder="Enter password" required 
+                               autocomplete="new-password" value="xxxxx">
+                        <div class="input-group-append">
+                            <button type="button" class="btn-password-toggle" onclick="toggleModalPassword()">
+                                <i class="bi bi-eye" id="modalPasswordIcon"></i>
+                            </button>
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Phone Number</label>
-                        <input type="tel" class="form-control" id="phone">
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-xs text-gray-400">
+                            <i class="bi bi-shield-check"></i> Min. 8 characters
+                        </span>
+                        <button type="button" class="text-xs text-black font-medium hover:underline"
+                                onclick="generateSecurePassword()">
+                            <i class="bi bi-arrow-repeat"></i> GENERATE
+                        </button>
                     </div>
-                    
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="sendWelcomeEmail" checked>
-                        <label class="form-check-label" for="sendWelcomeEmail">
-                            Send welcome email with login instructions
-                        </label>
+                </div>
+                
+                <!-- AUTO-GENERATED PASSWORD INFO -->
+                <div class="neu-inset-flat p-3 rounded-xl bg-gray-50 mt-4">
+                    <div class="flex items-start gap-2">
+                        <i class="bi bi-info-circle text-gray-500 mt-0.5"></i>
+                        <div class="text-xs text-gray-600">
+                            <span class="font-semibold">Default password:</span> canon990<br>
+                            Staff can change password after first login.
+                        </div>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-dark" onclick="addNewStaff()">
-                    <i class="bi bi-person-plus me-2"></i>
-                    Add Staff Member
-                </button>
-            </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-action" onclick="closeAddStaffModal()">
+                CANCEL
+            </button>
+            <button type="button" class="btn-add-staff" onclick="addNewStaff()">
+                <i class="bi bi-person-plus"></i> CREATE STAFF
+            </button>
         </div>
     </div>
 </div>
+
+<!-- ===== SUCCESS TOAST TEMPLATE ===== -->
+<div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-3 pointer-events-none"></div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Staff Management JavaScript
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize animations
-        const statCards = document.querySelectorAll('.stat-card');
-        statCards.forEach((card, index) => {
-            setTimeout(() => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                
+    (function() {
+        'use strict';
+
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stat cards
+            animateStatCards();
+            
+            // Initialize search
+            initSearch();
+            
+            // Initialize reveal animations
+            initReveal();
+            
+            // Update live frequency
+            initLiveFrequency();
+            
+            // Initialize all password fields to hidden state
+            initializePasswordFields();
+            
+            console.log('✅ Staff Management initialized');
+        });
+
+        // ===== STAT CARDS ANIMATION =====
+        function animateStatCards() {
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
                 setTimeout(() => {
-                    card.style.transition = 'all 0.3s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, 100);
-            }, index * 100);
-        });
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.3s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 100);
+            });
+        }
 
-        // Initialize search functionality
-        const searchInput = document.getElementById('staffSearch');
-        const staffRows = document.querySelectorAll('.staff-row');
-        
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
+        // ===== REVEAL ANIMATION =====
+        function initReveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
             
-            staffRows.forEach(row => {
-                const searchData = row.getAttribute('data-search').toLowerCase();
-                if (searchTerm === '' || searchData.includes(searchTerm)) {
-                    row.style.display = '';
-                    row.style.animation = 'fadeIn 0.3s ease-out';
-                } else {
-                    row.style.display = 'none';
+            reveals.forEach(el => observer.observe(el));
+        }
+
+        // ===== SEARCH FUNCTIONALITY =====
+        function initSearch() {
+            const searchInput = document.getElementById('staffSearch');
+            const staffRows = document.querySelectorAll('.staff-row');
+            const visibleCount = document.getElementById('visibleCount');
+            
+            if (!searchInput || !staffRows.length) return;
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                let visible = 0;
+                
+                staffRows.forEach(row => {
+                    const searchData = row.getAttribute('data-search').toLowerCase();
+                    const isMatch = searchTerm === '' || searchData.includes(searchTerm);
+                    row.style.display = isMatch ? '' : 'none';
+                    if (isMatch) visible++;
+                });
+                
+                if (visibleCount) {
+                    visibleCount.textContent = visible;
                 }
             });
-        });
+        }
 
-        // Add click effect to table rows
-        const tableRows = document.querySelectorAll('.staff-table tbody tr');
-        tableRows.forEach(row => {
-            row.addEventListener('click', function(e) {
-                if (!e.target.closest('button') && !e.target.closest('form')) {
-                    const staffId = this.querySelector('.action-buttons form').action.split('/').filter(Boolean).pop();
-                    viewStaffDetails(staffId);
-                }
-            });
+        // ===== PASSWORD VISIBILITY TOGGLE (TABLE) =====
+        window.togglePasswordVisibility = function(staffId) {
+            const hiddenSpan = document.getElementById(`password-hidden-${staffId}`);
+            const textSpan = document.getElementById(`password-text-${staffId}`);
+            const icon = document.getElementById(`toggle-icon-${staffId}`);
             
-            if (!row.classList.contains('empty-state')) {
-                row.style.cursor = 'pointer';
+            if (!hiddenSpan || !textSpan || !icon) return;
+            
+            const isHidden = hiddenSpan.style.display !== 'none';
+            
+            if (isHidden) {
+                // Show password
+                hiddenSpan.style.display = 'none';
+                textSpan.style.display = 'inline';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                // Hide password
+                hiddenSpan.style.display = 'inline';
+                textSpan.style.display = 'none';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
             }
-        });
+        };
 
-        // Initialize tooltips
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+        // ===== INITIALIZE PASSWORD FIELDS (ALL HIDDEN) =====
+        function initializePasswordFields() {
+            {% for staff in staff_users %}
+            const hiddenSpan{{ staff.id }} = document.getElementById(`password-hidden-${ {{ staff.id }} }`);
+            const textSpan{{ staff.id }} = document.getElementById(`password-text-${ {{ staff.id }} }`);
+            if (hiddenSpan{{ staff.id }} && textSpan{{ staff.id }}) {
+                hiddenSpan{{ staff.id }}.style.display = 'inline';
+                textSpan{{ staff.id }}.style.display = 'none';
+            }
+            {% endfor %}
+        }
 
-        // Update progress bars with animation
-        const progressBars = document.querySelectorAll('.progress-bar');
-        progressBars.forEach(bar => {
-            const width = bar.style.width;
-            bar.style.width = '0';
+        // ===== MODAL PASSWORD TOGGLE =====
+        window.toggleModalPassword = function() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.getElementById('modalPasswordIcon');
+            
+            if (!passwordInput || !icon) return;
+            
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            if (type === 'text') {
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        };
+
+        // ===== GENERATE SECURE PASSWORD =====
+        window.generateSecurePassword = function() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+            let password = '';
+            for (let i = 0; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) {
+                passwordInput.value = password;
+                passwordInput.setAttribute('type', 'text');
+                
+                const icon = document.getElementById('modalPasswordIcon');
+                if (icon) {
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                }
+            }
+        };
+
+        // ===== MODAL CONTROLS =====
+        window.openAddStaffModal = function() {
+            const modal = document.getElementById('addStaffModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                // Reset form
+                const form = document.getElementById('addStaffForm');
+                if (form) form.reset();
+                // Set default password
+                const passwordInput = document.getElementById('password');
+                if (passwordInput) {
+                    passwordInput.value = 'canon990';
+                    passwordInput.setAttribute('type', 'password');
+                }
+                // Reset icon
+                const icon = document.getElementById('modalPasswordIcon');
+                if (icon) {
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            }
+        };
+
+        window.closeAddStaffModal = function() {
+            const modal = document.getElementById('addStaffModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // ===== ADD NEW STAFF =====
+        window.addNewStaff = function() {
+            const username = document.getElementById('username')?.value.trim();
+            const password = document.getElementById('password')?.value.trim();
+            
+            if (!username) {
+                showToast('error', 'Validation Error', 'Staff ID is required');
+                return;
+            }
+            
+            if (username.length < 3) {
+                showToast('error', 'Validation Error', 'Staff ID must be at least 3 characters');
+                return;
+            }
+            
+            if (!password) {
+                showToast('error', 'Validation Error', 'Password is required');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showToast('error', 'Validation Error', 'Password must be at least 6 characters');
+                return;
+            }
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            
+            // Show loading state
+            const submitBtn = document.querySelector('#addStaffModal .btn-add-staff');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> CREATING...';
+            }
+            
+            // Make API call to create staff
+            fetch('/api/staff/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    role: 'STAFF'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', 'SUCCESS', `Staff "${username}" created successfully`);
+                    closeAddStaffModal();
+                    
+                    // Reload page after 1 second to show new staff
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showToast('error', 'Creation Failed', data.error || 'Could not create staff');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('error', 'System Error', 'Failed to create staff member');
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-person-plus"></i> CREATE STAFF';
+                }
+            });
+        };
+
+        // ===== COPY CREDENTIALS =====
+        window.copyCredentials = function(username, password) {
+            const text = `Staff ID: ${username}\nPassword: ${password}`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('success', 'COPIED', 'Staff credentials copied to clipboard');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('success', 'COPIED', 'Staff credentials copied to clipboard');
+            });
+        };
+
+        // ===== CONFIRM TOGGLE =====
+        window.confirmToggle = function(username, action) {
+            return confirm(`Are you sure you want to ${action} staff member "${username}"?`);
+        };
+
+        // ===== TOAST NOTIFICATION =====
+        function showToast(type, title, message) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const id = 'toast-' + Date.now();
+            const toast = document.createElement('div');
+            toast.id = id;
+            
+            let bgColor, icon;
+            switch(type) {
+                case 'success':
+                    bgColor = 'from-green-600 to-green-700';
+                    icon = 'bi-check-circle-fill';
+                    break;
+                case 'error':
+                    bgColor = 'from-red-600 to-red-700';
+                    icon = 'bi-x-circle-fill';
+                    break;
+                default:
+                    bgColor = 'from-blue-600 to-blue-700';
+                    icon = 'bi-info-circle-fill';
+            }
+            
+            toast.className = `toast-enter pointer-events-auto flex items-start gap-3 p-4 rounded-xl min-w-[280px] max-w-sm bg-gradient-to-br ${bgColor} shadow-lg`;
+            toast.innerHTML = `
+                <i class="bi ${icon} text-white text-xl mt-0.5"></i>
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-white">${title}</p>
+                    <p class="text-xs text-white/80">${message}</p>
+                </div>
+                <button onclick="this.closest('.toast-enter').remove()" class="text-white/80 hover:text-white">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
             
             setTimeout(() => {
-                bar.style.transition = 'width 1s ease-in-out';
-                bar.style.width = width;
-            }, 500);
-        });
-    });
-
-    // View staff details
-    function viewStaffDetails(staffId) {
-        // This would typically make an API call to get staff details
-        // For now, show a placeholder alert
-        alert(`Viewing details for staff ID: ${staffId}\n\nIn a real implementation, this would open a detailed view or modal with:\n- Staff information\n- Event history\n- Performance metrics\n- Activity logs`);
-        
-        // Example of what this function might do:
-        // fetch(`/api/staff/${staffId}/details/`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         // Open modal or show details
-        //         console.log('Staff details:', data);
-        //     });
-    }
-
-    // Add new staff member
-    function addNewStaff() {
-        const username = document.getElementById('username').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        if (!username || !email || !password || !confirmPassword) {
-            alert('Please fill in all required fields');
-            return;
+                const toastEl = document.getElementById(id);
+                if (toastEl) toastEl.remove();
+            }, 5000);
         }
-        
-        if (password !== confirmPassword) {
-            alert('Passwords do not match');
-            return;
-        }
-        
-        // This would typically submit a form or make an API call
-        // For demonstration, show success message
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addStaffModal'));
-        modal.hide();
-        
-        // Show success message
-        alert(`Staff member "${username}" has been created successfully!\n\nAn email with login instructions has been sent to ${email}`);
-        
-        // In real implementation, you would reload the page or update the table via AJAX
-        // window.location.reload();
-    }
 
-    // Handle toggle staff status (already in form, but adding confirmation)
-    document.querySelectorAll('form[action*="toggle_staff"]').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const button = this.querySelector('button');
-            const action = button.textContent.trim().toLowerCase();
-            const staffName = this.closest('tr').querySelector('.staff-name').textContent;
+        // ===== LIVE FREQUENCY =====
+        function initLiveFrequency() {
+            const freqEl = document.getElementById('secureFreq');
+            if (!freqEl) return;
             
-            if (!confirm(`Are you sure you want to ${action} ${staffName}?`)) {
-                e.preventDefault();
+            function updateFrequency() {
+                const base = 104.7;
+                const variation = (Math.random() * 0.4 - 0.2).toFixed(1);
+                const newFreq = (base + parseFloat(variation)).toFixed(1);
+                freqEl.textContent = `${newFreq} MHz`;
             }
-        });
-    });
-
-    // Real-time updates simulation
-    function simulateRealTimeUpdates() {
-        // In a real app, this would connect via WebSockets or use polling
-        // For demonstration, just update the time display periodically
-        setInterval(() => {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: true 
-            });
             
-            // Update any "last active" times that are recent
-            document.querySelectorAll('.last-active').forEach(el => {
-                if (el.textContent.includes('Today')) {
-                    // Already updated
-                } else if (el.textContent.includes('Never')) {
-                    // Leave as is
-                } else {
-                    // In real app, this would check actual last login time
-                }
-            });
-        }, 30000); // Update every 30 seconds
-    }
+            setInterval(updateFrequency, 3000);
+            updateFrequency();
+        }
 
-    // Initialize real-time updates
-    simulateRealTimeUpdates();
+    })();
+</script>
+
+<!-- Add necessary URL for staff creation -->
+<script>
+    // This will be replaced with actual Django URL
+    window.STAFF_CREATE_URL = "{% url 'manage_staff' %}";
 </script>
 {% endblock %}
