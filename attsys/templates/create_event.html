@@ -1,569 +1,831 @@
-<!-- create_event.html - CLEAN VERSION -->
 {% extends "base.html" %}
 
-{% block title %}Create Event | ATTSYS{% endblock %}
+{% block title %}CREATE EVENT · ATTSYS · SIGNAL CORE{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Create Event Page Specific Styles */
-    .create-event-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 0 1.5rem;
+    /* ---------------------------------------------------------------
+       CREATE EVENT — ASYMMETRIC HORIZONTAL · SIGNAL INTENSITY v2
+       White main, Black sub · Oscilloscope heartbeat + Frequency waves
+       
+       > ENHANCED: DARK, HIGH-CONTRAST INSET FIELDS
+         All user inputs now have the same deep, recessed appearance
+         as the 'Bilangan Tanggungan' field from check_in page.
+         - Darker background (gray-100)
+         - Strong inset shadows (6px 6px 12px rgba(0,0,0,0.2), -4px -4px 10px rgba(255,255,255,0.9))
+         - Bold, tactile 3D press effect
+    --------------------------------------------------------------- */
+
+    :root {
+        --black: #000000;
+        --black-50: #171717;
+        --black-100: #262626;
+        --black-200: #404040;
+        --black-300: #525252;
+        --white: #ffffff;
+        --white-50: #fafafa;
+        --white-100: #f0f0f0;      /* Darker base for inset fields */
+        --white-200: #e5e5e5;
+        --white-300: #d4d4d4;
+        --gray-100: #f0f0f0;        /* For dark inset background */
+        --gray-500: #737373;
+        --gray-800: #2d2d2d;
+        
+        --neu-shadow-dark: #d1d5db;
+        --neu-shadow-light: #ffffff;
+        
+        /* Dark inset shadow — like Bilangan Tanggungan */
+        --neu-inset-dark: 
+            inset 6px 6px 12px rgba(0, 0, 0, 0.2),
+            inset -4px -4px 10px rgba(255, 255, 255, 0.9);
+        
+        --neu-inset-darker: 
+            inset 8px 8px 16px rgba(0, 0, 0, 0.25),
+            inset -6px -6px 12px rgba(255, 255, 255, 0.95);
     }
-    
-    .page-header {
-        margin-bottom: 2rem;
-        padding-top: 1rem;
+
+    /* ===== GLOBAL SIGNATURE: CRT + NOISE ===== */
+    .create-signature-scan {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; z-index: 1;
+        background: repeating-linear-gradient(0deg, 
+            rgba(0,0,0,0.01) 0px, 
+            rgba(255,255,255,0.01) 1px,
+            transparent 2px,
+            transparent 4px
+        );
+        opacity: 0.2;
     }
-    
-    .form-card {
-        background: white;
-        border: 1px solid #e9ecef;
-        border-radius: 12px;
-        padding: 2rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        margin-bottom: 1.5rem;
+    .create-heartbeat-pulse {
+        position: fixed;
+        bottom: 20px; left: 20px;
+        width: 180px; height: 40px;
+        background: rgba(0,0,0,0.02);
+        border-left: 2px solid var(--black);
+        border-right: 2px solid var(--black);
+        border-radius: 2px;
+        z-index: 5;
+        opacity: 0.2;
+        pointer-events: none;
+        overflow: hidden;
     }
-    
-    .form-title {
-        color: var(--dark);
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        font-size: 1.75rem;
+    .create-heartbeat-pulse::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            var(--black) 20%, 
+            transparent 40%,
+            var(--black) 60%,
+            transparent 80%
+        );
+        animation: heartbeatMove 3s infinite linear;
+        opacity: 0.2;
     }
-    
-    .form-subtitle {
-        color: var(--gray-600);
-        margin-bottom: 2rem;
-        font-size: 1rem;
-        line-height: 1.4;
+    @keyframes heartbeatMove {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
     }
-    
-    .form-label {
-        font-weight: 600;
-        color: var(--gray-800);
-        margin-bottom: 0.5rem;
-        display: block;
-        font-size: 0.9rem;
+
+    /* ===== NEUROMORPHIC TOOLS — UPDATED WITH DARK INSET ===== */
+    .neu-raise-hard {
+        background: linear-gradient(145deg, var(--white), var(--white-100));
+        box-shadow: 12px 12px 24px rgba(0,0,0,0.04), -12px -12px 24px rgba(255,255,255,0.9);
+        border: 1px solid rgba(0,0,0,0.02);
     }
-    
-    .form-control, .form-select {
-        border: 2px solid var(--gray-300);
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        background: white;
-        width: 100%;
-        box-sizing: border-box;
+    .neu-raise-soft {
+        background: var(--white);
+        box-shadow: 6px 6px 14px rgba(0,0,0,0.02), -6px -6px 14px rgba(255,255,255,0.7);
     }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
-        outline: none;
+    .neu-pressed {
+        background: linear-gradient(145deg, var(--white-100), var(--white));
+        box-shadow: inset 4px 4px 10px rgba(0,0,0,0.02), inset -4px -4px 10px rgba(255,255,255,0.5);
     }
-    
-    .form-control::placeholder {
-        color: var(--gray-500);
-        font-size: 0.85rem;
-    }
-    
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-    
-    .form-group-row-3 {
+
+    /* ===== HORIZONTAL ASYMMETRIC LAYOUT ===== */
+    .create-asymmetric {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 1.5rem;
+        grid-template-columns: 1.2fr 0.9fr;
+        gap: 32px;
         align-items: start;
+        position: relative;
+        z-index: 30;
     }
-    
-    .btn-submit {
-        background: linear-gradient(135deg, var(--dark) 0%, #343a40 100%);
+    @media (max-width: 1000px) {
+        .create-asymmetric { grid-template-columns: 1fr; }
+    }
+
+    /* ===== FORM PANEL — NEUROMORPHIC WHITE (RAISED) ===== */
+    .form-panel {
+        background: var(--white);
+        border-radius: 32px;
+        padding: 32px 32px 40px;
+        border: 1px solid rgba(0,0,0,0.03);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 16px 16px 28px rgba(0,0,0,0.08), -14px -14px 28px rgba(255,255,255,0.9);
+    }
+    .form-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--black), transparent);
+        opacity: 0.2;
+    }
+
+    /* ===== SIGNAL DASHBOARD (RIGHT) — VERTICAL METERS ===== */
+    .signal-dashboard {
+        background: var(--white);
+        border-radius: 32px;
+        padding: 32px 28px;
+        border: 1px solid var(--white-200);
+        position: sticky;
+        top: 100px;
+        backdrop-filter: blur(8px);
+        background: rgba(255,255,255,0.75);
+        box-shadow: 8px 8px 20px rgba(0,0,0,0.02), -8px -8px 20px rgba(255,255,255,0.6);
+    }
+
+    /* ===== FORM FIELDS — DARK, HIGH-CONTRAST INSET (like Bilangan Tanggungan) ===== */
+    .field-signal {
+        width: 100%;
+        padding: 16px 20px;
+        background: var(--white-100);  /* Darker background for deep recession */
+        border: none;
+        border-radius: 24px;
+        font-size: 0.95rem;
+        color: var(--black-100);
+        font-weight: 500;
+        transition: 0.2s;
+        
+        /* DARK INSET — strong shadows, high contrast */
+        box-shadow: 
+            inset 6px 6px 12px rgba(0, 0, 0, 0.2),
+            inset -4px -4px 10px rgba(255, 255, 255, 0.9);
+        
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    .field-signal:focus {
+        outline: none;
+        border: none;
+        /* Even deeper on focus */
+        box-shadow: 
+            inset 8px 8px 16px rgba(0, 0, 0, 0.25),
+            inset -6px -6px 12px rgba(255, 255, 255, 0.95),
+            0 0 0 3px rgba(0,0,0,0.02);
+        background: var(--white-50);
+    }
+
+    .field-signal::placeholder {
+        color: var(--gray-500);
+        font-weight: 400;
+        opacity: 0.8;
+    }
+
+    /* Select fields — same dark inset style */
+    select.field-signal {
+        appearance: none;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 20px center;
+        background-size: 16px;
+        background-color: var(--white-100);
+    }
+
+    /* Textarea — consistent dark inset */
+    textarea.field-signal {
+        background: var(--white-100);
+        box-shadow: 
+            inset 6px 6px 12px rgba(0, 0, 0, 0.2),
+            inset -4px -4px 10px rgba(255, 255, 255, 0.9);
+    }
+
+    .label-signal {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--black-500);
+        margin-bottom: 8px;
+    }
+    .label-signal i {
+        font-size: 1rem;
+        color: var(--black);
+    }
+
+    /* ===== SIGNAL BARS (vertical animated) ===== */
+    .v-signal-bank {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+    }
+    .v-signal-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed rgba(0,0,0,0.05);
+    }
+    .v-signal-meter {
+        width: 100px;
+        height: 8px;
+        background: var(--white-200);
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
+    }
+    .v-signal-fill {
+        height: 100%;
+        background: var(--black);
+        border-radius: 4px;
+        transition: width 0.3s;
+    }
+
+    /* ===== TRANSMISSION RIPPLE (for buttons) ===== */
+    .transmit-btn {
+        background: var(--black);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 0.875rem 2rem;
-        font-weight: 600;
-        font-size: 0.95rem;
+        padding: 18px 36px;
+        border-radius: 60px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        transition: 0.25s;
+        box-shadow: 0 16px 28px rgba(0,0,0,0.25);
         width: 100%;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
+        letter-spacing: 2px;
+        position: relative;
+        overflow: hidden;
     }
-    
-    .btn-submit:hover {
-        background: linear-gradient(135deg, #343a40 0%, #212529 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    .transmit-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.4);
+        transform: translate(-50%, -50%);
+        transition: width 0.4s, height 0.4s, opacity 0.4s;
     }
-    
-    .btn-outline-dark {
-        border: 2px solid var(--gray-300);
-        border-radius: 8px;
-        padding: 0.875rem 2rem;
-        font-weight: 600;
-        font-size: 0.95rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
+    .transmit-btn:hover::after {
+        width: 200px;
+        height: 200px;
+        opacity: 0;
     }
-    
-    .btn-outline-dark:hover {
-        background: var(--gray-50);
-        border-color: var(--gray-400);
-        transform: translateY(-2px);
+    .transmit-btn:hover {
+        background: var(--black-100);
+        transform: scale(1.02);
+        box-shadow: 0 22px 36px rgba(0,0,0,0.3);
     }
-    
-    .form-icon {
-        color: var(--primary);
-        margin-right: 0.5rem;
-        font-size: 1rem;
-        min-width: 20px;
+
+    /* ===== GLITCH EFFECT (text) ===== */
+    .glitch-mini {
+        animation: glitchMini 2.5s infinite;
+    }
+    @keyframes glitchMini {
+        0%, 100% { text-shadow: 0 0 0 black; }
+        20% { text-shadow: -1px 0 0 rgba(0,0,0,0.2), 1px 0 0 rgba(0,0,0,0.2); }
+        40% { text-shadow: 1px 0 0 rgba(0,0,0,0.2), -1px 0 0 rgba(0,0,0,0.2); }
+    }
+
+    /* ===== CUSTOM STATE — oscilloscope glow ===== */
+    .custom-state-active {
+        margin-top: 20px;
+        padding: 20px;
+        background: var(--white-100);
+        border-radius: 20px;
+        border: 1px solid var(--black-300);
+        animation: borderBlink 1.8s infinite;
+        box-shadow: var(--neu-inset-dark);
+    }
+    @keyframes borderBlink {
+        0% { border-color: rgba(0,0,0,0.2); }
+        50% { border-color: rgba(0,0,0,0.7); }
+        100% { border-color: rgba(0,0,0,0.2); }
+    }
+
+    /* ===== HINT BADGE ===== */
+    .hint-badge {
+        background: var(--white-50);
+        border-radius: 40px;
+        padding: 6px 16px;
+        font-size: 0.7rem;
+        border: 1px solid var(--white-200);
+        color: var(--black-500);
         display: inline-flex;
         align-items: center;
-        justify-content: center;
+        gap: 6px;
+        box-shadow: inset 2px 2px 5px rgba(0,0,0,0.02), inset -2px -2px 5px rgba(255,255,255,0.7);
     }
-    
-    .form-hint {
-        font-size: 0.8rem;
-        color: var(--gray-600);
-        margin-top: 0.5rem;
-        display: block;
-        line-height: 1.3;
-        font-style: italic;
+
+    /* ===== FREQUENCY OSCILLATOR (PREVIEW) ===== */
+    .osc-wave {
+        width: 100%;
+        height: 40px;
+        background: repeating-linear-gradient(90deg, 
+            var(--black) 0px, 
+            var(--black) 2px, 
+            transparent 2px, 
+            transparent 8px
+        );
+        mask-image: linear-gradient(90deg, transparent, black, transparent);
+        opacity: 0.3;
     }
-    
-    .required::after {
-        content: " *";
-        color: #dc3545;
-        font-weight: bold;
+
+    /* ===== VALIDATION STYLE ===== */
+    .is-invalid {
+        border: none !important;
+        box-shadow: 
+            inset 6px 6px 12px rgba(0, 0, 0, 0.2),
+            inset -4px -4px 10px rgba(255, 255, 255, 0.9),
+            0 0 0 2px var(--black) !important;
     }
-    
-    .form-actions {
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--gray-100);
-    }
-    
-    /* Form Section Styling */
-    .form-section {
-        margin-bottom: 2rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid var(--gray-100);
-    }
-    
-    .form-section:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
-    
-    .section-title {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--dark);
-        margin-bottom: 1.25rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid var(--primary);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .section-title i {
-        color: var(--primary);
-        font-size: 1.1rem;
-    }
-    
-    /* Custom State Input */
-    .custom-state-container {
-        margin-top: 1rem;
-        padding: 1rem;
-        background: var(--gray-50);
-        border-radius: 8px;
-        border: 1px solid var(--gray-300);
-    }
-    
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .create-event-container {
-            padding: 0 1rem;
-        }
-        
-        .form-card {
-            padding: 1.25rem;
-            border-radius: 8px;
-        }
-        
-        .form-group-row-3 {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-        
-        .form-title {
-            font-size: 1.5rem;
-        }
-        
-        .form-subtitle {
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .section-title {
-            font-size: 1.05rem;
-        }
-        
-        .btn-submit,
-        .btn-outline-dark {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.9rem;
-        }
-        
-        .form-control,
-        .form-select {
-            padding: 0.625rem 0.875rem;
-        }
-    }
-    
-    @media (max-width: 576px) {
-        .form-card {
-            padding: 1rem;
-        }
-        
-        .page-header {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-title {
-            font-size: 1.35rem;
-        }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+        .form-panel { padding: 24px; }
+        .transmit-btn { padding: 14px 24px; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="create-event-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1 class="form-title">Create New Event</h1>
-        <p class="form-subtitle">
-            Set up a new event for attendance tracking, application forms, and real-time monitoring.
-            Fill in the required details below.
-        </p>
-    </div>
-    
-    <!-- Form Card -->
-    <div class="form-card">
-        <form method="post" id="eventForm">
-            {% csrf_token %}
-            
-            <!-- Event Information Section -->
-            <div class="form-section">
-                <h2 class="section-title">
-                    <i class="bi bi-calendar-event"></i>
-                    Event Information
-                </h2>
-                
-                <!-- Event Title -->
-                <div class="form-group">
-                    <label class="form-label required">
-                        <i class="bi bi-card-heading form-icon"></i>
-                        Event Title
-                    </label>
-                    <input
-                        type="text"
-                        name="title"
-                        class="form-control"
-                        placeholder="Enter event title"
-                        required
-                        id="eventTitle"
-                        maxlength="200"
-                    >
-                    <span class="form-hint">
-                        Example: "Diploma Open Day 2024" or "Career Fair"
-                    </span>
-                </div>
-                
-                <!-- Event Description -->
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="bi bi-card-text form-icon"></i>
-                        Event Description (Optional)
-                    </label>
-                    <textarea
-                        name="description"
-                        class="form-control"
-                        placeholder="Brief description of the event..."
-                        rows="3"
-                        id="eventDescription"
-                        maxlength="500"
-                    ></textarea>
-                    <span class="form-hint">
-                        Include agenda, speakers, or special instructions
-                    </span>
-                </div>
-            </div>
-            
-            <!-- Event Location Section -->
-            <div class="form-section">
-                <h2 class="section-title">
-                    <i class="bi bi-geo-alt"></i>
-                    Event Location
-                </h2>
-                
-                <!-- Venue Details -->
-                <div class="form-group">
-                    <label class="form-label required">
-                        <i class="bi bi-building form-icon"></i>
-                        Venue/Location
-                    </label>
-                    <input
-                        type="text"
-                        name="venue"
-                        class="form-control"
-                        placeholder="Enter venue name or physical location"
-                        required
-                        id="eventVenue"
-                        maxlength="200"
-                    >
-                    <span class="form-hint">
-                        Example: "Grand Ballroom, KL Convention Centre"
-                    </span>
-                </div>
-                
-                <!-- State Selection (Dropdown) -->
-                <div class="form-group">
-                    <label class="form-label required">
-                        <i class="bi bi-map form-icon"></i>
-                        State
-                    </label>
-                    <select
-                        name="state"
-                        class="form-select"
-                        required
-                        id="eventState"
-                    >
-                        <option value="" selected disabled>Select a state</option>
-                        <option value="KUALA_LUMPUR">Kuala Lumpur</option>
-                        <option value="SELANGOR">Selangor</option>
-                        <option value="JOHOR">Johor</option>
-                        <option value="PENANG">Penang</option>
-                        <option value="PERAK">Perak</option>
-                        <option value="SABAH">Sabah</option>
-                        <option value="SARAWAK">Sarawak</option>
-                        <option value="PAHANG">Pahang</option>
-                        <option value="NEGERI_SEMBILAN">Negeri Sembilan</option>
-                        <option value="KEDAH">Kedah</option>
-                        <option value="KELANTAN">Kelantan</option>
-                        <option value="TERENGGANU">Terengganu</option>
-                        <option value="MELAKA">Melaka</option>
-                        <option value="PERLIS">Perlis</option>
-                        <option value="LABUAN">Labuan</option>
-                        <option value="PUTRAJAYA">Putrajaya</option>
-                        <option value="OTHER">Other</option>
-                    </select>
-                    <span class="form-hint">
-                        Select the state where the event is located
-                    </span>
-                </div>
-                
-                <!-- Custom State Input (hidden by default) -->
-                <div class="custom-state-container" id="customStateContainer" style="display: none;">
-                    <div class="form-group">
-                        <label class="form-label required">
-                            <i class="bi bi-pencil form-icon"></i>
-                            Specify State
-                        </label>
-                        <input
-                            type="text"
-                            name="custom_state"
-                            class="form-control"
-                            placeholder="Enter state name"
-                            id="customStateInput"
-                            maxlength="100"
-                        >
-                        <span class="form-hint">
-                            Enter the state name (if not listed above)
-                        </span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Event Schedule Section -->
-            <div class="form-section">
-                <h2 class="section-title">
-                    <i class="bi bi-clock"></i>
-                    Event Schedule
-                </h2>
-                
-                <!-- Date and Time Row -->
-                <div class="form-group-row-3">
-                    <!-- Date -->
-                    <div class="form-group">
-                        <label class="form-label required">
-                            <i class="bi bi-calendar-check form-icon"></i>
-                            Event Date
-                        </label>
-                        <input
-                            type="date"
-                            name="date"
-                            class="form-control"
-                            required
-                            id="eventDate"
-                        >
-                        <span class="form-hint">
-                            Select event date
-                        </span>
-                    </div>
-                    
-                    <!-- Start Time -->
-                    <div class="form-group">
-                        <label class="form-label required">
-                            <i class="bi bi-play-circle form-icon"></i>
-                            Start Time
-                        </label>
-                        <input
-                            type="time"
-                            name="start_time"
-                            class="form-control"
-                            required
-                            id="startTime"
-                        >
-                        <span class="form-hint">
-                            Event begins
-                        </span>
-                    </div>
-                    
-                    <!-- End Time -->
-                    <div class="form-group">
-                        <label class="form-label required">
-                            <i class="bi bi-stop-circle form-icon"></i>
-                            End Time
-                        </label>
-                        <input
-                            type="time"
-                            name="end_time"
-                            class="form-control"
-                            required
-                            id="endTime"
-                        >
-                        <span class="form-hint">
-                            Event concludes
-                        </span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Form Actions -->
-            <div class="form-actions">
-                <div class="d-flex gap-2">
-                    <a href="{% url 'dashboard' %}" class="btn btn-outline-dark flex-fill">
-                        <i class="bi bi-arrow-left me-1"></i>
-                        Back to Dashboard
-                    </a>
-                    <button type="submit" class="btn-submit flex-fill">
-                        <i class="bi bi-plus-circle"></i>
-                        Create Event
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-{% endblock %}
+<!-- ===== BACKGROUND SIGNATURE (heartbeat + noise) ===== -->
+<div class="create-signature-scan"></div>
+<div class="create-heartbeat-pulse"></div>
 
-{% block extra_js %}
+<!-- ===== MAIN ASYMMETRIC GRID ===== -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-20">
+    
+    <!-- ===== TOP BANNER — SIGNAL ID ===== -->
+    <div class="flex justify-between items-center mb-8 reveal">
+        <div class="flex items-center gap-4">
+            <div class="neu-raise-hard w-14 h-14 rounded-2xl flex items-center justify-center relative">
+                <i class="bi bi-broadcast text-black text-2xl"></i>
+                <div class="absolute -bottom-1 -right-1 flex gap-[2px]">
+                    <span class="w-1 h-3 bg-black rounded-full animate-pulse"></span>
+                    <span class="w-1 h-4 bg-black rounded-full animate-pulse" style="animation-delay:0.2s"></span>
+                    <span class="w-1 h-5 bg-black rounded-full animate-pulse" style="animation-delay:0.4s"></span>
+                </div>
+            </div>
+            <div>
+                <h1 class="text-4xl font-black text-black tracking-tight flex items-center gap-3">
+                    <span class="glitch-mini">CREATE</span> EVENT
+                    <span class="text-xs font-mono bg-black text-white px-3 py-1.5 rounded-full">ENCRYPTED</span>
+                </h1>
+                <div class="flex items-center gap-4 mt-1">
+                    <span class="hint-badge"><i class="bi bi-shield-check"></i> CARRIER: 104.7 MHz</span>
+                    <span class="hint-badge"><i class="bi bi-droplet"></i> SIGNAL LOCK</span>
+                </div>
+            </div>
+        </div>
+        <a href="{% url 'dashboard' %}" 
+           class="group flex items-center gap-2 px-5 py-3 rounded-full border border-black-200 text-black-600 hover:bg-black hover:text-white transition-all duration-300 bg-white/50">
+            <i class="bi bi-arrow-left-short group-hover:-translate-x-1 transition-transform"></i>
+            <span class="text-sm font-medium">RETURN</span>
+        </a>
+    </div>
+
+    <!-- ===== ASYMMETRIC HORIZONTAL FORM ===== -->
+    <form method="post" id="eventForm" class="create-asymmetric" novalidate>
+        {% csrf_token %}
+        
+        <!-- ========== LEFT: MAIN FORM PANEL ========== -->
+        <div class="form-panel neu-raise-hard">
+            <!-- hidden oscillator line -->
+            <div class="osc-wave mb-6"></div>
+            
+            <!-- SECTION: BASIC PARAMETERS -->
+            <div class="flex items-center gap-3 mb-7">
+                <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center">
+                    <i class="bi bi-1-circle text-black"></i>
+                </div>
+                <span class="text-xs font-mono text-black-400 tracking-[0.2em]">BASIC CARRIER</span>
+            </div>
+
+            <!-- Event Title — DARK INSET -->
+            <div class="mb-7">
+                <label class="label-signal required-star">
+                    <i class="bi bi-megaphone"></i> EVENT TITLE
+                </label>
+                <input type="text" name="title" id="eventTitle" 
+                       class="field-signal" 
+                       placeholder="e.g. Future Leaders Summit" 
+                       required maxlength="200" autocomplete="off">
+                <div class="mt-2 flex items-center gap-2 text-black-300 text-xs">
+                    <i class="bi bi-info-circle"></i> Be specific. Max 200.
+                </div>
+            </div>
+
+            <!-- Description — DARK INSET -->
+            <div class="mb-7">
+                <label class="label-signal">
+                    <i class="bi bi-file-earmark-text"></i> DESCRIPTION / FREQ
+                </label>
+                <textarea name="description" id="eventDescription" 
+                          class="field-signal" rows="3" 
+                          placeholder="Add agenda, speakers, or signal notes..."></textarea>
+            </div>
+
+            <!-- SECTION DIVIDER — LOCATION -->
+            <div class="flex items-center gap-3 my-8">
+                <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center">
+                    <i class="bi bi-2-circle text-black"></i>
+                </div>
+                <span class="text-xs font-mono text-black-400 tracking-[0.2em]">GEOLOCK</span>
+                <div class="flex-1 border-t border-dashed border-black-200"></div>
+            </div>
+
+            <!-- Venue — DARK INSET -->
+            <div class="mb-7">
+                <label class="label-signal required-star">
+                    <i class="bi bi-pin-map"></i> VENUE
+                </label>
+                <input type="text" name="venue" id="eventVenue" 
+                       class="field-signal" 
+                       placeholder="Main Hall, KLCC" 
+                       required maxlength="200">
+            </div>
+
+            <!-- State + Custom State — DARK INSET -->
+            <div class="mb-6">
+                <label class="label-signal required-star">
+                    <i class="bi bi-map"></i> STATE
+                </label>
+                <select name="state" id="eventState" class="field-signal" required>
+                    <option value="" selected disabled>— Select state —</option>
+                    <option value="KUALA_LUMPUR">Kuala Lumpur</option>
+                    <option value="SELANGOR">Selangor</option>
+                    <option value="JOHOR">Johor</option>
+                    <option value="PENANG">Penang</option>
+                    <option value="PERAK">Perak</option>
+                    <option value="SABAH">Sabah</option>
+                    <option value="SARAWAK">Sarawak</option>
+                    <option value="PAHANG">Pahang</option>
+                    <option value="NEGERI_SEMBILAN">Negeri Sembilan</option>
+                    <option value="KEDAH">Kedah</option>
+                    <option value="KELANTAN">Kelantan</option>
+                    <option value="TERENGGANU">Terengganu</option>
+                    <option value="MELAKA">Melaka</option>
+                    <option value="PERLIS">Perlis</option>
+                    <option value="LABUAN">Labuan</option>
+                    <option value="PUTRAJAYA">Putrajaya</option>
+                    <option value="OTHER">✧ Other State (specify)</option>
+                </select>
+
+                <!-- Custom State Container — DARK INSET -->
+                <div id="customStateContainer" class="custom-state-active" style="display: none;">
+                    <label class="label-signal required-star">
+                        <i class="bi bi-pencil-square"></i> SPECIFY STATE
+                    </label>
+                    <input type="text" name="custom_state" id="customStateInput" 
+                           class="field-signal" placeholder="Enter state name" maxlength="100">
+                </div>
+            </div>
+
+            <!-- SECTION DIVIDER — TIME VECTOR -->
+            <div class="flex items-center gap-3 my-8">
+                <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center">
+                    <i class="bi bi-3-circle text-black"></i>
+                </div>
+                <span class="text-xs font-mono text-black-400 tracking-[0.2em]">TIME VECTOR</span>
+                <div class="flex-1 border-t border-dashed border-black-200"></div>
+            </div>
+
+            <!-- Date & Time Grid — ALL DARK INSET -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div>
+                    <label class="label-signal required-star"><i class="bi bi-calendar"></i> DATE</label>
+                    <input type="date" name="date" id="eventDate" class="field-signal" required>
+                </div>
+                <div>
+                    <label class="label-signal required-star"><i class="bi bi-play-fill"></i> START</label>
+                    <input type="time" name="start_time" id="startTime" class="field-signal" required>
+                </div>
+                <div>
+                    <label class="label-signal required-star"><i class="bi bi-stop-fill"></i> END</label>
+                    <input type="time" name="end_time" id="endTime" class="field-signal" required>
+                </div>
+            </div>
+            <div class="mt-3 hint-badge">
+                <i class="bi bi-clock-history"></i> End must be > start
+            </div>
+
+            <!-- TRANSMIT BUTTON — RAISED (contrast) -->
+            <div class="mt-12">
+                <button type="submit" class="transmit-btn" id="submitBtn">
+                    <i class="bi bi-send-plus"></i> ENCODE & TRANSMIT
+                    <i class="bi bi-arrow-right-short text-xl"></i>
+                </button>
+                <div class="flex justify-between mt-4">
+                    <span class="text-[10px] font-mono text-black-300">⏎ Ctrl+S to encode</span>
+                    <span class="text-[10px] font-mono text-black-300">SIGNAL: <span id="signalStrengthVal">64%</span></span>
+                </div>
+            </div>
+        </div> <!-- END LEFT PANEL -->
+
+        <!-- ========== RIGHT: SIGNAL DASHBOARD (unchanged, light) ========== -->
+        <div class="signal-dashboard neu-raise-soft">
+            <!-- Live preview card -->
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-radio text-black text-xl"></i>
+                    <span class="font-mono text-sm font-bold text-black">SCOPE</span>
+                </div>
+                <div class="flex gap-1">
+                    <span class="w-2 h-2 bg-black rounded-full animate-ping"></span>
+                    <span class="w-2 h-2 bg-black rounded-full animate-ping" style="animation-delay:0.3s"></span>
+                    <span class="w-2 h-2 bg-black rounded-full animate-ping" style="animation-delay:0.6s"></span>
+                </div>
+            </div>
+
+            <!-- PREVIEW BLOCK (neuromorphic inset) -->
+            <div class="neu-pressed rounded-3xl p-5 mb-7">
+                <div id="previewTitle" class="text-xl font-extrabold text-black truncate">[Event Title]</div>
+                <div class="flex items-center gap-2 mt-2 text-black-500 text-sm">
+                    <i class="bi bi-geo-alt"></i>
+                    <span id="previewVenue">Venue not set</span>
+                </div>
+                <div class="flex items-center gap-3 mt-3 text-xs font-mono text-black-400">
+                    <span><i class="bi bi-calendar3"></i> <span id="previewDate">—</span></span>
+                    <span><i class="bi bi-clock"></i> <span id="previewTime">—</span></span>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white-200 flex justify-between items-center">
+                    <span class="text-black-400 text-xs">STATUS</span>
+                    <span class="bg-black/5 text-black-700 px-4 py-1.5 rounded-full text-xs border border-black/10 flex items-center gap-1.5">
+                        <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span> DRAFT
+                    </span>
+                </div>
+            </div>
+
+            <!-- SIGNAL STRENGTH METER -->
+            <div class="mb-7">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="label-signal"><i class="bi bi-bar-chart"></i> TRANSMISSION dB</span>
+                    <span id="signalPercent" class="text-lg font-bold font-mono text-black">64%</span>
+                </div>
+                <div class="w-full h-4 bg-white-200 rounded-full overflow-hidden neu-pressed">
+                    <div id="signalMeter" class="h-full bg-black rounded-full transition-all duration-300" style="width: 64%;"></div>
+                </div>
+                <div class="flex justify-between mt-2 text-[0.6rem] font-mono text-black-400 tracking-wider">
+                    <span>WEAK</span>
+                    <span>MOD</span>
+                    <span>LOCK</span>
+                    <span>CRIT</span>
+                </div>
+            </div>
+
+            <!-- VERTICAL SIGNAL BANK -->
+            <div class="v-signal-bank">
+                <div class="v-signal-row">
+                    <span class="text-xs font-medium text-black-600"><i class="bi bi-check-circle"></i> TITLE</span>
+                    <div class="v-signal-meter"><div id="meterTitle" class="v-signal-fill" style="width: 0%"></div></div>
+                </div>
+                <div class="v-signal-row">
+                    <span class="text-xs font-medium text-black-600"><i class="bi bi-pin"></i> VENUE</span>
+                    <div class="v-signal-meter"><div id="meterVenue" class="v-signal-fill" style="width: 0%"></div></div>
+                </div>
+                <div class="v-signal-row">
+                    <span class="text-xs font-medium text-black-600"><i class="bi bi-map"></i> STATE</span>
+                    <div class="v-signal-meter"><div id="meterState" class="v-signal-fill" style="width: 0%"></div></div>
+                </div>
+                <div class="v-signal-row">
+                    <span class="text-xs font-medium text-black-600"><i class="bi bi-calendar"></i> DATE/TIME</span>
+                    <div class="v-signal-meter"><div id="meterTime" class="v-signal-fill" style="width: 0%"></div></div>
+                </div>
+            </div>
+
+            <!-- TIP / FREQUENCY HINT -->
+            <div class="mt-8 bg-black/5 rounded-2xl p-4 border border-white-200 flex gap-3">
+                <i class="bi bi-shield-lock text-black text-xl"></i>
+                <div class="text-xs text-black-600">
+                    <span class="font-bold text-black">ENCRYPTED SIGNAL</span><br>
+                    All fields marked * are carrier-locked. Preview updates in real time.
+                </div>
+            </div>
+            
+            <!-- Mini frequency badge -->
+            <div class="mt-5 flex justify-end">
+                <span class="bg-white border border-black-200 rounded-full px-4 py-2 text-[10px] font-mono flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-green-600 rounded-full"></span> LIVE FEED · 104.7 MHz
+                </span>
+            </div>
+        </div> <!-- END RIGHT DASHBOARD -->
+    </form>
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Elements
+    (function(){
+        'use strict';
+
+        // ----- DOM elements -----
+        const form = document.getElementById('eventForm');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        const title = document.getElementById('eventTitle');
+        const venue = document.getElementById('eventVenue');
         const stateSelect = document.getElementById('eventState');
-        const customStateContainer = document.getElementById('customStateContainer');
-        const customStateInput = document.getElementById('customStateInput');
+        const customContainer = document.getElementById('customStateContainer');
+        const customInput = document.getElementById('customStateInput');
         const dateInput = document.getElementById('eventDate');
-        
-        // Set today's date as minimum and default
+        const startTime = document.getElementById('startTime');
+        const endTime = document.getElementById('endTime');
+
+        // preview
+        const previewTitle = document.getElementById('previewTitle');
+        const previewVenue = document.getElementById('previewVenue');
+        const previewDate = document.getElementById('previewDate');
+        const previewTime = document.getElementById('previewTime');
+
+        // meters
+        const meterTitle = document.getElementById('meterTitle');
+        const meterVenue = document.getElementById('meterVenue');
+        const meterState = document.getElementById('meterState');
+        const meterTime = document.getElementById('meterTime');
+        const signalMeter = document.getElementById('signalMeter');
+        const signalPercent = document.getElementById('signalPercent');
+        const signalStrengthVal = document.getElementById('signalStrengthVal');
+
+        // ----- set defaults -----
         const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        dateInput.min = formattedDate;
-        dateInput.value = formattedDate;
-        
-        // Set default times
-        document.getElementById('startTime').value = '09:00';
-        document.getElementById('endTime').value = '17:00';
-        
-        // Show/hide custom state input based on state selection
-        stateSelect.addEventListener('change', function() {
-            if (this.value === 'OTHER') {
-                customStateContainer.style.display = 'block';
-                customStateInput.required = true;
-            } else {
-                customStateContainer.style.display = 'none';
-                customStateInput.required = false;
-                customStateInput.value = '';
-            }
-        });
-        
-        // Date validation
-        dateInput.addEventListener('change', function() {
-            const selectedDate = new Date(this.value);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            if (selectedDate < today) {
-                alert('Event date cannot be in the past. Please select today or a future date.');
-                this.value = formattedDate;
-                this.focus();
-            }
-        });
-        
-        // Time validation
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const formatDate = (d) => d.toISOString().split('T')[0];
+        if (dateInput) {
+            dateInput.min = formatDate(today);
+            dateInput.value = formatDate(tomorrow);
+        }
+        if (startTime) startTime.value = '09:00';
+        if (endTime) endTime.value = '17:00';
+
+        // ----- custom state toggle -----
+        if (stateSelect && customContainer) {
+            stateSelect.addEventListener('change', function() {
+                if (this.value === 'OTHER') {
+                    customContainer.style.display = 'block';
+                    customInput.required = true;
+                } else {
+                    customContainer.style.display = 'none';
+                    customInput.required = false;
+                    customInput.value = '';
+                }
+                updateAll();
+            });
+        }
+
+        // ----- validation: end time > start time -----
         function validateTimes() {
-            const startTime = document.getElementById('startTime').value;
-            const endTime = document.getElementById('endTime').value;
-            
-            if (startTime && endTime && startTime >= endTime) {
-                alert('End time must be after start time.');
-                document.getElementById('endTime').focus();
+            if (startTime?.value && endTime?.value && startTime.value >= endTime.value) {
+                showToast('End time must be after start time', 'error');
+                endTime?.focus();
                 return false;
             }
             return true;
         }
-        
-        document.getElementById('startTime').addEventListener('change', validateTimes);
-        document.getElementById('endTime').addEventListener('change', validateTimes);
-        
-        // Form submission validation
-        document.getElementById('eventForm').addEventListener('submit', function(e) {
-            // Validate custom state if "Other" is selected
-            if (stateSelect.value === 'OTHER' && !customStateInput.value.trim()) {
-                e.preventDefault();
-                alert('Please specify the state name.');
-                customStateInput.focus();
-                return false;
+        if (startTime) startTime.addEventListener('change', validateTimes);
+        if (endTime) endTime.addEventListener('change', validateTimes);
+
+        // ----- date validation -----
+        if (dateInput) {
+            dateInput.addEventListener('change', function() {
+                const selected = new Date(this.value);
+                const now = new Date(); now.setHours(0,0,0,0);
+                if (selected < now) {
+                    showToast('Event date cannot be in the past', 'error');
+                    this.value = formatDate(tomorrow);
+                }
+                updateAll();
+            });
+        }
+
+        // ----- update preview + meters + signal strength -----
+        function updateAll() {
+            // preview title
+            if (previewTitle) previewTitle.textContent = title?.value?.trim() || '[Signal Title]';
+            // preview venue
+            if (previewVenue) previewVenue.textContent = venue?.value?.trim() || 'Venue not set';
+            // date/time preview
+            if (previewDate) previewDate.textContent = dateInput?.value || '—';
+            if (previewTime) previewTime.textContent = startTime?.value || '—';
+
+            // ----- calculate signal strength (0-100) -----
+            let strength = 20;
+            if (title?.value?.length >= 5) strength += 15;
+            if (title?.value?.length >= 15) strength += 10;
+            if (venue?.value?.length >= 5) strength += 15;
+            if (stateSelect?.value && stateSelect.value !== '') strength += 15;
+            if (dateInput?.value) strength += 10;
+            if (startTime?.value && endTime?.value) strength += 10;
+            if (customInput?.value && stateSelect?.value === 'OTHER') strength += 5;
+            strength = Math.min(98, Math.max(28, strength));
+
+            // update main meter
+            if (signalMeter) signalMeter.style.width = strength + '%';
+            if (signalPercent) signalPercent.textContent = strength + '%';
+            if (signalStrengthVal) signalStrengthVal.textContent = strength + '%';
+
+            // individual meters
+            if (meterTitle) {
+                let t = title?.value?.length ? Math.min(20 + title.value.length * 2, 98) : 10;
+                meterTitle.style.width = Math.min(t, 98) + '%';
             }
-            
-            // Validate time order
-            if (!validateTimes()) {
-                e.preventDefault();
-                return false;
+            if (meterVenue) {
+                let v = venue?.value?.length ? Math.min(20 + venue.value.length * 2, 98) : 10;
+                meterVenue.style.width = Math.min(v, 98) + '%';
             }
-            
-            // Simple loading state (just disable button)
-            const submitBtn = this.querySelector('.btn-submit');
+            if (meterState) {
+                let s = (stateSelect?.value && stateSelect.value !== '') ? 80 : 15;
+                if (stateSelect?.value === 'OTHER' && customInput?.value) s = 90;
+                meterState.style.width = s + '%';
+            }
+            if (meterTime) {
+                let tm = (dateInput?.value && startTime?.value && endTime?.value) ? 85 : 30;
+                meterTime.style.width = tm + '%';
+            }
+        }
+
+        // ----- toast (matching base) -----
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-24 right-6 z-50 neu-raise-hard rounded-xl p-4 border-l-4 ${type === 'error' ? 'border-l-red-500' : 'border-l-blue-500'} bg-white max-w-sm shadow-xl`;
+            toast.innerHTML = `<div class="flex items-start gap-3"><i class="bi ${type==='error'?'bi-exclamation-triangle text-red-600':'bi-info-circle text-blue-600'}"></i><span class="text-sm text-black-700">${msg}</span><button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-black-400"><i class="bi bi-x"></i></button></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast?.remove(), 4000);
+        }
+
+        // ----- form submission -----
+        form?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (stateSelect?.value === 'OTHER' && !customInput?.value?.trim()) {
+                showToast('Please specify the state name', 'error');
+                customInput?.focus();
+                return;
+            }
+            if (!validateTimes()) return;
+
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating...';
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> ENCODING...';
+
+            await new Promise(r => setTimeout(r, 700));
+            this.submit();
         });
-        
-        // Auto-focus event title
-        document.getElementById('eventTitle').focus();
-    });
+
+        // ----- attach listeners -----
+        [title, venue, stateSelect, dateInput, startTime, endTime, customInput].forEach(el => {
+            if (el) {
+                el.addEventListener('input', updateAll);
+                el.addEventListener('change', updateAll);
+            }
+        });
+
+        // ----- keyboard shortcut -----
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                form?.requestSubmit();
+            }
+        });
+
+        // ----- focus title -----
+        if (title) title.focus();
+
+        // ----- initial update -----
+        updateAll();
+
+        // ----- auto-save simulation -----
+        let autoTimer;
+        form?.addEventListener('input', () => {
+            clearTimeout(autoTimer);
+            autoTimer = setTimeout(() => {
+                console.log('📡 Auto-save (sim)');
+            }, 2000);
+        });
+
+        // ----- validation style removal on input -----
+        document.querySelectorAll('.field-signal').forEach(field => {
+            field.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        });
+    })();
 </script>
 {% endblock %}

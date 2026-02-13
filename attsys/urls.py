@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/event/<int:event_id>/registration-full-stats/', views.get_full_registration_stats, name='get_full_registration_stats'),
     path('api/event/<int:event_id>/export-registrations/', views.export_registrations_csv, name='export_registrations_csv'),
     path('api/event/<int:event_id>/export-registrations-pdf/', views.export_registrations_pdf, name='export_registrations_pdf'),
+    path('api/attendee/<int:attendee_id>/delete/', views.delete_attendee, name='delete_attendee'),
     
     # Admin staff management
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
@@ -48,5 +49,4 @@ urlpatterns = [
     path('event/<int:event_id>/assign/', views.assign_staff, name='assign_staff'),
     path('staff/', views.manage_staff, name='manage_staff'),
     path('staff/<int:user_id>/toggle/', views.toggle_staff_status, name='toggle_staff'),
-    path('feedback/<int:event_id>/', views.submit_feedback, name='submit_feedback'),
 ]

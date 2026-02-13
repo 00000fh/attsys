@@ -2,17 +2,25 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Berjaya</title>
-    
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>✓ Berjaya · ATTSYS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <style>
-        /* Minimal Design */
+        /* ---------------------------------------------------------------
+           SUCCESS · THE SIGNAL
+           Pure black/white, sample colorway, three WOW effects:
+           1. Radio frequency scan (sweeping line)
+           2. Oscilloscope heartbeat pulse
+           3. Analog noise and static interference
+           4. Transmission received badge
+        --------------------------------------------------------------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --black: #000000;
             --white: #ffffff;
@@ -20,374 +28,683 @@
             --gray-100: #f5f5f5;
             --gray-200: #e5e5e5;
             --gray-300: #d4d4d4;
-        }
-
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
+            --gray-400: #a3a3a3;
+            --gray-500: #737373;
+            --gray-600: #525252;
+            --gray-700: #404040;
+            --gray-800: #262626;
+            --gray-900: #171717;
+            
+            --neu-raised: 12px 12px 24px rgba(0,0,0,0.04), -12px -12px 24px rgba(255,255,255,0.9);
+            --neu-inset: inset 4px 4px 12px rgba(0,0,0,0.02), inset -4px -4px 12px rgba(255,255,255,0.8);
+            
+            --transition-signal: 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-pulse: 0.8s ease-in-out;
         }
 
         body {
-            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: var(--black);
+            background: var(--gray-900);
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 32px 32px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
-            margin: 0;
-            padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+            color: var(--gray-200);
+            cursor: pointer;
+            position: relative;
             overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        .success-container {
+        /* ============ WOW 1: RADIO FREQUENCY SCAN ============ */
+        .frequency-scanner {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.15;
         }
 
-        .success-content {
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--white);
+            box-shadow: 0 0 20px 5px rgba(255,255,255,0.5);
+            animation: scanVertical 4s linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes scanVertical {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        .scan-horizontal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 100%;
+            background: var(--white);
+            box-shadow: 0 0 20px 5px rgba(255,255,255,0.3);
+            animation: scanHorizontal 6s linear infinite;
+            opacity: 0.2;
+        }
+
+        @keyframes scanHorizontal {
+            0% { left: -10%; }
+            100% { left: 110%; }
+        }
+
+        /* ============ WOW 2: OSCILLOSCOPE HEARTBEAT ============ */
+        .oscilloscope {
+            position: fixed;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            height: 60px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--gray-600);
+            border-radius: 4px;
+            padding: 8px;
+            z-index: 50;
+            pointer-events: none;
+            backdrop-filter: blur(2px);
+            overflow: hidden;
+        }
+
+        .oscilloscope::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 19px,
+                rgba(255,255,255,0.05) 20px,
+                transparent 21px
+            );
+            pointer-events: none;
+        }
+
+        .heartbeat {
+            width: 100%;
+            height: 100%;
+            stroke: var(--white);
+            stroke-width: 1.5;
+            fill: none;
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            animation: heartbeatTrace 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
+        }
+
+        @keyframes heartbeatTrace {
+            0% { stroke-dashoffset: 200; opacity: 0.6; }
+            20% { stroke-dashoffset: 120; opacity: 1; }
+            50% { stroke-dashoffset: 80; opacity: 0.8; }
+            70% { stroke-dashoffset: 40; opacity: 1; }
+            100% { stroke-dashoffset: 0; opacity: 0.6; }
+        }
+
+        /* ============ WOW 3: ANALOG NOISE ============ */
+        .static-noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="static"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.08 0"/></filter><rect width="200" height="200" filter="url(%23static)" opacity="0.1"/></svg>');
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 2;
+            animation: staticShift 0.5s infinite;
+        }
+
+        @keyframes staticShift {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 20px; }
+        }
+
+        /* ============ MAIN CARD — TRANSMISSION RECEIVER ============ */
+        .signal-card {
+            max-width: 440px;
+            width: 100%;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--gray-600);
+            padding: 44px 32px 48px;
             text-align: center;
-            max-width: 400px;
-            width: 100%;
-            padding: 2rem;
+            position: relative;
+            z-index: 100;
+            animation: signalAppear 1.2s var(--transition-signal) forwards;
+            opacity: 0;
+            transform: scale(0.95);
+            box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.05);
         }
 
-        .success-icon {
+        @keyframes signalAppear {
+            0% { opacity: 0; transform: scale(0.95); filter: blur(4px); }
+            50% { opacity: 0.7; transform: scale(1.02); filter: blur(1px); }
+            100% { opacity: 1; transform: scale(1); filter: blur(0); }
+        }
+
+        .signal-card:active {
+            transform: scale(0.98);
+        }
+
+        /* ============ SIGNAL STRENGTH INDICATOR ============ */
+        .signal-bars {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 6px;
+            margin-bottom: 28px;
+            height: 40px;
+        }
+
+        .bar {
+            width: 6px;
+            background: var(--white);
+            height: 10px;
+            animation: signalStrength 1.2s infinite alternate;
+            opacity: 0.8;
+        }
+
+        .bar:nth-child(1) { height: 16px; animation-delay: 0s; }
+        .bar:nth-child(2) { height: 24px; animation-delay: 0.2s; }
+        .bar:nth-child(3) { height: 32px; animation-delay: 0.4s; }
+        .bar:nth-child(4) { height: 28px; animation-delay: 0.1s; }
+        .bar:nth-child(5) { height: 20px; animation-delay: 0.3s; }
+
+        @keyframes signalStrength {
+            0% { opacity: 0.4; height: 10px; }
+            100% { opacity: 1; height: 35px; }
+        }
+
+        /* ============ TRANSMISSION CHECKMARK ============ */
+        .transmission-icon {
             width: 120px;
             height: 120px;
-            background: var(--black);
-            border-radius: 50%;
+            margin: 0 auto 20px;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 2rem;
-            animation: iconAppear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            border: 1px solid var(--gray-500);
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            box-shadow: 0 0 30px rgba(255,255,255,0.1);
         }
 
-        .success-icon i {
+        .ripple-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px solid var(--white);
+            border-radius: 50%;
+            animation: transmitRipple 2s ease-out infinite;
+            opacity: 0;
+        }
+
+        .ripple-circle:nth-child(2) {
+            animation-delay: 0.6s;
+        }
+
+        .ripple-circle:nth-child(3) {
+            animation-delay: 1.2s;
+        }
+
+        @keyframes transmitRipple {
+            0% { transform: scale(1); opacity: 0.5; border-width: 1px; }
+            100% { transform: scale(1.8); opacity: 0; border-width: 0.5px; }
+        }
+
+        .transmission-icon i {
             font-size: 4rem;
             color: var(--white);
-            animation: checkmarkAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+            animation: pulseTransmit 1.5s infinite alternate;
         }
 
-        .success-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            letter-spacing: -1px;
-            animation: titleAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
-            opacity: 0;
-            transform: translateY(20px);
+        @keyframes pulseTransmit {
+            0% { transform: scale(1); opacity: 0.9; }
+            100% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 20px white; }
         }
 
-        .success-subtitle {
-            font-size: 1.125rem;
-            color: var(--black);
-            opacity: 0.7;
-            margin-bottom: 1rem;
-            animation: subtitleAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s both;
-            transform: translateY(20px);
+        /* ============ TYPOGRAPHY ============ */
+        .title-signal {
+            font-size: 3.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--white);
+            margin-bottom: 4px;
+            line-height: 1;
+            text-shadow: 0 0 15px rgba(255,255,255,0.3);
+            animation: textGlitch 3s infinite;
         }
 
-        .success-message {
-            color: var(--black);
-            font-size: 1.125rem;
-            opacity: 0.8;
-            animation: messageAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.7s both;
-            transform: translateY(20px);
+        @keyframes textGlitch {
+            0%, 100% { text-shadow: 0 0 15px rgba(255,255,255,0.3); }
+            25% { text-shadow: -2px 0 10px rgba(255,255,255,0.5), 2px 0 8px rgba(255,255,255,0.2); }
+            75% { text-shadow: 2px 0 12px rgba(255,255,255,0.5), -1px 0 6px rgba(255,255,255,0.2); }
         }
 
-        @keyframes iconAppear {
-            0% {
-                transform: scale(0);
-                opacity: 0;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
+        .badge-signal {
+            background: transparent;
+            color: var(--white);
+            padding: 6px 24px;
+            border: 1px solid var(--gray-400);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
         }
 
-        @keyframes checkmarkAppear {
-            0% {
-                transform: scale(0) rotate(-45deg);
-            }
-            100% {
-                transform: scale(1) rotate(0);
-            }
-        }
-
-        @keyframes titleAppear {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes subtitleAppear {
-            to {
-                opacity: 0.7;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes messageAppear {
-            to {
-                opacity: 0.8;
-                transform: translateY(0);
-            }
-        }
-
-        /* Auto close indicator in Bahasa Melayu */
-        .auto-close {
+        .badge-signal::before {
+            content: '';
             position: absolute;
-            bottom: 2rem;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border: 1px solid var(--white);
+            opacity: 0.3;
+            animation: borderPulse 2s infinite;
+        }
+
+        @keyframes borderPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .message-signal {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--gray-600);
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin: 28px 0 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--gray-200);
+            letter-spacing: 0.5px;
+            position: relative;
+            backdrop-filter: blur(4px);
+        }
+
+        .message-signal i {
+            font-size: 1.6rem;
+            color: var(--white);
+            animation: iconFlicker 2s infinite;
+        }
+
+        @keyframes iconFlicker {
+            0%, 100% { opacity: 1; }
+            30% { opacity: 0.7; }
+            70% { opacity: 0.9; }
+        }
+
+        .frequency-tag {
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            color: var(--gray-400);
+            margin-top: 8px;
+            letter-spacing: 2px;
+            border-top: 1px solid var(--gray-700);
+            padding-top: 20px;
+            display: inline-block;
+        }
+
+        .signal-hint {
+            margin-top: 32px;
+            color: var(--gray-400);
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .signal-hint i {
+            margin-right: 6px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ============ TAP INDICATOR ============ */
+        .tap-signal {
+            position: fixed;
+            bottom: 120px;
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 0.875rem;
-            color: rgba(0, 0, 0, 0.4);
-            animation: fadeIn 1s ease 2s both;
+            color: var(--gray-500);
+            font-size: 0.65rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 200;
+            font-family: 'Courier New', monospace;
+            animation: transmitPulse 1.5s infinite;
         }
 
-        .auto-close-sub {
-            font-size: 0.75rem;
-            color: rgba(0, 0, 0, 0.3);
-            margin-top: 0.25rem;
+        @keyframes transmitPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; text-shadow: 0 0 8px white; }
         }
 
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-            }
+        /* ============ TRANSMISSION FREQUENCY DISPLAY ============ */
+        .frequency-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: var(--gray-500);
+            border: 1px solid var(--gray-700);
+            padding: 6px 12px;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            letter-spacing: 2px;
+            pointer-events: none;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .success-icon {
-                width: 100px;
-                height: 100px;
-            }
-            
-            .success-icon i {
-                font-size: 3.5rem;
-            }
-            
-            .success-title {
-                font-size: 2rem;
-            }
-            
-            .success-subtitle {
-                font-size: 1rem;
-            }
-            
-            .success-message {
-                font-size: 1rem;
-            }
+        .frequency-display span {
+            color: var(--white);
+            animation: frequencyShift 0.5s infinite;
+            display: inline-block;
+            width: 8px;
+            text-align: center;
         }
 
-        @media (max-width: 480px) {
-            .success-content {
-                padding: 1.5rem;
-            }
-            
-            .success-icon {
-                width: 80px;
-                height: 80px;
-                margin-bottom: 1.5rem;
-            }
-            
-            .success-icon i {
-                font-size: 3rem;
-            }
-            
-            .success-title {
-                font-size: 1.75rem;
-            }
-            
-            .success-subtitle {
-                font-size: 0.9rem;
-            }
-            
-            .success-message {
-                font-size: 0.9rem;
-            }
+        @keyframes frequencyShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        /* Landscape */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .success-content {
-                transform: scale(0.9);
-            }
-        }
-
-        /* iOS Safe Area */
-        @supports (padding: max(0px)) {
-            .success-container {
-                padding-left: max(1rem, env(safe-area-inset-left));
-                padding-right: max(1rem, env(safe-area-inset-right));
-                padding-bottom: max(2rem, env(safe-area-inset-bottom));
-            }
-            
-            .auto-close {
-                bottom: max(2rem, env(safe-area-inset-bottom));
-            }
-        }
-
-        /* Reduced Motion */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation: none !important;
-                transition: none !important;
-            }
-        }
-
-        /* Dark Mode */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: linear-gradient(135deg, #0a0a0a 0%, #000000 100%);
-            }
-            
-            .success-icon {
-                background: var(--white);
-            }
-            
-            .success-icon i {
-                color: var(--black);
-            }
-            
-            .success-title,
-            .success-subtitle,
-            .success-message,
-            .auto-close {
-                color: var(--white);
-            }
-            
-            .auto-close {
-                color: rgba(255, 255, 255, 0.4);
-            }
+        /* ============ CRT SCANLINES ============ */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.3) 3px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.1;
         }
     </style>
 </head>
 <body>
-    <div class="success-container">
-        <div class="success-content">
-            <!-- Success Icon -->
-            <div class="success-icon">
-                <i class="bi bi-check-circle-fill"></i>
-            </div>
-            
-            <!-- Success Title -->
-            <h1 class="success-title">Berjaya</h1>
-            <p class="success-subtitle">Success</p>
-            
-            <!-- Success Message -->
-            <p class="success-message">
-                Kehadiran anda telah direkodkan.
-            </p>
-            <p style="color: var(--black); opacity: 0.6; margin-top: 0.25rem;">
-                Your attendance has been recorded.
-            </p>
+    <!-- RADIO FREQUENCY SCANNER -->
+    <div class="frequency-scanner">
+        <div class="scan-line"></div>
+        <div class="scan-horizontal"></div>
+    </div>
+    
+    <!-- ANALOG STATIC NOISE -->
+    <div class="static-noise"></div>
+    
+    <!-- OSCILLOSCOPE HEARTBEAT -->
+    <div class="oscilloscope">
+        <svg width="100%" height="100%" viewBox="0 0 400 40" preserveAspectRatio="none">
+            <polyline points="
+                0,30
+                20,30
+                40,10
+                60,35
+                80,15
+                100,32
+                120,8
+                140,28
+                160,12
+                180,30
+                200,20
+                220,33
+                240,18
+                260,30
+                280,10
+                300,35
+                320,15
+                340,32
+                360,8
+                380,28
+                400,20
+            " class="heartbeat" />
+        </svg>
+    </div>
+    
+    <!-- CRT SCANLINES -->
+    <div class="scanlines"></div>
+    
+    <!-- FREQUENCY DISPLAY -->
+    <div class="frequency-display">
+        <span>⟁</span> RX: <span id="frequency">104.7</span> MHz
+    </div>
+
+    <!-- MAIN CARD — TRANSMISSION RECEIVED -->
+    <div class="signal-card" id="successCard">
+        <!-- SIGNAL STRENGTH BARS -->
+        <div class="signal-bars">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
         </div>
         
-        <!-- Auto close notice in Bahasa Melayu with English -->
-        <div class="auto-close" style="opacity: 0;">
-            Anda boleh menutup tab ini
-            <div class="auto-close-sub">
-                You can close this tab
-            </div>
+        <!-- TRANSMISSION ICON WITH RIPPLES -->
+        <div class="transmission-icon">
+            <div class="ripple-circle"></div>
+            <div class="ripple-circle"></div>
+            <div class="ripple-circle"></div>
+            <i class="bi bi-check2-circle"></i>
+        </div>
+        
+        <h1 class="title-signal">BERJAYA</h1>
+        <span class="badge-signal">TRANSMISSION RECEIVED</span>
+        
+        <div class="message-signal">
+            <i class="bi bi-wifi"></i>
+            <span>Kehadiran anda telah direkodkan</span>
+        </div>
+        
+        <p style="color: var(--gray-400); font-size: 0.85rem; margin-top: 8px; font-family: 'Courier New', monospace;">
+            <span style="color: var(--white);">></span> Your attendance is confirmed
+        </p>
+        
+        <div class="frequency-tag">
+             SIGNAL LOCKED · 104.7 MHz 
+        </div>
+        
+        <div class="signal-hint">
+            <span><i class="bi bi-hand-index-thumb"></i> KETIK UNTUK MENGHANTAR</span>
+            <span style="font-size:0.6rem; color:var(--gray-500);">TAP TO TRANSMIT CLOSE SIGNAL</span>
         </div>
     </div>
 
+    <div class="tap-signal">
+         TAP TO CLOSE · TRANSMIT 
+    </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            'use strict';
+        (function(){
+            "use strict";
             
-            // Clear any stored form data to prevent going back to filled form
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('form_')) {
-                    localStorage.removeItem(key);
-                }
-            });
+            // ============ WOW: FREQUENCY SHIFT ON TAP ============
+            const freqElement = document.getElementById('frequency');
+            let freq = 104.7;
             
-            // Clear sessionStorage too
-            sessionStorage.clear();
-            
-            // Close on any tap/click after 2 seconds
-            setTimeout(function() {
-                document.body.addEventListener('click', function() {
-                    try {
-                        if (window.history.length > 1) {
-                            window.history.back();
+            function shiftFrequency() {
+                // Random frequency shift
+                freq = (Math.random() * 10 + 100).toFixed(1);
+                freqElement.textContent = freq;
+                
+                // Create interference burst
+                const interference = document.createElement('div');
+                interference.style.position = 'fixed';
+                interference.style.top = '0';
+                interference.style.left = '0';
+                interference.style.width = '100%';
+                interference.style.height = '100%';
+                interference.style.background = 'var(--white)';
+                interference.style.opacity = '0.1';
+                interference.style.pointerEvents = 'none';
+                interference.style.zIndex = '9999';
+                interference.style.animation = 'interference 0.3s ease-out';
+                
+                if (!document.querySelector('#interferenceStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'interferenceStyle';
+                    style.textContent = `
+                        @keyframes interference {
+                            0% { opacity: 0.2; transform: scale(1); }
+                            50% { opacity: 0.4; transform: scale(1.02); }
+                            100% { opacity: 0; transform: scale(1); }
                         }
-                    } catch (e) {
-                        // Ignore errors
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                document.body.appendChild(interference);
+                
+                setTimeout(() => {
+                    interference.remove();
+                }, 300);
+            }
+
+            // ============ TAP ANYWHERE TO CLOSE ============
+            function closeSuccess(e) {
+                // Trigger frequency shift
+                shiftFrequency();
+                
+                // Create signal burst at tap position
+                const signalBurst = document.createElement('div');
+                signalBurst.style.position = 'fixed';
+                signalBurst.style.left = e.clientX + 'px';
+                signalBurst.style.top = e.clientY + 'px';
+                signalBurst.style.width = '0';
+                signalBurst.style.height = '0';
+                signalBurst.style.borderRadius = '50%';
+                signalBurst.style.background = 'var(--white)';
+                signalBurst.style.boxShadow = '0 0 40px 20px rgba(255,255,255,0.5)';
+                signalBurst.style.transform = 'translate(-50%, -50%)';
+                signalBurst.style.pointerEvents = 'none';
+                signalBurst.style.zIndex = '10000';
+                signalBurst.style.animation = 'signalBurst 0.5s forwards';
+                
+                if (!document.querySelector('#signalBurstStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'signalBurstStyle';
+                    style.textContent = `
+                        @keyframes signalBurst {
+                            0% { width: 0; height: 0; opacity: 0.8; }
+                            100% { width: 200px; height: 200px; opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                document.body.appendChild(signalBurst);
+                
+                setTimeout(() => {
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.close();
+                        window.location.href = 'about:blank';
                     }
-                });
-            }, 2000);
+                }, 250);
+            }
+
+            document.body.addEventListener('click', closeSuccess);
             
-            // Close on escape key
+            // Escape key also closes
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
-                    try {
-                        if (window.history.length > 1) {
-                            window.history.back();
-                        }
-                    } catch (e) {
-                        // Ignore errors
-                    }
+                    shiftFrequency();
+                    setTimeout(() => {
+                        window.history.back();
+                    }, 250);
                 }
             });
-            
-            // Prevent accidental refresh on mobile
+
+            // Clear all form storage
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('form_')) localStorage.removeItem(key);
+            });
+            sessionStorage.clear();
+
+            // Prevent pull-to-refresh
             let touchStartY = 0;
-            
-            document.addEventListener('touchstart', function(e) {
-                touchStartY = e.touches[0].clientY;
+            document.addEventListener('touchstart', e => { 
+                touchStartY = e.touches[0].clientY; 
             }, { passive: true });
             
-            document.addEventListener('touchmove', function(e) {
-                // Prevent pull-to-refresh
-                if (touchStartY <= 50 && e.touches[0].clientY > touchStartY) {
-                    e.preventDefault();
-                }
+            document.addEventListener('touchmove', e => {
+                if (touchStartY <= 50 && e.touches[0].clientY > touchStartY) e.preventDefault();
             }, { passive: false });
+
+            // Haptic feedback simulation
+            const card = document.getElementById('successCard');
+            card.addEventListener('mousedown', () => card.style.transform = 'scale(0.98)');
+            card.addEventListener('mouseup', () => card.style.transform = 'scale(1)');
+            card.addEventListener('mouseleave', () => card.style.transform = 'scale(1)');
             
-            // Handle page visibility - prevent going back to form
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    // Page is hidden, clear any navigation history
-                    try {
-                        // Replace current history entry so back button doesn't go to form
-                        window.history.replaceState(null, null, window.location.href);
-                    } catch (e) {
-                        // Ignore errors
-                    }
+            card.addEventListener('touchstart', () => card.style.transform = 'scale(0.98)');
+            card.addEventListener('touchend', () => card.style.transform = 'scale(1)');
+            
+            // Random frequency fluctuations
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    freq = (parseFloat(freq) + (Math.random() - 0.5) * 0.5).toFixed(1);
+                    freqElement.textContent = freq;
                 }
-            });
+            }, 2000);
             
-            // Replace history state to prevent going back to form
-            try {
-                window.history.replaceState(null, null, window.location.href);
-            } catch (e) {
-                // Ignore errors
-            }
-        });
-        
-        // Handle beforeunload for cleanup
-        window.addEventListener('beforeunload', function(e) {
-            const icon = document.querySelector('.success-icon');
-            if (icon) {
-                icon.style.opacity = '0.5';
-                icon.style.transition = 'opacity 0.3s ease';
-            }
-        });
+            // Simulate oscilloscope sweep
+            const heartbeat = document.querySelector('.heartbeat');
+            let offset = 0;
+            setInterval(() => {
+                offset = (offset + 1) % 200;
+                if (heartbeat) {
+                    heartbeat.style.strokeDashoffset = 200 - offset;
+                }
+            }, 50);
+        })();
     </script>
 </body>
 </html>

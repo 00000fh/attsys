@@ -1,605 +1,840 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard | Attendance System{% endblock %}
+{% block title %}Dashboard · ATTSYS · SIGNAL LOCK{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Dashboard-specific styles */
-    :root {
-        --dashboard-bg: #f8fafc;
-    }
-
-    .stat-card {
-        background: white;
-        border: 1px solid #e9ecef;
-        border-radius: 12px;
-        padding: 1.5rem;
-        transition: all 0.2s ease;
-        height: 100%;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    }
-
-    .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
+    /* ---------------------------------------------------------------
+       DASHBOARD — WHITE MAIN, BLACK SUB — WOW EFFECTS
+       Radio frequency, oscilloscope, transmission ripples
+       FIXED: Create Event button visible · NO FEEDBACK/RATING ELEMENTS
+    --------------------------------------------------------------- */
+    
+    /* ===== SIGNAL STRENGTH BARS (animated) ===== */
+    .signal-strength {
         display: flex;
-        align-items: center;
         justify-content: center;
-        margin-bottom: 1rem;
-        background: var(--gray-100);
+        align-items: flex-end;
+        gap: 4px;
+        height: 40px;
     }
-
-    .stat-icon i {
-        font-size: 1.25rem;
-        color: var(--dark);
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--dark);
-        line-height: 1;
-        margin-bottom: 0.25rem;
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: var(--gray-600);
-        margin-bottom: 1rem;
-    }
-
-    .stat-badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        background: var(--gray-100);
-        color: var(--gray-700);
-        font-weight: 500;
-    }
-
-    .dashboard-table {
-        background: white;
-        border-radius: 12px;
-        border: 1px solid #e9ecef;
-        overflow: hidden;
-    }
-
-    .dashboard-table thead {
-        background: var(--gray-50);
-        border-bottom: 2px solid var(--gray-200);
-    }
-
-    .dashboard-table th {
-        font-weight: 600;
-        color: var(--gray-700);
-        padding: 1rem 1.5rem;
-        border: none;
-    }
-
-    .dashboard-table td {
-        padding: 1rem 1.5rem;
-        border-color: var(--gray-100);
-    }
-
-    .dashboard-table tbody tr:hover {
-        background: var(--gray-50);
-    }
-
-    .event-status {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-
-    .status-active {
-        background: rgba(25, 135, 84, 0.1);
-        color: var(--success);
-    }
-
-    .status-inactive {
-        background: var(--gray-100);
-        color: var(--gray-600);
-    }
-
-    .event-indicator {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 0.5rem;
-    }
-
-    .indicator-active {
-        background: var(--success);
-    }
-
-    .indicator-inactive {
-        background: var(--gray-500);
-    }
-
-    .quick-stats-card {
-        background: white;
-        border: 1px solid #e9ecef;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .quick-stat-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid var(--gray-100);
-    }
-
-    .quick-stat-item:last-child {
-        border-bottom: none;
-    }
-
-    .active-events-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .active-event-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid var(--gray-100);
-    }
-
-    .active-event-item:last-child {
-        border-bottom: none;
-    }
-
-    .event-title {
-        font-weight: 500;
-        color: var(--dark);
-        margin-bottom: 0.25rem;
-    }
-
-    .event-meta {
-        font-size: 0.75rem;
-        color: var(--gray-600);
-    }
-
-    .page-header {
-        margin-bottom: 2rem;
-    }
-
-    .dashboard-section {
-        margin-bottom: 2rem;
-    }
-
-    .empty-state {
-        padding: 3rem 1rem;
-        text-align: center;
-        color: var(--gray-600);
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        color: var(--gray-300);
-        margin-bottom: 1rem;
-    }
-
-    .progress-thin {
-        height: 4px;
-        background: var(--gray-200);
-        border-radius: 2px;
-        overflow: hidden;
-    }
-
-    .progress-thin .progress-bar {
+    .signal-strength .bar {
+        width: 6px;
+        background: var(--black);
+        height: 10px;
+        animation: signalPulse 1.2s infinite alternate;
+        opacity: 0.7;
         border-radius: 2px;
     }
-
-    .btn-action {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
-        border-radius: 8px;
+    .signal-strength .bar:nth-child(1) { height: 16px; animation-delay: 0s; }
+    .signal-strength .bar:nth-child(2) { height: 24px; animation-delay: 0.2s; }
+    .signal-strength .bar:nth-child(3) { height: 32px; animation-delay: 0.4s; }
+    .signal-strength .bar:nth-child(4) { height: 28px; animation-delay: 0.1s; }
+    .signal-strength .bar:nth-child(5) { height: 20px; animation-delay: 0.3s; }
+    @keyframes signalPulse {
+        0% { opacity: 0.3; height: 12px; }
+        100% { opacity: 1; height: 36px; }
     }
 
-    .attendance-count {
-        font-weight: 600;
-        color: var(--dark);
+    /* ===== STAT RINGS (oscilloscope style) ===== */
+    .stat-ring-progress {
+        fill: none;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-dasharray: 251.2;
+        stroke-dashoffset: 251.2;
+        transition: stroke-dashoffset 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        stroke: var(--black);
+    }
+    .stat-ring-bg {
+        fill: none;
+        stroke: rgba(0,0,0,0.08);
+        stroke-width: 3;
     }
 
-    .star-rating {
-        display: flex;
-        gap: 2px;
-        align-items: center;
+    /* ===== PROGRESS BAR ===== */
+    .progress-container {
+        width: 100%;
+        height: 6px;
+        background: rgba(0,0,0,0.08);
+        border-radius: 999px;
+        overflow: hidden;
+        position: relative;
     }
-
-    @media (max-width: 768px) {
-        .stat-value {
-            font-size: 1.75rem;
-        }
-        
-        .dashboard-table {
-            font-size: 0.875rem;
-        }
-        
-        .dashboard-table th,
-        .dashboard-table td {
-            padding: 0.75rem 1rem;
-        }
-        
-        /* Adjust grid for mobile */
-        .stat-card {
-            margin-bottom: 1rem;
-        }
+    .progress-fill {
+        height: 100%;
+        background: var(--black);
+        border-radius: 999px;
+        transition: width 1s ease;
+        max-width: 100%;
+        width: 0%;
     }
     
-    /* Hide staff card for non-admin users */
-    .staff-card-hidden {
-        display: none !important;
+    /* ===== SCAN PROGRESS (WOW effect) ===== */
+    .scan-progress {
+        position: relative;
+        overflow: hidden;
+        background: rgba(0,0,0,0.08);
+        border-radius: 999px;
+        height: 6px;
+    }
+    .scan-progress .progress-fill {
+        position: relative;
+        overflow: hidden;
+    }
+    .scan-progress .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -20%;
+        width: 40%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: scanSweep 2s ease-in-out infinite;
+    }
+    @keyframes scanSweep {
+        0% { left: -40%; }
+        100% { left: 140%; }
+    }
+
+    /* ===== TRANSMISSION RIPPLES ===== */
+    .transmission-ripple {
+        position: relative;
+    }
+    .transmission-ripple::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        border: 1px solid var(--black);
+        border-radius: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0;
+        animation: ripple 2s ease-out infinite;
+        pointer-events: none;
+    }
+    @keyframes ripple {
+        0% {
+            transform: translate(-50%, -50%) scale(0.8);
+            opacity: 0.5;
+            border-width: 1px;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(1.8);
+            opacity: 0;
+            border-width: 0.5px;
+        }
+    }
+
+    /* ===== FREQUENCY GLITCH ===== */
+    .glitch-text {
+        animation: glitch 3s infinite;
+    }
+    @keyframes glitch {
+        0%, 100% { text-shadow: 0 0 0 rgba(0,0,0,0.3); }
+        25% { text-shadow: -1px 0 0 rgba(0,0,0,0.3), 1px 0 0 rgba(0,0,0,0.2); }
+        75% { text-shadow: 1px 0 0 rgba(0,0,0,0.3), -1px 0 0 rgba(0,0,0,0.2); }
+    }
+
+    /* ===== DATA ROW HOVER ===== */
+    .data-row {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .data-row:hover {
+        background: rgba(0,0,0,0.02);
+        transform: translateX(4px);
+    }
+
+    /* ===== REVEAL ANIMATION ===== */
+    .reveal {
+        opacity: 0;
+        transform: translateY(16px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ===== CARD HOVER LIFT ===== */
+    .card-lift {
+        transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .card-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 32px -8px rgba(0,0,0,0.15);
+    }
+
+    /* ===== BUTTON BLACK — PROMINENT, HIGH CONTRAST ===== */
+    .btn-black {
+        background: var(--black);
+        color: white;
+        border: 1px solid var(--gray-700);
+        box-shadow: var(--neu-raised-sm);
+        transition: all 0.2s ease;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+    .btn-black:hover {
+        background: var(--gray-800);
+        transform: translateY(-3px);
+        box-shadow: 0 16px 24px -8px rgba(0,0,0,0.25);
+        color: white;
+    }
+    .btn-black:active {
+        transform: translateY(1px);
+        box-shadow: var(--neu-inset-flat);
+    }
+
+    /* ===== NEW EVENT BUTTON — FORCED VISIBILITY ===== */
+    .btn-new-event {
+        background: #000000 !important;
+        color: white !important;
+        border: 1px solid #404040 !important;
+        box-shadow: 0 8px 20px -6px rgba(0,0,0,0.3) !important;
+        padding: 0.75rem 1.8rem !important;
+        border-radius: 40px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.02em;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        transition: all 0.25s ease !important;
+    }
+    .btn-new-event:hover {
+        background: #1a1a1a !important;
+        transform: translateY(-4px) !important;
+        box-shadow: 0 18px 28px -8px rgba(0,0,0,0.4) !important;
+    }
+    .btn-new-event i {
+        font-size: 1.1rem;
+    }
+
+    /* ===== EMPTY STATE ACTION BUTTON ===== */
+    .btn-create-first {
+        background: var(--black) !important;
+        color: white !important;
+        padding: 0.7rem 2rem !important;
+        border-radius: 40px !important;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 1rem;
+        border: 1px solid var(--gray-700);
+        box-shadow: var(--neu-raised-sm);
+    }
+    .btn-create-first:hover {
+        background: var(--gray-800);
+        transform: translateY(-2px);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="h2 fw-bold mb-2 text-dark">Dashboard</h1>
-                <p class="text-muted mb-0">
-                    {% if user.role == 'ADMIN' %}
-                    System overview and analytics
-                    {% else %}
-                    Manage your events and attendance
-                    {% endif %}
-                </p>
+<!-- ===== DASHBOARD HEADER — SIGNAL STRENGTH ===== -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 reveal">
+    <div>
+        <div class="inline-flex items-center gap-3 px-4 py-2 neu-inset rounded-full mb-4">
+            <div class="signal-strength !h-5">
+                <div class="bar !w-1.5"></div>
+                <div class="bar !w-1.5"></div>
+                <div class="bar !w-1.5"></div>
+                <div class="bar !w-1.5"></div>
+                <div class="bar !w-1.5"></div>
             </div>
-            {% if user.role == 'STAFF' %}
-            <a href="{% url 'create_event' %}" class="btn btn-dark d-flex align-items-center">
-                <i class="bi bi-plus-lg me-2"></i>
-                Create Event
-            </a>
+            <span class="text-xs font-mono text-gray-600 tracking-wider">LIVE · DASHBOARD</span>
+            <span class="text-xs font-mono bg-black text-white px-2 py-0.5 rounded-full">RX</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-bold text-black tracking-tight glitch-text">
+            Welcome back,
+            <span class="text-gray-600">{{ user.username }}</span>
+        </h1>
+        <p class="text-gray-500 text-base max-w-2xl mt-2">
+            {% if user.role == 'ADMIN' %}
+            System · performance · signal strength · <span class="font-mono">104.7 MHz</span>
+            {% elif user.role == 'STAFF' %}
+            Monitor events · create new transmissions · real‑time telemetry
+            {% else %}
+            Monitor events and attendance · real‑time telemetry
+            {% endif %}
+        </p>
+    </div>
+    <div class="flex items-center gap-4 mt-4 md:mt-0">
+        <!-- Live frequency display with glitch -->
+        <div class="neu-raised-sm px-5 py-3 rounded-xl flex items-center gap-3 transmission-ripple">
+            <i class="bi bi-radio text-gray-500"></i>
+            <div>
+                <div id="liveClockFreq" class="text-sm font-mono text-black font-bold">104.7 MHz</div>
+                <div class="text-xs text-gray-400">CARRIER LOCK</div>
+            </div>
+        </div>
+        
+        <!-- ===== VISIBLE, HIGH-CONTRAST CREATE EVENT BUTTON ===== -->
+        {% if user.role == 'STAFF' %}
+        <a href="{% url 'create_event' %}" 
+           class="btn-new-event">
+            <i class="bi bi-plus-circle-fill"></i> New Event
+            <i class="bi bi-arrow-right-short"></i>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ===== STATS GRID — WHITE CARDS, BLACK RINGS ===== -->
+<!-- FEEDBACK/RATING CARD COMPLETELY REMOVED - NOW ONLY 3 CARDS FOR NON-ADMIN -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Events -->
+    <div class="neu-raised rounded-2xl p-5 card-lift reveal">
+        <div class="flex items-start justify-between">
+            <div>
+                <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">EVENTS</span>
+                <div class="text-3xl font-bold text-black mt-1 flex items-baseline">
+                    <span id="eventCounter">0</span>
+                    <span class="text-sm text-gray-400 ml-2 font-mono">TOTAL</span>
+                </div>
+                <div class="flex items-center gap-2 mt-3">
+                    <span class="inline-flex items-center gap-1 text-xs bg-black/5 text-gray-700 px-2 py-1 rounded-full border border-black/10">
+                        <span class="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span>
+                        {{ active_events }} active
+                    </span>
+                </div>
+            </div>
+            <div class="w-16 h-16 relative transmission-ripple">
+                <svg viewBox="0 0 100 100" class="transform -rotate-90 w-16 h-16">
+                    <circle cx="50" cy="50" r="40" class="stat-ring-bg"></circle>
+                    <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
+                            id="eventRing" stroke-dashoffset="251.2"></circle>
+                </svg>
+                <i class="bi bi-calendar-week absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+            </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+            <span>ACTIVE RATE</span>
+            <span class="text-black font-mono" id="activeRate">
+                {% widthratio active_events total_events 100 %}%
+            </span>
+        </div>
+    </div>
+
+    <!-- Total Attendees -->
+    <div class="neu-raised rounded-2xl p-5 card-lift reveal">
+        <div class="flex items-start justify-between">
+            <div>
+                <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">ATTENDEES</span>
+                <div class="text-3xl font-bold text-black mt-1">
+                    <span id="attendeeCounter">0</span>
+                </div>
+                <div class="flex items-center gap-2 mt-3">
+                    <span class="inline-flex items-center gap-1 text-xs bg-black/5 text-gray-700 px-2 py-1 rounded-full border border-black/10">
+                        <i class="bi bi-arrow-up-short"></i> +{{ today_checkins|default:0 }} today
+                    </span>
+                </div>
+            </div>
+            <div class="w-16 h-16 relative transmission-ripple">
+                <svg viewBox="0 0 100 100" class="transform -rotate-90 w-16 h-16">
+                    <circle cx="50" cy="50" r="40" class="stat-ring-bg"></circle>
+                    <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
+                            id="attendeeRing" stroke-dashoffset="251.2"></circle>
+                </svg>
+                <i class="bi bi-people absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+            </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+            <span>DAILY GROWTH</span>
+            <span class="text-black font-mono">
+                {% with growth=today_checkins|default:0 %}
+                {% widthratio growth total_attendees 100 %}%
+                {% endwith %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Staff Card (ADMIN) or Applications Card (STAFF/USER) -->
+    {% if user.role == 'ADMIN' %}
+    <div class="neu-raised rounded-2xl p-5 card-lift reveal">
+        <div class="flex items-start justify-between">
+            <div>
+                <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">STAFF</span>
+                <div class="text-3xl font-bold text-black mt-1">
+                    <span id="staffCounter">0</span>
+                </div>
+                <a href="{% url 'manage_staff' %}" class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-black mt-3 group">
+                    Manage <i class="bi bi-arrow-right group-hover:translate-x-1 transition"></i>
+                </a>
+            </div>
+            <div class="w-16 h-16 relative transmission-ripple">
+                <svg viewBox="0 0 100 100" class="transform -rotate-90 w-16 h-16">
+                    <circle cx="50" cy="50" r="40" class="stat-ring-bg"></circle>
+                    <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
+                            id="staffRing" stroke-dashoffset="75.36"></circle>
+                </svg>
+                <i class="bi bi-person-badge absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+            </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+            <span>CAPACITY</span>
+            <span class="text-black font-mono">70%</span>
+        </div>
+    </div>
+    {% else %}
+    <div class="neu-raised rounded-2xl p-5 card-lift reveal">
+        <div class="flex items-start justify-between">
+            <div>
+                <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">APPLICATIONS</span>
+                <div class="text-3xl font-bold text-black mt-1">
+                    <span id="applicationCounter">0</span>
+                </div>
+                <div class="flex items-center gap-2 mt-3">
+                    <span class="inline-flex items-center gap-1 text-xs bg-black/5 text-gray-700 px-2 py-1 rounded-full border border-black/10">
+                        <i class="bi bi-file-text"></i> {{ total_applications|default:0 }} submitted
+                    </span>
+                </div>
+            </div>
+            <div class="w-16 h-16 relative transmission-ripple">
+                <svg viewBox="0 0 100 100" class="transform -rotate-90 w-16 h-16">
+                    <circle cx="50" cy="50" r="40" class="stat-ring-bg"></circle>
+                    <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
+                            id="appRing" stroke-dashoffset="251.2"></circle>
+                </svg>
+                <i class="bi bi-file-text absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+            </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+            <span>COMPLETION</span>
+            <span class="text-black font-mono">
+                {% widthratio total_applications|default:0 total_attendees|default:1 100 %}%
+            </span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- RATING CARD COMPLETELY REMOVED -->
+    <!-- Instead, for non-admin we add a placeholder card to maintain 4-column layout -->
+    {% if user.role == 'ADMIN' %}
+    <!-- Admin sees fourth card as System Health (replaces rating) -->
+    <div class="neu-raised rounded-2xl p-5 card-lift reveal">
+        <div class="flex items-start justify-between">
+            <div>
+                <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">SYSTEM</span>
+                <div class="text-3xl font-bold text-black mt-1">
+                    <span id="systemHealth">98%</span>
+                </div>
+                <div class="flex items-center gap-1 mt-3">
+                    <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                    <span class="text-xs text-gray-600">carrier locked</span>
+                </div>
+            </div>
+            <div class="w-16 h-16 relative transmission-ripple">
+                <svg viewBox="0 0 100 100" class="transform -rotate-90 w-16 h-16">
+                    <circle cx="50" cy="50" r="40" class="stat-ring-bg"></circle>
+                    <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
+                            id="systemRing" stroke-dashoffset="25.12"></circle>
+                </svg>
+                <i class="bi bi-broadcast absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+            </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+            <span>UPTIME</span>
+            <span class="text-black font-mono">99.9%</span>
+        </div>
+    </div>
+    {% else %}
+    <!-- Non-admin sees Events Created (or placeholder) as fourth card -->
+    <div class="neu-raised rounded-2xl p-5 card-lift reveal">
+        <div class="flex items-start justify-between">
+            <div>
+                <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">EVENTS TODAY</span>
+                <div class="text-3xl font-bold text-black mt-1">
+                    <span id="eventsToday">{{ events_today|default:0 }}</span>
+                </div>
+                <div class="flex items-center gap-1 mt-3">
+                    <span class="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                    <span class="text-xs text-gray-600">upcoming</span>
+                </div>
+            </div>
+            <div class="w-16 h-16 relative transmission-ripple">
+                <svg viewBox="0 0 100 100" class="transform -rotate-90 w-16 h-16">
+                    <circle cx="50" cy="50" r="40" class="stat-ring-bg"></circle>
+                    <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
+                            id="eventsTodayRing" stroke-dashoffset="188.4"></circle>
+                </svg>
+                <i class="bi bi-calendar-day absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+            </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+            <span>THIS WEEK</span>
+            <span class="text-black font-mono">{{ weekly_events|default:events|length }}</span>
+        </div>
+        <div class="scan-progress mt-2">
+            <div class="progress-fill" style="width: {% widthratio events_today|default:0 weekly_events|default:events|length|default:1 100 %}%; max-width: 100%;"></div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ===== MAIN DASHBOARD GRID ===== -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- RECENT EVENTS TABLE -->
+    <div class="lg:col-span-2">
+        <div class="neu-raised rounded-2xl overflow-hidden reveal">
+            <div class="p-5 border-b border-black/10 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="signal-strength !h-6">
+                        <div class="bar !w-1 !h-4"></div>
+                        <div class="bar !w-1 !h-6"></div>
+                        <div class="bar !w-1 !h-8"></div>
+                        <div class="bar !w-1 !h-6"></div>
+                        <div class="bar !w-1 !h-4"></div>
+                    </div>
+                    <h3 class="font-semibold text-black">RECENT TRANSMISSIONS · EVENTS</h3>
+                </div>
+                <span class="text-xs font-mono text-gray-400">{{ events|length }} signals</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-black/5 text-gray-500 text-xs font-mono">
+                        <tr>
+                            <th class="px-5 py-3 text-left">EVENT</th>
+                            <th class="px-5 py-3 text-left">DATE</th>
+                            <th class="px-5 py-3 text-left">ATTENDANCE</th>
+                            <th class="px-5 py-3 text-left">STATUS</th>
+                            <th class="px-5 py-3 text-left"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events|slice:":5" %}
+                        <tr class="data-row" onclick="window.location='{% url 'event_detail' event.id %}'">
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="neu-flat w-9 h-9 rounded-lg flex items-center justify-center">
+                                        <i class="bi bi-calendar-event text-black"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-black">{{ event.title|truncatechars:20 }}</div>
+                                        <div class="text-xs text-gray-400">{{ event.venue|truncatechars:15 }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="text-black">{{ event.date|date:"M d, Y" }}</div>
+                                {% if event.start_time %}
+                                <div class="text-xs text-gray-400">{{ event.start_time|time:"g:i A" }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="text-black font-mono">{{ event.attendees.count }}</span>
+                                <span class="text-xs text-gray-400"> checked</span>
+                            </td>
+                            <td class="px-5 py-4">
+                                {% if event.is_active %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">
+                                    <span class="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span> ACTIVE
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-black/5 text-gray-500 border border-black/10">
+                                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span> INACTIVE
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-4">
+                                <i class="bi bi-arrow-up-right-circle text-gray-300 hover:text-black transition"></i>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-5 py-12 text-center text-gray-400">
+                                <i class="bi bi-wifi-off text-3xl mb-2 block"></i>
+                                <span class="font-mono">NO EVENTS FOUND</span>
+                                {% if user.role == 'STAFF' %}
+                                <div class="mt-6">
+                                    <a href="{% url 'create_event' %}" class="btn-create-first">
+                                        <i class="bi bi-plus-circle"></i> CREATE FIRST EVENT
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if events|length > 5 %}
+            <div class="p-4 border-t border-black/10 text-right">
+                <a href="#" class="text-xs text-gray-500 hover:text-black font-mono flex items-center justify-end gap-1">
+                    VIEW ALL SIGNALS <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="row g-3 mb-4">
-        <!-- Total Events -->
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="stat-icon">
-                        <i class="bi bi-calendar-week"></i>
+    <!-- SIDEBAR: TODAY'S OVERVIEW + ACTIVE EVENTS -->
+    <div class="space-y-6">
+        <!-- Today's Overview -->
+        <div class="neu-raised rounded-2xl p-5 reveal">
+            <div class="flex items-center gap-2 mb-5">
+                <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                <h4 class="font-medium text-black">TODAY'S FREQUENCY</h4>
+                <span class="text-xs font-mono text-gray-400 ml-auto">{{ now|date:"M d, Y" }}</span>
+            </div>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 neu-inset rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <i class="bi bi-clock-history text-gray-500"></i>
+                        <span class="text-sm text-gray-600">Check-ins</span>
                     </div>
-                    <span class="stat-badge">
-                        {{ active_events }} Active
-                    </span>
+                    <span class="text-black font-bold text-lg font-mono" id="todayCheckins">{{ today_checkins|default:0 }}</span>
                 </div>
-                <div class="stat-value">{{ total_events }}</div>
-                <div class="stat-label">
-                    {% if user.role == 'ADMIN' %}
-                    Total Events
-                    {% else %}
-                    Your Events
-                    {% endif %}
+                <div class="flex items-center justify-between p-3 neu-inset rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <i class="bi bi-file-text text-gray-500"></i>
+                        <span class="text-sm text-gray-600">Applications</span>
+                    </div>
+                    <span class="text-black font-bold text-lg font-mono">{{ total_applications|default:0 }}</span>
                 </div>
-                <div class="progress-thin mt-2">
-                    <div class="progress-bar bg-dark" role="progressbar" 
-                         style="width: {% widthratio active_events total_events 100 %}%"></div>
-                </div>
+                <!-- FEEDBACK ROW REMOVED -->
             </div>
         </div>
 
-        <!-- Total Attendees -->
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="stat-icon">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <span class="stat-badge">
-                        +{{ today_checkins|default:0 }} Today
-                    </span>
-                </div>
-                <div class="stat-value">{{ total_attendees }}</div>
-                <div class="stat-label">
-                    {% if user.role == 'ADMIN' %}
-                    Total Attendees
-                    {% else %}
-                    Your Attendees
-                    {% endif %}
-                </div>
-                <div class="progress-thin mt-2">
-                    <div class="progress-bar bg-dark" role="progressbar" 
-                         style="width: {% widthratio today_checkins total_attendees 100 %}%"></div>
-                </div>
+        <!-- Active Events Card -->
+        <div class="neu-raised rounded-2xl p-5 reveal">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="font-medium text-black flex items-center gap-2">
+                    <i class="bi bi-broadcast"></i> ACTIVE EVENTS
+                </h4>
+                <span class="bg-black text-white px-2 py-1 rounded-full text-xs font-mono">{{ active_events }}</span>
             </div>
-        </div>
-
-        <!-- Staff Members (Only for Admin) -->
-        {% if user.role == 'ADMIN' %}
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="stat-icon">
-                        <i class="bi bi-person-badge"></i>
+            {% if active_events > 0 %}
+            <div class="space-y-3">
+                {% for event in events %}
+                    {% if event.is_active and forloop.counter <= 3 %}
+                    <div onclick="window.location='{% url 'event_detail' event.id %}'" 
+                         class="neu-flat p-3 rounded-xl cursor-pointer hover:border-black/20 transition-all border border-transparent">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-black">{{ event.title|truncatechars:18 }}</span>
+                            <span class="text-xs text-gray-500">{{ event.attendees.count }} checked</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs text-gray-400">{{ event.date|date:"M d, Y" }}</span>
+                            {% if event.start_time %}
+                            <span class="text-xs text-gray-400">{{ event.start_time|time:"g:i A" }}</span>
+                            {% endif %}
+                            <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                            <span class="text-xs text-green-600">LIVE</span>
+                        </div>
                     </div>
-                    <a href="{% url 'manage_staff' %}" class="text-decoration-none text-dark fs-8">
-                        Manage →
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-6 text-gray-400">
+                <i class="bi bi-pause-circle text-2xl"></i>
+                <p class="text-xs mt-1 font-mono">NO ACTIVE TRANSMISSIONS</p>
+                {% if user.role == 'STAFF' %}
+                <div class="mt-4">
+                    <a href="{% url 'create_event' %}" class="text-xs text-black underline underline-offset-4 hover:text-gray-700">
+                        Create one now
                     </a>
                 </div>
-                <div class="stat-value">{{ total_staff|default:0 }}</div>
-                <div class="stat-label">Staff Members</div>
-                <div class="progress-thin mt-2">
-                    <div class="progress-bar bg-dark" role="progressbar" style="width: 75%"></div>
-                </div>
+                {% endif %}
             </div>
-        </div>
-        {% else %}
-        <!-- Applications Card (For Staff) -->
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="stat-icon">
-                        <i class="bi bi-file-text"></i>
-                    </div>
-                    <span class="stat-badge">
-                        {{ total_feedback|default:0 }} Feedback
-                    </span>
-                </div>
-                <div class="stat-value">{{ total_applications|default:0 }}</div>
-                <div class="stat-label">Applications</div>
-                <div class="progress-thin mt-2">
-                    <div class="progress-bar bg-dark" role="progressbar" 
-                         style="width: {% widthratio total_applications total_attendees 100 %}%"></div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Average Rating -->
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="stat-icon">
-                        <i class="bi bi-star"></i>
-                    </div>
-                    <span class="stat-badge">
-                        {{ total_feedback|default:0 }} Feedback
-                    </span>
-                </div>
-                <div class="d-flex align-items-center mb-2">
-                    <div class="stat-value me-3">
-                        {% if avg_rating %}{{ avg_rating|floatformat:1 }}{% else %}0.0{% endif %}
-                    </div>
-                    <div class="star-rating">
-                        {% with rating=avg_rating|default:0 %}
-                        {% for i in "12345"|make_list %}
-                        <i class="bi bi-star-fill {% if forloop.counter <= rating %}text-warning{% else %}text-gray-300{% endif %}"></i>
-                        {% endfor %}
-                        {% endwith %}
-                    </div>
-                </div>
-                <div class="stat-label">Average Rating</div>
-                <div class="progress-thin mt-2">
-                    <div class="progress-bar bg-dark" role="progressbar" 
-                         style="width: {% widthratio avg_rating|default:0 5 100 %}%"></div>
-                </div>
-            </div>
+            {% endif %}
         </div>
         
-        <!-- Additional Card for Admin (Applications) -->
-        {% if user.role == 'ADMIN' %}
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="stat-icon">
-                        <i class="bi bi-file-text"></i>
-                    </div>
-                    <span class="stat-badge">
-                        Complete Forms
-                    </span>
+        <!-- Quick action for STAFF (always visible) -->
+        {% if user.role == 'STAFF' %}
+        <div class="neu-inset rounded-2xl p-5 reveal">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center">
+                    <i class="bi bi-plus-circle text-white"></i>
                 </div>
-                <div class="stat-value">{{ total_applications|default:0 }}</div>
-                <div class="stat-label">Total Applications</div>
-                <div class="progress-thin mt-2">
-                    <div class="progress-bar bg-dark" role="progressbar" 
-                         style="width: {% widthratio total_applications total_attendees 100 %}%"></div>
+                <div>
+                    <p class="text-sm font-medium text-black">Need to broadcast?</p>
+                    <a href="{% url 'create_event' %}" class="text-xs text-gray-600 hover:text-black flex items-center gap-1">
+                        Create new event <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
         {% endif %}
     </div>
+</div>
 
-    <!-- Main Content -->
-    <div class="row">
-        <!-- Recent Events -->
-        <div class="col-lg-8 mb-4">
-            <div class="dashboard-section">
-                <div class="dashboard-table">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="ps-4">Event</th>
-                                    <th>Date</th>
-                                    <th>Attendance</th>
-                                    <th>Status</th>
-                                    <th class="pe-4 text-end">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for event in events %}
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="event-indicator {% if event.is_active %}indicator-active{% else %}indicator-inactive{% endif %} me-3"></div>
-                                            <div>
-                                                <div class="event-title">{{ event.title|truncatechars:30 }}</div>
-                                                <div class="event-meta">{{ event.venue|truncatechars:25 }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div>{{ event.date|date:"M d" }}</div>
-                                        <div class="event-meta">{{ event.start_time|time:"g:i A" }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="attendance-count">{{ event.attendees.count }}</div>
-                                        <div class="event-meta">attendees</div>
-                                    </td>
-                                    <td>
-                                        <span class="event-status {% if event.is_active %}status-active{% else %}status-inactive{% endif %}">
-                                            <span class="event-indicator {% if event.is_active %}indicator-active{% else %}indicator-inactive{% endif %} me-1"></span>
-                                            {% if event.is_active %}Active{% else %}Inactive{% endif %}
-                                        </span>
-                                    </td>
-                                    <td class="pe-4 text-end">
-                                        <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-dark btn-action">
-                                            View
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center py-5">
-                                        <div class="empty-state">
-                                            <i class="bi bi-calendar-x"></i>
-                                            <h6 class="mt-2 mb-3">No events created yet</h6>
-                                            {% if user.role == 'STAFF' %}
-                                            <a href="{% url 'create_event' %}" class="btn btn-dark">
-                                                Create your first event
-                                            </a>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<!-- ===== ADMIN PERFORMANCE METRICS ===== -->
+{% if user.role == 'ADMIN' %}
+<div class="mt-8 reveal">
+    <div class="neu-raised rounded-2xl p-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+                <h3 class="text-lg font-bold text-black flex items-center gap-2">
+                    <i class="bi bi-graph-up"></i> SYSTEM PERFORMANCE
+                </h3>
+                <p class="text-xs text-gray-400 font-mono">CARRIER LOCK · 104.7 MHz</p>
+            </div>
+            <div class="flex items-center gap-2 bg-black/5 p-1 rounded-xl mt-3 md:mt-0">
+                <button class="px-4 py-2 rounded-lg text-xs font-medium text-white bg-black">7D</button>
+                <button class="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 hover:text-black">30D</button>
             </div>
         </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Today's Overview -->
-            <div class="quick-stats-card mb-4">
-                <h6 class="fw-semibold mb-3">Today's Overview</h6>
-                <div class="quick-stat-item">
-                    <span class="text-muted">Today's Check-ins</span>
-                    <span class="fw-semibold">{{ today_checkins|default:0 }}</span>
-                </div>
-                {% if user.role == 'ADMIN' %}
-                <div class="quick-stat-item">
-                    <span class="text-muted">Active Events</span>
-                    <span class="fw-semibold">{{ active_events|default:0 }}</span>
-                </div>
-                {% endif %}
-                <div class="quick-stat-item">
-                    <span class="text-muted">Applications</span>
-                    <span class="fw-semibold">{{ total_applications|default:0 }}</span>
-                </div>
-                <div class="quick-stat-item">
-                    <span class="text-muted">Feedback Submitted</span>
-                    <span class="fw-semibold">{{ total_feedback|default:0 }}</span>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="neu-inset rounded-xl p-4">
+                <div class="text-sm text-gray-500 mb-2">EVENT GROWTH</div>
+                <div class="text-2xl font-bold text-black">+{{ active_events|default:0 }}</div>
+                <div class="mt-3 h-12 flex items-end gap-1">
+                    <div class="w-1/6 bg-black/80 rounded-t-lg h-6"></div>
+                    <div class="w-1/6 bg-black/80 rounded-t-lg h-8"></div>
+                    <div class="w-1/6 bg-black/80 rounded-t-lg h-10"></div>
+                    <div class="w-1/6 bg-black/80 rounded-t-lg h-7"></div>
+                    <div class="w-1/6 bg-black/80 rounded-t-lg h-9"></div>
+                    <div class="w-1/6 bg-black/80 rounded-t-lg h-5"></div>
                 </div>
             </div>
-
-            <!-- Active Events -->
-            <div class="quick-stats-card">
-                <h6 class="fw-semibold mb-3">
-                    {% if user.role == 'ADMIN' %}
-                    Active Events
-                    {% else %}
-                    Your Active Events
-                    {% endif %}
-                </h6>
-                {% if active_events > 0 %}
-                <ul class="active-events-list">
-                    {% for event in events %}
-                        {% if event.is_active and forloop.counter <= 3 %}
-                        <li class="active-event-item">
-                            <div>
-                                <div class="event-title">{{ event.title|truncatechars:20 }}</div>
-                                <div class="event-meta">{{ event.attendees.count }} checked in</div>
-                            </div>
-                            <a href="{% url 'event_detail' event.id %}" class="text-decoration-none text-dark">
-                                <i class="bi bi-arrow-right"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="empty-state py-3">
-                    <i class="bi bi-pause-circle"></i>
-                    <p class="mt-2 mb-0 fs-8">No active events</p>
+            <div class="neu-inset rounded-xl p-4">
+                <div class="text-sm text-gray-500 mb-2">ATTENDANCE TREND</div>
+                <div class="text-2xl font-bold text-black">↑ {{ today_checkins|default:0 }}</div>
+                <div class="mt-3 w-full h-12 relative">
+                    <svg class="w-full h-full" viewBox="0 0 100 30">
+                        <polyline points="0,25 15,18 30,22 45,12 60,15 75,8 90,12 100,5" 
+                                  stroke="black" stroke-width="1.2" fill="none"/>
+                    </svg>
                 </div>
-                {% endif %}
+            </div>
+            <div class="neu-inset rounded-xl p-4">
+                <div class="text-sm text-gray-500 mb-2">SYSTEM UPTIME</div>
+                <div class="text-2xl font-bold text-black">99.9%</div>
+                <p class="text-xs text-gray-400 mt-2 font-mono">carrier stable</p>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
+
+<!-- ===== ACHIEVEMENT / MILESTONE (feedback/rating removed) ===== -->
+<!-- Keep only attendance-based achievement, remove any rating references -->
+{% if today_checkins and today_checkins > 50 %}
+<div class="mt-8 reveal">
+    <div class="neu-raised border-l-4 border-green-500 rounded-2xl p-5 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center transmission-ripple">
+                <i class="bi bi-trophy-fill text-green-600 text-2xl"></i>
+            </div>
+            <div>
+                <span class="text-xs font-mono text-green-600 uppercase">ATTENDANCE MILESTONE</span>
+                <h4 class="text-black font-bold">50+ check‑ins today</h4>
+                <p class="text-sm text-gray-500">Signal strength critical · transmission locked</p>
+            </div>
+        </div>
+        <button class="px-4 py-2 rounded-lg text-sm border border-black text-black hover:bg-black hover:text-white transition flex items-center gap-2">
+            <i class="bi bi-share"></i> SHARE
+        </button>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Dashboard-specific JavaScript
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate stat cards on load
-        const statCards = document.querySelectorAll('.stat-card');
-        statCards.forEach((card, index) => {
-            setTimeout(() => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    card.style.transition = 'all 0.3s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, 100);
-            }, index * 100);
-        });
+    (function() {
+        'use strict';
 
-        // Add click effect to table rows
-        const tableRows = document.querySelectorAll('.dashboard-table tbody tr');
-        tableRows.forEach(row => {
-            row.addEventListener('click', function(e) {
-                if (!e.target.closest('a') && !e.target.closest('button')) {
-                    const link = this.querySelector('a.btn-action');
-                    if (link) {
-                        link.click();
-                    }
+        // ===== ANIMATED COUNTERS =====
+        function animateCounter(el, target, duration = 1800) {
+            if (!el) return;
+            let stepTime = 16;
+            let increment = target / (duration / stepTime);
+            let current = 0;
+            let timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    el.textContent = target.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    el.textContent = Math.floor(current).toLocaleString();
+                }
+            }, stepTime);
+        }
+
+        // Set counters - NO RATING COUNTER
+        setTimeout(() => {
+            animateCounter(document.getElementById('eventCounter'), {{ total_events|default:0 }});
+            animateCounter(document.getElementById('attendeeCounter'), {{ total_attendees|default:0 }});
+            {% if user.role == 'ADMIN' %}
+            animateCounter(document.getElementById('staffCounter'), {{ total_staff|default:0 }});
+            {% else %}
+            animateCounter(document.getElementById('applicationCounter'), {{ total_applications|default:0 }});
+            {% endif %}
+            
+            // Set system health or events today counters
+            {% if user.role == 'ADMIN' %}
+            let systemEl = document.getElementById('systemHealth');
+            if (systemEl) systemEl.textContent = '98%';
+            {% else %}
+            let eventsTodayEl = document.getElementById('eventsToday');
+            if (eventsTodayEl) eventsTodayEl.textContent = '{{ events_today|default:0 }}';
+            {% endif %}
+        }, 200);
+
+        // ===== RING PROGRESS =====
+        function setRing(ringId, percent) {
+            let ring = document.getElementById(ringId);
+            if (!ring) return;
+            let circumference = 251.2;
+            percent = Math.min(percent, 100);
+            let offset = circumference - (percent / 100) * circumference;
+            ring.style.strokeDashoffset = offset;
+        }
+
+        setTimeout(() => {
+            setRing('eventRing', {% widthratio active_events total_events 100 %});
+            setRing('attendeeRing', {% widthratio today_checkins total_attendees 100 %});
+            {% if user.role == 'ADMIN' %}
+            setRing('staffRing', 70);
+            setRing('systemRing', 98);
+            {% else %}
+            setRing('appRing', {% widthratio total_applications|default:0 total_attendees|default:1 100 %});
+            setRing('eventsTodayRing', {% widthratio events_today|default:0 weekly_events|default:events|length|default:1 100 %});
+            {% endif %}
+        }, 300);
+
+        // ===== LIVE FREQUENCY SIMULATOR =====
+        function updateFrequency() {
+            let freqEl = document.getElementById('liveClockFreq');
+            if (freqEl) {
+                let base = 104.7;
+                let variation = (Math.random() * 0.4 - 0.2).toFixed(1);
+                let newFreq = (base + parseFloat(variation)).toFixed(1);
+                freqEl.innerHTML = `${newFreq} MHz`;
+                
+                if (Math.random() > 0.7) {
+                    freqEl.style.transform = 'skewX(-2deg)';
+                    setTimeout(() => { freqEl.style.transform = ''; }, 100);
+                }
+            }
+        }
+        setInterval(updateFrequency, 3000);
+        updateFrequency();
+
+        // ===== REVEAL ANIMATION =====
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
                 }
             });
-            
-            row.style.cursor = 'pointer';
-        });
+        }, { threshold: 0.1 });
+        reveals.forEach(el => observer.observe(el));
 
-        // Update progress bars with animation
-        const progressBars = document.querySelectorAll('.progress-bar');
-        progressBars.forEach(bar => {
-            const width = bar.style.width;
-            bar.style.width = '0';
-            
-            setTimeout(() => {
-                bar.style.transition = 'width 1s ease-in-out';
-                bar.style.width = width;
-            }, 500);
+        // ===== FIX: Ensure progress bars never exceed 100% width =====
+        document.querySelectorAll('.progress-fill').forEach(bar => {
+            let width = bar.style.width;
+            if (width && parseInt(width) > 100) {
+                bar.style.width = '100%';
+            }
         });
-    });
+    })();
 </script>
 {% endblock %}

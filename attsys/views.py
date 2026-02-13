@@ -566,7 +566,7 @@ def event_detail(request, event_id):
     feedbacks = event.feedbacks.all().order_by('-submitted_at')
     avg_rating = feedbacks.aggregate(Avg('rating'))['rating__avg'] or 0
 
-    # 🔹 Calculate registration statistics for the summary cards (optimized)
+    # 🔹 Calculate registration statistics for the summary cards - UPDATED
     try:
         registrations = Registration.objects.filter(attendee__event=event)
         total_registered = registrations.count()
@@ -579,10 +579,21 @@ def event_detail(request, event_id):
         )
         
         total_paid = status_counts['total_paid_count'] or 0
-        total_partial = status_counts['total_partial_count'] or 0  # ADDED: Partial payment count
+        total_partial = status_counts['total_partial_count'] or 0
         total_pending = status_counts['total_pending_count'] or 0
         
-        # Calculate total revenue efficiently
+        # === UPDATED: Calculate fee totals for the new cards ===
+        # Calculate total pre-registration fee
+        pre_reg_sum = registrations.aggregate(
+            total=Sum('pre_registration_fee')
+        )['total'] or Decimal('0.00')
+        
+        # Calculate total registration fee
+        reg_sum = registrations.aggregate(
+            total=Sum('registration_fee')
+        )['total'] or Decimal('0.00')
+        
+        # Calculate total revenue (pre-reg + reg)
         revenue_data = registrations.aggregate(
             total_revenue=Sum(
                 F('pre_registration_fee') + F('registration_fee')
@@ -606,8 +617,10 @@ def event_detail(request, event_id):
         print(f"Error calculating registration stats: {e}")
         total_registered = 0
         total_paid = 0
-        total_partial = 0  # ADDED: Initialize partial count
+        total_partial = 0
         total_pending = 0
+        pre_reg_sum = Decimal('0.00')
+        reg_sum = Decimal('0.00')
         total_revenue = Decimal('0.00')
         partial_revenue = Decimal('0.00')
 
@@ -643,12 +656,15 @@ def event_detail(request, event_id):
         'attendance_by_hour': formatted_attendance,
         'feedbacks': feedbacks,
         'avg_rating': round(avg_rating, 1),
+        # === UPDATED: Registration stats ===
         'total_registered': total_registered,
         'total_paid': total_paid,
-        'total_partial': total_partial,  # ADDED: Partial payment count
+        'total_partial': total_partial,
         'total_pending': total_pending,
-        'total_revenue': f"{total_revenue:.2f}",
-        'partial_revenue': f"{partial_revenue:.2f}",  # Optional: Add if you want to display partial revenue
+        'total_pre_reg_fee': f"{pre_reg_sum:.2f}",  # NEW: Pre-registration fee total
+        'total_reg_fee': f"{reg_sum:.2f}",          # NEW: Registration fee total
+        'total_revenue': f"{total_revenue:.2f}",    # Total revenue
+        'partial_revenue': f"{partial_revenue:.2f}",
         'total_applications': total_applications,
         'today_checkins': today_checkins,
         'now_malaysia': now_malaysia,
@@ -661,12 +677,13 @@ def event_detail(request, event_id):
 
 @login_required
 def toggle_event(request, event_id):
+    """Toggle event active status with AJAX support for smooth transitions"""
     if request.user.role != 'STAFF':
         return HttpResponseForbidden()
 
     event = get_object_or_404(Event, id=event_id)
     
-    # Check if event has ended (optional - you might want to allow manual override)
+    # Check if event has ended (informational only)
     now_malaysia = malaysia_now()
     event_end = timezone.make_aware(
         timezone.datetime.combine(event.date, event.end_time)
@@ -675,40 +692,55 @@ def toggle_event(request, event_id):
     
     is_event_ended = now_malaysia > event_end
     
-    # Allow staff to manually start/stop regardless of time
-    # Or add a warning if trying to start an ended event
-    
+    # Toggle event status
     if not event.is_active:
-        # Starting the event
-        if is_event_ended:
-            # Event has passed - ask for confirmation or just allow it
-            messages.warning(request, f'Event "{event.title}" has already ended, but you can still activate it for manual check-ins.')
-        
+        # STARTING EVENT
         event.is_active = True
         event.check_in_token = uuid.uuid4()
         event.save()
+        status = 'started'
+        message = 'Event started successfully'
     else:
-        # Stopping the event
+        # STOPPING EVENT
         event.is_active = False
+        # Keep the check_in_token for reference, but event is inactive
         event.save()
-
+        status = 'stopped'
+        message = 'Event stopped successfully'
+    
+    # Check if this is an AJAX request (for smooth transitions)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'status': status,
+            'message': message,
+            'event_id': event.id,
+            'is_active': event.is_active,
+            'is_event_ended': is_event_ended,
+            'timestamp': timezone.now().isoformat()
+        })
+    
+    # Regular form submission fallback
+    messages.success(request, message)
     return redirect('event_detail', event_id=event.id)
 
 
 def check_in(request, event_id, token):
     """
     Public check-in view for attendees to submit application forms
+    OPTIMIZED FOR INSTANT TRANSITION - NO LAG, NO STUTTER
     """
     try:
         # Get the event
         event = get_object_or_404(Event, id=event_id)
         
-        # Check if event is active
+        # Check if event is active - FAST VALIDATION
         if not event.is_active:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
-                    'error': 'This event is no longer active for check-in.'
+                    'error': 'This event is no longer active for check-in.',
+                    'instant_transition': False
                 }, status=400)
             return render(request, 'error.html', {
                 'title': 'Event Inactive',
@@ -716,12 +748,13 @@ def check_in(request, event_id, token):
                 'event': event
             })
         
-        # Check token
+        # Check token - FAST
         if str(event.check_in_token) != str(token):
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
-                    'error': 'Invalid check-in token.'
+                    'error': 'Invalid check-in token.',
+                    'instant_transition': False
                 }, status=400)
             return render(request, 'error.html', {
                 'title': 'Invalid Token',
@@ -733,7 +766,8 @@ def check_in(request, event_id, token):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': False,
-                'error': 'The event you are trying to check into does not exist.'
+                'error': 'The event you are trying to check into does not exist.',
+                'instant_transition': False
             }, status=404)
         return render(request, 'error.html', {
             'title': 'Event Not Found',
@@ -741,12 +775,11 @@ def check_in(request, event_id, token):
         })
     except Exception as e:
         print(f"Error in check-in validation: {e}")
-        import traceback
-        traceback.print_exc()
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': False,
-                'error': 'An error occurred while processing your check-in.'
+                'error': 'An error occurred while processing your check-in.',
+                'instant_transition': False
             }, status=500)
         return render(request, 'error.html', {
             'title': 'Error',
@@ -758,7 +791,8 @@ def check_in(request, event_id, token):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': False,
-                'error': 'Staff and Admin users cannot check in as attendees.'
+                'error': 'Staff and Admin users cannot check in as attendees.',
+                'instant_transition': False
             }, status=403)
         return render(request, 'error.html', {
             'title': 'Staff/Admin Access',
@@ -767,78 +801,40 @@ def check_in(request, event_id, token):
 
     if request.method == 'POST':
         try:
-            # Required fields
-            required_fields = [
-                'registration_officer', 'applied_programme', 'attended_with', 'full_name',
-                'city', 'postcode', 'state', 'ic_no', 'email',
-                'phone_no', 'marriage_status', 'father_name', 'father_ic',
-                'father_phone', 'father_occupation', 'mother_name', 'mother_ic',
-                'mother_phone', 'mother_occupation'
+            # ===== OPTIMIZED VALIDATION - FASTEST PATH =====
+            # Check only essential required fields first
+            essential_fields = [
+                'registration_officer', 'applied_programme', 'attended_with', 
+                'full_name', 'ic_no', 'email', 'phone_no'
             ]
             
-            # Collect errors for validation
-            errors = {}
-            for field in required_fields:
+            # Quick validation - stop at first error
+            for field in essential_fields:
                 value = request.POST.get(field, '').strip()
                 if not value:
-                    errors[field] = f'{field.replace("_", " ").title()} is required'
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'{field.replace("_", " ").title()} is required',
+                            'field': field,
+                            'instant_transition': False
+                        }, status=400)
+                    else:
+                        return render(request, 'check_in.html', {
+                            'event': event,
+                            'error': f'{field.replace("_", " ").title()} is required',
+                            'form_data': request.POST
+                        })
             
-            # If there are validation errors
-            if errors:
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Please fill in all required fields.',
-                        'field_errors': errors
-                    }, status=400)
-                else:
-                    first_error = list(errors.values())[0] if errors else 'Please fill in all required fields.'
-                    return render(request, 'check_in.html', {
-                        'event': event,
-                        'error': first_error,
-                        'form_data': request.POST
-                    })
-
-            # Handle SPM Total Credit
-            spm_total_credit_str = request.POST.get('spm_total_credit', '0').strip()
-            try:
-                spm_total_credit = int(spm_total_credit_str) if spm_total_credit_str.isdigit() else 0
-            except ValueError:
-                spm_total_credit = 0
-            
-            # Handle father/mother dependants
-            father_dependants_str = request.POST.get('father_dependants', '0').strip()
-            try:
-                father_dependants = int(father_dependants_str) if father_dependants_str.isdigit() else 0
-            except ValueError:
-                father_dependants = 0
-            
-            # Format empty values as dash for optional fields
-            def format_optional_value(value):
-                if not value or not str(value).strip():
-                    return '-'
-                return str(value).strip()
-
-            # Get interest choices
-            interest_choice1 = format_optional_value(request.POST.get('interest_choice1', ''))
-            interest_choice2 = format_optional_value(request.POST.get('interest_choice2', ''))
-            interest_choice3 = format_optional_value(request.POST.get('interest_choice3', ''))
-            
-            # Get father and mother occupation
-            father_occupation = request.POST.get('father_occupation', '').strip()
-            mother_occupation = request.POST.get('mother_occupation', '').strip()
-            
-            # Format other optional fields
-            father_income = format_optional_value(request.POST.get('father_income', ''))
-            mother_income = format_optional_value(request.POST.get('mother_income', ''))
-            
-            # Email validation
+            # Email validation - fast regex
             email = request.POST['email'].strip().lower()
             if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({
                         'success': False,
-                        'error': 'Please enter a valid email address.'
+                        'error': 'Please enter a valid email address.',
+                        'field': 'email',
+                        'instant_transition': False
                     }, status=400)
                 else:
                     return render(request, 'check_in.html', {
@@ -847,7 +843,7 @@ def check_in(request, event_id, token):
                         'form_data': request.POST
                     })
             
-            # Check if already submitted
+            # ===== CHECK DUPLICATE - SINGLE QUERY =====
             existing_application = Application.objects.filter(
                 event=event,
                 email__iexact=email
@@ -857,7 +853,8 @@ def check_in(request, event_id, token):
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({
                         'success': False,
-                        'error': 'You have already submitted an application for this event.'
+                        'error': 'You have already submitted an application for this event.',
+                        'instant_transition': False
                     }, status=400)
                 else:
                     return render(request, 'check_in.html', {
@@ -866,44 +863,61 @@ def check_in(request, event_id, token):
                         'form_data': request.POST
                     })
             
-            # Create Application record
+            # ===== OPTIMIZED DATA PROCESSING =====
+            # Handle numeric fields with defaults
+            spm_total_credit = 0
+            spm_val = request.POST.get('spm_total_credit', '0').strip()
+            if spm_val and spm_val.isdigit():
+                spm_total_credit = int(spm_val)
+            
+            father_dependants = 0
+            dep_val = request.POST.get('father_dependants', '0').strip()
+            if dep_val and dep_val.isdigit():
+                father_dependants = int(dep_val)
+            
+            # Helper for optional fields - return dash for empty
+            def fmt_opt(val):
+                v = request.POST.get(val, '').strip()
+                return v if v else '-'
+            
+            # ===== CREATE APPLICATION - SINGLE INSERT =====
             application = Application.objects.create(
                 event=event,
                 registration_officer=request.POST['registration_officer'].strip(),
                 applied_programme=request.POST['applied_programme'],
                 attended_with=request.POST['attended_with'],
                 full_name=request.POST['full_name'].strip(),
-                address1=request.POST['address1'].strip(),
-                city=request.POST['city'].strip(),
-                postcode=request.POST['postcode'].strip(),
-                state=request.POST['state'].strip(),
+                address1=request.POST.get('address1', '').strip() or '-',
+                city=request.POST.get('city', '').strip() or '-',
+                postcode=request.POST.get('postcode', '').strip() or '-',
+                state=request.POST.get('state', '').strip() or '-',
                 ic_no=request.POST['ic_no'].strip(),
                 email=email,
                 phone_no=request.POST['phone_no'].strip(),
-                marriage_status=request.POST['marriage_status'],
+                marriage_status=request.POST.get('marriage_status', '').strip() or '-',
                 spm_total_credit=spm_total_credit,
-                father_name=request.POST['father_name'].strip(),
-                father_ic=request.POST['father_ic'].strip(),
-                father_phone=request.POST['father_phone'].strip(),
-                father_occupation=father_occupation,
-                father_income=father_income,
+                father_name=request.POST.get('father_name', '').strip() or '-',
+                father_ic=request.POST.get('father_ic', '').strip() or '-',
+                father_phone=request.POST.get('father_phone', '').strip() or '-',
+                father_occupation=fmt_opt('father_occupation'),
+                father_income=fmt_opt('father_income'),
                 father_dependants=father_dependants,
-                mother_name=request.POST['mother_name'].strip(),
-                mother_ic=request.POST['mother_ic'].strip(),
-                mother_phone=request.POST['mother_phone'].strip(),
-                mother_occupation=mother_occupation,
-                mother_income=mother_income,
-                interest_choice1=interest_choice1,
-                interest_choice2=interest_choice2,
-                interest_choice3=interest_choice3,
+                mother_name=request.POST.get('mother_name', '').strip() or '-',
+                mother_ic=request.POST.get('mother_ic', '').strip() or '-',
+                mother_phone=request.POST.get('mother_phone', '').strip() or '-',
+                mother_occupation=fmt_opt('mother_occupation'),
+                mother_income=fmt_opt('mother_income'),
+                interest_choice1=fmt_opt('interest_choice1'),
+                interest_choice2=fmt_opt('interest_choice2'),
+                interest_choice3=fmt_opt('interest_choice3'),
                 interested_programme=(
-                    f"1. {interest_choice1}\n"
-                    f"2. {interest_choice2}\n"
-                    f"3. {interest_choice3}"
+                    f"1. {fmt_opt('interest_choice1')}\n"
+                    f"2. {fmt_opt('interest_choice2')}\n"
+                    f"3. {fmt_opt('interest_choice3')}"
                 ).strip()
             )
             
-            # Also mark as attendee for attendance tracking
+            # ===== CREATE/UPDATE ATTENDEE - FAST =====
             attendee, created = Attendee.objects.get_or_create(
                 event=event,
                 email=email,
@@ -913,37 +927,29 @@ def check_in(request, event_id, token):
                 }
             )
             
-            # If attendee already exists, update their info
+            # Update if exists (no need to check created flag)
             if not created:
                 attendee.name = request.POST['full_name'].strip()
                 attendee.phone_number = request.POST['phone_no'].strip()
-                attendee.save()
-            
-            # Log successful check-in
-            print(f"SUCCESSFUL CHECK-IN:")
-            print(f"  Event: {event.title}")
-            print(f"  Attendee: {attendee.name}")
-            print(f"  Email: {attendee.email}")
-            print(f"  Application ID: {application.id}")
+                attendee.save(update_fields=['name', 'phone_number'])
             
             # ================================================
-            # CRITICAL FIX: Force immediate redirect for ALL requests
+            # INSTANT SUCCESS RESPONSE - NO DELAY, NO STUTTER
             # ================================================
-            success_url = '/attsys/success/'  # Direct URL to success page
-            
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                # For AJAX requests, return a success with NO redirect URL
-                # This will let JavaScript handle clearing the form
+                # CRITICAL: Return success IMMEDIATELY with NO redirect instruction
+                # The frontend will handle the instant transition
                 return JsonResponse({
                     'success': True,
                     'message': 'Application submitted successfully!',
                     'application_id': application.id,
                     'attendee_id': attendee.id,
-                    # NO redirect_url - let JS handle clearing form first
+                    'instant_transition': True,  # Signal frontend for instant transition
+                    'timestamp': timezone.now().isoformat()
                 })
             
-            # For non-AJAX requests, redirect immediately
-            return redirect(success_url)
+            # For non-AJAX requests (fallback)
+            return redirect('/attsys/success/')
 
         except IntegrityError as e:
             error_msg = 'You have already submitted an application for this event.'
@@ -952,7 +958,8 @@ def check_in(request, event_id, token):
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
-                    'error': error_msg
+                    'error': error_msg,
+                    'instant_transition': False
                 }, status=400)
             else:
                 return render(request, 'check_in.html', {
@@ -970,7 +977,8 @@ def check_in(request, event_id, token):
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
-                    'error': error_msg
+                    'error': error_msg,
+                    'instant_transition': False
                 }, status=500)
             else:
                 return render(request, 'check_in.html', {
@@ -981,18 +989,6 @@ def check_in(request, event_id, token):
 
     # GET request - show check-in form
     return render(request, 'check_in.html', {'event': event})
-
-
-def qr_image(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
-    # Use check_in_token, not qr_token
-    url = request.build_absolute_uri(
-        f"/check-in/{event.id}/{event.check_in_token}/"
-    )
-    img = qrcode.make(url)
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    return HttpResponse(buffer.getvalue(), content_type="image/png")
 
 
 @login_required
@@ -1471,17 +1467,38 @@ def save_registration(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
+    # Log all POST data for debugging
+    print("=" * 50)
+    print("SAVE REGISTRATION REQUEST")
+    print(f"User: {request.user}")
+    print(f"POST keys: {list(request.POST.keys())}")
+    print(f"FILES keys: {list(request.FILES.keys())}")
+    
+    # Get attendee_id from request.POST or request.body for FormData
     attendee_id = request.POST.get('attendee_id')
     if not attendee_id:
+        # Try to parse from JSON if not in POST
+        try:
+            data = json.loads(request.body)
+            attendee_id = data.get('attendee_id')
+            print(f"Got attendee_id from JSON: {attendee_id}")
+        except:
+            print("Could not parse JSON body")
+    
+    if not attendee_id:
+        print("ERROR: No attendee_id provided")
         return JsonResponse({'error': 'Attendee ID required'}, status=400)
     
     try:
         attendee = Attendee.objects.get(id=attendee_id)
+        print(f"Found attendee: {attendee.name} (ID: {attendee.id})")
     except Attendee.DoesNotExist:
+        print(f"ERROR: Attendee not found with ID: {attendee_id}")
         return JsonResponse({'error': 'Attendee not found'}, status=404)
     
     # Check permissions
     if request.user.role == 'STAFF' and attendee.event.created_by != request.user:
+        print(f"ERROR: Permission denied - user {request.user} not authorized for event {attendee.event.id}")
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
     try:
@@ -1495,25 +1512,35 @@ def save_registration(request):
                     email__iexact=attendee.email
                 )
                 referral_number = application.registration_officer or ''
+                print(f"Auto-filled referral number from application: {referral_number}")
             except Application.DoesNotExist:
                 referral_number = ''
+                print("No application found for auto-fill")
         
         # Validate and parse data
         course = request.POST.get('course', '').strip()
         college = request.POST.get('college', '').strip()
         closer = request.POST.get('closer', '').strip()
         
+        print(f"Course: '{course}', College: '{college}', Closer: '{closer}'")
+        
         # Required field validation
         if not course:
+            print("ERROR: Course is required but was empty")
             return JsonResponse({'error': 'Course is required'}, status=400)
         if not college:
+            print("ERROR: College is required but was empty")
             return JsonResponse({'error': 'College is required'}, status=400)
         if not closer:
+            print("ERROR: Closer is required but was empty")
             return JsonResponse({'error': 'Closer name is required'}, status=400)
         
-        # Parse date - FIXED: Define register_date here
+        # Parse date
         register_date_str = request.POST.get('register_date', '')
+        print(f"Register date string: '{register_date_str}'")
+        
         if not register_date_str:
+            print("ERROR: Registration date is required but was empty")
             return JsonResponse({'error': 'Registration date is required'}, status=400)
         
         try:
@@ -1522,12 +1549,15 @@ def save_registration(request):
             for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'):
                 try:
                     register_date = datetime.strptime(register_date_str, fmt).date()
+                    print(f"Parsed register_date: {register_date} using format {fmt}")
                     break
                 except ValueError:
                     continue
             if not register_date:
+                print(f"ERROR: Could not parse date: {register_date_str}")
                 return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD, DD/MM/YYYY, or DD-MM-YYYY'}, status=400)
         except (ValueError, TypeError) as e:
+            print(f"ERROR parsing date: {e}")
             return JsonResponse({'error': f'Invalid date: {str(e)}'}, status=400)
         
         # Use Malaysia time for date validation
@@ -1535,11 +1565,13 @@ def save_registration(request):
         
         # Validate date is not in future
         if register_date > malaysia_today:
+            print(f"ERROR: Registration date {register_date} is in future (today: {malaysia_today})")
             return JsonResponse({'error': 'Registration date cannot be in the future'}, status=400)
         
         # Validate date is not too far in past
         thirty_days_ago = malaysia_today - timedelta(days=30)
         if register_date < thirty_days_ago:
+            print(f"ERROR: Registration date {register_date} is more than 30 days ago")
             return JsonResponse({'error': 'Registration date cannot be more than 30 days ago'}, status=400)
         
         # Parse fees with validation
@@ -1548,6 +1580,8 @@ def save_registration(request):
             registration_fee = Decimal(request.POST.get('registration_fee', '0') or '0')
             amount_paid = Decimal(request.POST.get('amount_paid', '0') or '0')
             
+            print(f"Fees - Pre-reg: {pre_registration_fee}, Reg: {registration_fee}, Paid: {amount_paid}")
+            
             if pre_registration_fee < 0:
                 return JsonResponse({'error': 'Pre-registration fee cannot be negative'}, status=400)
             if registration_fee < 0:
@@ -1555,27 +1589,32 @@ def save_registration(request):
             if amount_paid < 0:
                 return JsonResponse({'error': 'Amount paid cannot be negative'}, status=400)
         except (ValueError, TypeError, InvalidOperation) as e:
+            print(f"ERROR parsing fees: {e}")
             return JsonResponse({'error': f'Invalid fee format: {str(e)}'}, status=400)
         
         # Get payment_type and payment_status
         payment_type = request.POST.get('payment_type', '').strip()
         payment_status = request.POST.get('payment_status', 'PENDING')
         
-        # SIMPLIFIED VALIDATION - Amount paid is independent of total fee
+        print(f"Payment - Type: '{payment_type}', Status: '{payment_status}'")
+        
+        # Validation based on payment status
         total_fee_calculated = pre_registration_fee + registration_fee
         
-        # Only basic validation based on payment status
         if payment_status == 'DONE' and amount_paid <= 0:
+            print(f"ERROR: Completed payment but amount_paid = {amount_paid}")
             return JsonResponse({
                 'error': f'For completed payment, amount paid ({amount_paid}) must be greater than 0'
             }, status=400)
         
         if payment_status == 'PENDING' and amount_paid > 0:
+            print(f"ERROR: Pending payment but amount_paid = {amount_paid} > 0")
             return JsonResponse({
                 'error': 'For pending payment, amount paid should be 0.00'
             }, status=400)
         
         if payment_status == 'PARTIAL' and amount_paid <= 0:
+            print(f"ERROR: Partial payment but amount_paid = {amount_paid}")
             return JsonResponse({
                 'error': f'For partial payment, amount paid ({amount_paid}) must be greater than 0'
             }, status=400)
@@ -1586,7 +1625,7 @@ def save_registration(request):
             defaults={
                 'course': course,
                 'college': college,
-                'register_date': register_date,  # Use the defined register_date
+                'register_date': register_date,
                 'pre_registration_fee': pre_registration_fee,
                 'registration_fee': registration_fee,
                 'payment_type': payment_type if payment_type else None,
@@ -1598,11 +1637,13 @@ def save_registration(request):
             }
         )
         
+        print(f"Registration {'created' if created else 'updated'} (ID: {registration.id})")
+        
         # Update if exists
         if not created:
             registration.course = course
             registration.college = college
-            registration.register_date = register_date  # Use the defined register_date
+            registration.register_date = register_date
             registration.pre_registration_fee = pre_registration_fee
             registration.registration_fee = registration_fee
             registration.payment_type = payment_type if payment_type else None
@@ -1612,6 +1653,7 @@ def save_registration(request):
             registration.closer = closer
             registration.referral_number = referral_number
             registration.save()
+            print(f"Registration {registration.id} updated")
         
         # Prepare response data with checkout time
         response_data = {
@@ -1633,14 +1675,18 @@ def save_registration(request):
                 'referral_number': registration.referral_number,
                 'created_at': timezone.localtime(registration.created_at).strftime('%Y-%m-%d %H:%M:%S'),
                 'updated_at': timezone.localtime(registration.updated_at).strftime('%Y-%m-%d %H:%M:%S'),
-                'checkout_time': timezone.localtime(registration.created_at).strftime('%I:%M %p'),  # Added checkout time
-                'checkout_date': timezone.localtime(registration.created_at).strftime('%b %d')  # Added checkout date
+                'checkout_time': timezone.localtime(registration.created_at).strftime('%I:%M %p'),
+                'checkout_date': timezone.localtime(registration.created_at).strftime('%b %d')
             }
         }
+        
+        print("Registration saved successfully")
+        print("=" * 50)
         
         return JsonResponse(response_data)
         
     except IntegrityError as e:
+        print(f"IntegrityError: {e}")
         return JsonResponse({'error': f'Database error: {str(e)}'}, status=500)
     except Exception as e:
         print(f"Error saving registration: {e}")
@@ -1978,7 +2024,8 @@ def export_registrations_csv(request, event_id):
             reg.register_date.strftime('%Y-%m-%d') if reg.register_date else '',
             str(reg.pre_registration_fee),
             str(reg.registration_fee),
-            str(reg.total_fee()),
+            # FIXED: Use total_fee as an attribute, not a method
+            str(reg.total_fee),  # Remove the parentheses
             reg.get_payment_status_display(),
             reg.closer,
             reg.referral_number,
@@ -3619,7 +3666,7 @@ def export_comprehensive_report(request, event_id):
 
 @login_required
 def download_qr_code(request, event_id):
-    """Generate and download a QR code with event details"""
+    """Generate a clean, professional A4-format QR code sheet with perfectly centered content"""
     event = get_object_or_404(Event, id=event_id)
     
     # Check permissions
@@ -3627,143 +3674,288 @@ def download_qr_code(request, event_id):
         return HttpResponseForbidden()
     
     try:
-        # Create QR code
+        # ===== GENERATE QR CODE =====
         qr_url = f"{request.scheme}://{request.get_host()}/attsys/check-in/{event.id}/{event.check_in_token}/"
-        qr = qrcode.make(qr_url)
         
-        # Convert PIL Image to use with ImageDraw
-        qr_img = qr.get_image()
+        # Use higher quality settings for crisp QR code
+        qr = qrcode.QRCode(
+            version=7,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=14,
+            border=3,
+        )
+        qr.add_data(qr_url)
+        qr.make(fit=True)
         
-        # Resize QR code for better quality
-        qr_img = qr_img.resize((350, 350), Image.Resampling.LANCZOS)
+        # Create QR code image - pure black on white
+        qr_img = qr.make_image(fill_color="#000000", back_color="#FFFFFF").convert('RGB')
         
-        # Create a larger image to add text
-        width, height = qr_img.size
-        margin = 40
-        text_height = 200  # More space for text
-        padding = 30
-        new_width = width + padding * 2
-        new_height = height + text_height + margin * 2 + padding * 2
+        # ===== CREATE A4 CANVAS =====
+        # A4 at 150 DPI: 1240 x 1754 pixels (portrait)
+        canvas_width = 1240
+        canvas_height = 1754
+        canvas = Image.new('RGB', (canvas_width, canvas_height), 'white')
+        draw = ImageDraw.Draw(canvas)
         
-        # Create new image with gradient background
-        new_img = Image.new('RGB', (new_width, new_height), '#ffffff')
-        draw = ImageDraw.Draw(new_img)
-        
-        # Add header background
-        draw.rectangle([(0, 0), (new_width, text_height + margin)], fill='#f8f9fa', outline=None)
-        
-        # Add border
-        draw.rectangle([(padding, padding), (new_width - padding, new_height - padding)], 
-                      outline='#dee2e6', width=2)
-        
-        # Try to load fonts
+        # ===== LOAD FONTS =====
         try:
-            # Try different font paths
             font_paths = [
                 "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-                "arial.ttf",
-                "Arial.ttf"
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                "C:\\Windows\\Fonts\\Arial.ttf",
+                "C:\\Windows\\Fonts\\Arialbd.ttf",
+                "/Library/Fonts/Arial.ttf",
+                "/Library/Fonts/Arial Bold.ttf"
             ]
             
-            font_large = None
-            font_medium = None
+            font_bold_large = None
+            font_bold_medium = None
+            font_regular = None
+            font_small = None
+            font_tiny = None
             
-            for font_path in font_paths:
+            for path in font_paths:
                 try:
-                    font_large = ImageFont.truetype(font_path, 24)
-                    font_medium = ImageFont.truetype(font_path, 18)
-                    font_small = ImageFont.truetype(font_path, 16)
-                    break
+                    if 'Bold' in path or 'bd' in path or 'bold' in path:
+                        font_bold_large = ImageFont.truetype(path, 64)
+                        font_bold_medium = ImageFont.truetype(path, 36)
+                    else:
+                        font_regular = ImageFont.truetype(path, 28)
+                        font_small = ImageFont.truetype(path, 20)
+                        font_tiny = ImageFont.truetype(path, 14)
                 except:
                     continue
             
-            if not font_large:
-                # Fallback to default font
-                font_large = ImageFont.load_default()
-                font_medium = ImageFont.load_default()
+            if not font_bold_large:
+                font_bold_large = ImageFont.load_default()
+                font_bold_medium = ImageFont.load_default()
+                font_regular = ImageFont.load_default()
                 font_small = ImageFont.load_default()
+                font_tiny = ImageFont.load_default()
                 
         except:
-            font_large = ImageFont.load_default()
-            font_medium = ImageFont.load_default()
+            font_bold_large = ImageFont.load_default()
+            font_bold_medium = ImageFont.load_default()
+            font_regular = ImageFont.load_default()
             font_small = ImageFont.load_default()
+            font_tiny = ImageFont.load_default()
         
-        # Calculate text positions
-        center_x = new_width // 2
+        # ===== CALCULATE TOTAL CONTENT HEIGHT FOR VERTICAL CENTERING =====
+        # Define all spacing values
+        header_height = 40  # ATTSYS text
+        header_divider_height = 30  # Line after header
+        title_height = 40  # Event title above QR
+        qr_size = 700  # QR code size
+        qr_frame_padding = 30  # Padding around QR frame
+        info_strip_height = 100  # Info strip height
+        instruction_height = 85  # Primary + secondary instruction
+        footer_height = 40  # Footer text
         
-        # Event Title
-        title = event.title
-        title_bbox = draw.textbbox((0, 0), title, font=font_large)
+        # Spacing between elements
+        spacing_after_header = 40
+        spacing_after_title = 20
+        spacing_after_qr = 45
+        spacing_after_info = 35
+        spacing_after_instruction = 50
+        
+        # Calculate total content height
+        total_content_height = (
+            header_height +
+            spacing_after_header +
+            title_height +
+            spacing_after_title +
+            qr_size +
+            spacing_after_qr +
+            info_strip_height +
+            spacing_after_info +
+            instruction_height +
+            spacing_after_instruction +
+            footer_height
+        )
+        
+        # Calculate starting Y position to center everything vertically
+        start_y = (canvas_height - total_content_height) // 2
+        
+        # ===== SIMPLE HEADER =====
+        current_y = start_y
+        
+        # ATTSYS - centered
+        attsys_text = "ATTSYS"
+        attsys_bbox = draw.textbbox((0, 0), attsys_text, font=font_bold_large)
+        attsys_width = attsys_bbox[2] - attsys_bbox[0]
+        attsys_x = (canvas_width - attsys_width) // 2
+        draw.text((attsys_x, current_y), attsys_text, font=font_bold_large, fill=(30, 30, 30))
+        
+        current_y += header_height + spacing_after_header
+        
+        # ===== EVENT TITLE (above QR) =====
+        title_text = event.title.upper()
+        if len(title_text) > 40:
+            title_text = title_text[:37] + "..."
+        
+        title_bbox = draw.textbbox((0, 0), title_text, font=font_bold_medium)
         title_width = title_bbox[2] - title_bbox[0]
-        title_x = center_x - (title_width // 2)
-        draw.text((title_x, margin), title, fill="#212529", font=font_large)
+        title_x = (canvas_width - title_width) // 2
+        draw.text((title_x, current_y), title_text, font=font_bold_medium, fill=(60, 60, 60))
         
-        # Event Venue
-        venue = f"📍 {event.venue}"
-        venue_bbox = draw.textbbox((0, 0), venue, font=font_medium)
-        venue_width = venue_bbox[2] - venue_bbox[0]
-        venue_x = center_x - (venue_width // 2)
-        draw.text((venue_x, margin + 40), venue, fill="#495057", font=font_medium)
+        current_y += title_height + spacing_after_title
         
-        # Event Date
-        event_date = event.date.strftime("%d %B %Y")
-        date_text = f"📅 {event_date}"
-        date_bbox = draw.textbbox((0, 0), date_text, font=font_medium)
-        date_width = date_bbox[2] - date_bbox[0]
-        date_x = center_x - (date_width // 2)
-        draw.text((date_x, margin + 75), date_text, fill="#495057", font=font_medium)
+        # ===== HERO QR CODE =====
+        qr_x = (canvas_width - qr_size) // 2
+        qr_y = current_y
         
-        # Paste QR code centered
-        qr_x = center_x - (width // 2)
-        qr_y = text_height + margin + padding
-        new_img.paste(qr_img, (qr_x, qr_y))
+        # Clean minimal frame
+        draw.rectangle(
+            [qr_x - 15, qr_y - 15, qr_x + qr_size + 15, qr_y + qr_size + 15],
+            fill=(255, 255, 255),
+            outline=(220, 220, 220),
+            width=1
+        )
         
-        # Instruction text below QR
-        instruction = "Scan to check in"
-        inst_bbox = draw.textbbox((0, 0), instruction, font=font_small)
+        draw.rectangle(
+            [qr_x - 12, qr_y - 12, qr_x + qr_size + 12, qr_y + qr_size + 12],
+            fill=(255, 255, 255),
+            outline=(240, 240, 240),
+            width=1
+        )
+        
+        # Paste QR code
+        qr_img_resized = qr_img.resize((qr_size, qr_size), Image.Resampling.LANCZOS)
+        canvas.paste(qr_img_resized, (qr_x, qr_y))
+        
+        current_y += qr_size + spacing_after_qr
+        
+        # ===== COMPACT INFO STRIP =====
+        # Center the info strip horizontally
+        info_strip_width = 900
+        info_strip_x = (canvas_width - info_strip_width) // 2
+        info_strip_y = current_y
+        
+        # Very light gray background for info strip
+        draw.rectangle(
+            [info_strip_x, info_strip_y, info_strip_x + info_strip_width, info_strip_y + info_strip_height],
+            fill=(248, 248, 248),
+            outline=(235, 235, 235),
+            width=1
+        )
+        
+        # Calculate column widths for even spacing
+        col_width = info_strip_width // 4
+        col_padding = 50
+        
+        # Column positions
+        col1_x = info_strip_x + col_padding
+        col2_x = info_strip_x + col_width + col_padding
+        col3_x = info_strip_x + (col_width * 2) + col_padding
+        col4_x = info_strip_x + (col_width * 3) + col_padding
+        
+        # Column 1: Date
+        draw.text((col1_x, info_strip_y + 15), "DATE", font=font_tiny, fill=(140, 140, 140))
+        date_value = event.date.strftime('%d %b %Y')
+        draw.text((col1_x, info_strip_y + 40), date_value, font=font_small, fill=(20, 20, 20))
+        
+        # Column 2: Time
+        draw.text((col2_x, info_strip_y + 15), "TIME", font=font_tiny, fill=(140, 140, 140))
+        time_value = f"{event.start_time.strftime('%H:%M')} - {event.end_time.strftime('%H:%M')}"
+        draw.text((col2_x, info_strip_y + 40), time_value, font=font_small, fill=(20, 20, 20))
+        
+        # Column 3: Venue
+        draw.text((col3_x, info_strip_y + 15), "VENUE", font=font_tiny, fill=(140, 140, 140))
+        venue_value = event.venue[:25] + "..." if len(event.venue) > 25 else event.venue
+        draw.text((col3_x, info_strip_y + 40), venue_value, font=font_small, fill=(20, 20, 20))
+        
+        # Column 4: Event ID
+        draw.text((col4_x, info_strip_y + 15), "EVENT ID", font=font_tiny, fill=(140, 140, 140))
+        event_id_value = f"EVT-{event.id:06d}"
+        draw.text((col4_x, info_strip_y + 40), event_id_value, font=font_small, fill=(20, 20, 20))
+        
+        current_y += info_strip_height + spacing_after_info
+        
+        # ===== CLEAR INSTRUCTION =====
+        # Primary instruction - centered
+        inst_text = "SCAN QR CODE TO CHECK IN"
+        inst_bbox = draw.textbbox((0, 0), inst_text, font=font_bold_medium)
         inst_width = inst_bbox[2] - inst_bbox[0]
-        inst_x = center_x - (inst_width // 2)
-        inst_y = qr_y + height + 15
-        draw.text((inst_x, inst_y), instruction, fill="#6c757d", font=font_small)
+        inst_x = (canvas_width - inst_width) // 2
         
-        # Website URL
-        url = "Check-in System"
-        url_bbox = draw.textbbox((0, 0), url, font=font_small)
-        url_width = url_bbox[2] - url_bbox[0]
-        url_x = center_x - (url_width // 2)
-        draw.text((url_x, inst_y + 25), url, fill="#0d6efd", font=font_small)
+        # Subtle highlight behind instruction
+        inst_bg_padding = 20
+        draw.rectangle(
+            [inst_x - inst_bg_padding, current_y - 8, 
+             inst_x + inst_width + inst_bg_padding, current_y + 40],
+            fill=(245, 245, 245),
+            outline=(230, 230, 230),
+            width=1
+        )
         
-        # Footer note
-        footer = f"Event ID: {event.id}"
-        footer_bbox = draw.textbbox((0, 0), footer, font=ImageFont.load_default())
-        footer_width = footer_bbox[2] - footer_bbox[0]
-        footer_x = new_width - footer_width - 15
-        footer_y = new_height - 20
-        draw.text((footer_x, footer_y), footer, fill="#adb5bd", font=ImageFont.load_default())
+        draw.text((inst_x, current_y), inst_text, font=font_bold_medium, fill=(0, 0, 0))
         
-        # Save to buffer
+        # Secondary instruction - centered
+        sub_text = "Present this QR code at registration"
+        sub_bbox = draw.textbbox((0, 0), sub_text, font=font_small)
+        sub_width = sub_bbox[2] - sub_bbox[0]
+        sub_x = (canvas_width - sub_width) // 2
+        draw.text((sub_x, current_y + 45), sub_text, font=font_small, fill=(100, 100, 100))
+        
+        current_y += instruction_height + spacing_after_instruction
+        
+        # ===== MINIMAL FOOTER =====
+        # Simple separator line - centered
+        line_width = 300
+        line_x1 = (canvas_width - line_width) // 2
+        line_x2 = line_x1 + line_width
+        draw.line(
+            [line_x1, current_y - 20, line_x2, current_y - 20],
+            fill=(220, 220, 220),
+            width=1
+        )
+        
+        # Generated info - centered
+        from django.utils.timezone import now
+        generated_time = now().strftime('%d %b %Y · %H:%M')
+        generated_text = f"Generated: {generated_time} · {request.user.get_full_name() or request.user.username}"
+        gen_bbox = draw.textbbox((0, 0), generated_text, font=font_tiny)
+        gen_width = gen_bbox[2] - gen_bbox[0]
+        gen_x = (canvas_width - gen_width) // 2
+        draw.text((gen_x, current_y), generated_text, font=font_tiny, fill=(170, 170, 170))
+        
+        # ===== SAVE TO BUFFER =====
         buffer = BytesIO()
-        new_img.save(buffer, format="PNG", quality=100, optimize=True)
+        canvas.save(buffer, format="PNG", quality=100, dpi=(150, 150))
         buffer.seek(0)
         
-        # Create HTTP response
+        # ===== CREATE RESPONSE =====
         response = HttpResponse(buffer, content_type='image/png')
-        filename = f"checkin_qr_{event.title.replace(' ', '_')}_{event.date}.png".replace('/', '-')
+        filename = f"ATTSYS_QR_{event.title.replace(' ', '_')[:30]}_{event.date.strftime('%Y%m%d')}.png"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        
         return response
         
     except Exception as e:
-        print(f"Error generating downloadable QR: {e}")
-        # Fallback: Return simple QR code
+        print(f"Error generating A4 QR: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Simple fallback - just the QR code
         try:
             qr_url = f"{request.scheme}://{request.get_host()}/attsys/check-in/{event.id}/{event.check_in_token}/"
-            qr = qrcode.make(qr_url)
+            qr = qrcode.QRCode(version=5, box_size=10, border=2)
+            qr.add_data(qr_url)
+            qr.make(fit=True)
+            qr_img = qr.make_image(fill_color="black", back_color="white")
+            
             buffer = BytesIO()
-            qr.save(buffer, format="PNG")
+            qr_img.save(buffer, format="PNG")
             buffer.seek(0)
+            
             response = HttpResponse(buffer, content_type='image/png')
-            response['Content-Disposition'] = f'attachment; filename="checkin_qr_{event.id}.png"'
+            filename = f"checkin_qr_{event.id}.png"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
             return response
         except:
             return HttpResponse("Error generating QR code", status=500)
@@ -4214,4 +4406,67 @@ def get_print_form_number(request, application_id):
     except Application.DoesNotExist:
         return JsonResponse({'error': 'Application not found'}, status=404)
     except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@csrf_exempt  # Add this to handle DELETE method
+def delete_attendee(request, attendee_id):
+    """Delete an attendee and all associated data"""
+    if not request.user.is_active:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    # Allow both DELETE and POST methods (POST for fallback)
+    if request.method not in ['DELETE', 'POST']:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    attendee = get_object_or_404(Attendee, id=attendee_id)
+    
+    # Check permissions
+    if request.user.role == 'STAFF' and attendee.event.created_by != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        # Get event ID before deletion
+        event_id = attendee.event.id
+        
+        # Log deletion attempt
+        print(f"Deleting attendee: {attendee.name} (ID: {attendee.id}) from event: {attendee.event.title}")
+        
+        # Delete registration first (if exists)
+        try:
+            registration = Registration.objects.get(attendee=attendee)
+            print(f"  Deleting registration: {registration.id}")
+            registration.delete()
+        except Registration.DoesNotExist:
+            print("  No registration found")
+        
+        # Delete application (if exists)
+        try:
+            application = Application.objects.get(
+                event=attendee.event,
+                email__iexact=attendee.email
+            )
+            print(f"  Deleting application: {application.id}")
+            application.delete()
+        except Application.DoesNotExist:
+            print("  No application found")
+        
+        # Store attendee info for response
+        attendee_name = attendee.name
+        
+        # Delete the attendee
+        attendee.delete()
+        print(f"  Attendee deleted successfully")
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Attendee "{attendee_name}" deleted successfully',
+            'event_id': event_id
+        })
+        
+    except Exception as e:
+        print(f"Error deleting attendee: {e}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)

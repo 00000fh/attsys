@@ -1,406 +1,525 @@
 {% extends "base.html" %}
 
-{% block title %}Login | Attendance Management System{% endblock %}
+{% block title %}Login · ATTSYS · SPECTRUM LOCK{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Hide navbar for login page */
-    .navbar {
-        display: none;
-    }
+    /* ---------------------------------------------------------------
+       LOGIN — ALTERNATE VERSION: SPECTRUM ANALYZER / RADIO FREQUENCY
+       Pure B&W, frequency bars, waterfall sweep, tuned signal lock
+       Header/Footer completely eliminated. Layout: sample forms precision.
+    --------------------------------------------------------------- */
     
-    /* Hide footer for login page */
-    .footer {
-        display: none;
+    /* --- OBLITERATE BASE HEADER/FOOTER --- */
+    .navbar, .footer, header, footer, nav, .breadcrumb, .container-fluid header {
+        display: none !important;
     }
-    
-    /* Prevent scrolling */
-    html, body {
+    body, html {
         height: 100%;
-        overflow: hidden;
         margin: 0;
         padding: 0;
+        overflow: hidden;
+        background: #000000 !important;
+        font-family: 'Inter', 'Courier New', monospace;
     }
-    
-    /* Login-specific styles */
-    .login-container {
-        height: 100vh;
-        width: 100vw;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--dashboard-bg);
+    body {
+        background-image: 
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 1px) !important;
+        background-size: 24px 24px !important;
+    }
+
+    /* ===== SPECTRUM ANALYZER BACKGROUND ===== */
+    .spectrum-container {
         position: fixed;
         top: 0;
         left: 0;
-    }
-
-    .login-card {
-        background: white;
-        border-radius: var(--border-radius);
-        border: 1px solid var(--gray-200);
-        box-shadow: var(--box-shadow-hover);
         width: 100%;
-        max-width: 400px;
-        padding: 2.5rem;
-        transition: all 0.3s ease;
-        margin: 2rem;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.25;
+    }
+    .frequency-bands {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40%;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-evenly;
+        gap: 2px;
+        padding: 0 10px;
+    }
+    .band {
+        width: 8px;
+        background: white;
+        height: 20px;
+        animation: bandPulse 1.8s infinite alternate;
+        opacity: 0.5;
+        border-radius: 1px 1px 0 0;
+    }
+    .band:nth-child(1) { height: 45px; animation-delay: 0s; width: 12px; }
+    .band:nth-child(2) { height: 72px; animation-delay: 0.3s; width: 10px; }
+    .band:nth-child(3) { height: 38px; animation-delay: 0.6s; width: 14px; }
+    .band:nth-child(4) { height: 92px; animation-delay: 0.1s; width: 8px; }
+    .band:nth-child(5) { height: 56px; animation-delay: 0.9s; width: 10px; }
+    .band:nth-child(6) { height: 81px; animation-delay: 0.4s; width: 12px; }
+    .band:nth-child(7) { height: 44px; animation-delay: 0.7s; width: 8px; }
+    .band:nth-child(8) { height: 67px; animation-delay: 0.2s; width: 14px; }
+    .band:nth-child(9) { height: 53px; animation-delay: 0.5s; width: 10px; }
+    .band:nth-child(10) { height: 88px; animation-delay: 0.8s; width: 12px; }
+    @keyframes bandPulse {
+        0% { opacity: 0.3; height: 20px; }
+        100% { opacity: 1; height: 95px; }
     }
 
-    .login-card:hover {
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    /* ===== WATERFALL FALLING NOISE (SPECTRUM STYLE) ===== */
+    .waterfall {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+            180deg,
+            transparent,
+            transparent 4px,
+            rgba(255,255,255,0.02) 5px,
+            rgba(255,255,255,0.01) 6px,
+            transparent 7px
+        );
+        pointer-events: none;
+        z-index: 2;
+        opacity: 0.25;
+        animation: waterfallShift 3s linear infinite;
+    }
+    @keyframes waterfallShift {
+        0% { background-position: 0 0; }
+        100% { background-position: 0 40px; }
     }
 
-    .login-header {
-        text-align: center;
-        margin-bottom: 2rem;
+    /* ===== SIGNAL STRENGTH METER ===== */
+    .signal-meter {
+        position: fixed;
+        top: 30px;
+        left: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 300;
+        font-family: 'Courier New', monospace;
+    }
+    .meter-bar {
+        width: 180px;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.3);
+        position: relative;
+    }
+    .meter-fill {
+        height: 100%;
+        width: 0%;
+        background: white;
+        animation: meterSweep 2.5s infinite alternate;
+    }
+    @keyframes meterSweep {
+        0% { width: 35%; opacity: 0.6; }
+        50% { width: 85%; opacity: 1; }
+        100% { width: 45%; opacity: 0.7; }
+    }
+    .meter-label {
+        color: white;
+        font-size: 0.6rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
     }
 
-    .login-logo {
+    /* ===== MAIN CARD — TUNER / RECEIVER ===== */
+    .login-container {
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-        color: var(--dark);
-        text-decoration: none;
-    }
-
-    .login-logo i {
-        font-size: 2rem;
-        color: var(--primary);
-    }
-
-    .login-logo span {
-        font-size: 1.75rem;
-        font-weight: 700;
-    }
-
-    .login-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--dark);
-        margin-bottom: 0.5rem;
-    }
-
-    .login-subtitle {
-        color: var(--gray-600);
-        font-size: 0.875rem;
-        margin-bottom: 0;
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-label {
-        font-weight: 500;
-        color: var(--gray-700);
-        margin-bottom: 0.5rem;
-        font-size: 0.875rem;
-    }
-
-    .form-control {
-        padding: 0.75rem 1rem;
-        border: 1px solid var(--gray-300);
-        border-radius: var(--border-radius-sm);
-        font-size: 1rem;
-        transition: all 0.2s ease;
-    }
-
-    .form-control:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
-    }
-
-    .form-control:not(:placeholder-shown) {
-        background: var(--gray-50);
-    }
-
-    .password-input-group {
+        padding: 1.5rem;
         position: relative;
+        z-index: 200;
     }
-
-    .toggle-password {
-        position: absolute;
-        right: 2.5rem;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: var(--gray-500);
-        cursor: pointer;
-        padding: 0.25rem;
-        transition: color 0.2s ease;
-    }
-
-    .toggle-password:hover {
-        color: var(--gray-700);
-    }
-
-    .btn-login {
+    .tuner-card {
+        max-width: 480px;
         width: 100%;
-        padding: 0.875rem;
-        background: var(--dark);
-        border: none;
-        border-radius: var(--border-radius-sm);
+        background: rgba(5, 5, 8, 0.85);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-top: 2px solid rgba(255,255,255,0.4);
+        padding: 3rem 2.5rem;
+        position: relative;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 30px 60px -20px black;
+        animation: tuneIn 1s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    @keyframes tuneIn {
+        0% { opacity: 0; transform: translateY(20px) scale(0.96); filter: blur(2px); }
+        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+
+    /* ===== FREQUENCY DIAL ===== */
+    .frequency-dial {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: black;
+        border: 1px solid white;
+        padding: 6px 24px;
         color: white;
+        font-size: 0.75rem;
+        letter-spacing: 6px;
         font-weight: 600;
-        font-size: 1rem;
-        transition: all 0.2s ease;
-        margin-top: 0.5rem;
+        text-transform: uppercase;
+        border-radius: 30px;
+        box-shadow: 0 0 15px rgba(255,255,255,0.2);
     }
 
-    .btn-login:hover {
-        background: var(--gray-800);
-        transform: translateY(-1px);
-    }
-
-    .btn-login:active {
-        transform: translateY(0);
-    }
-
-    .login-footer {
-        text-align: center;
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--gray-200);
-        color: var(--gray-600);
-        font-size: 0.875rem;
-    }
-
-    .login-footer a {
-        color: var(--primary);
+    /* ===== LOGO — TUNED CIRCUIT ===== */
+    .tuner-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        margin-bottom: 0.8rem;
+        color: white;
         text-decoration: none;
-        font-weight: 500;
-        transition: color 0.2s ease;
+    }
+    .tuner-logo i {
+        font-size: 2.3rem;
+        color: white;
+        filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+        animation: dialSpin 12s infinite linear;
+    }
+    @keyframes dialSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .tuner-logo span {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        text-shadow: 0 0 20px white;
     }
 
-    .login-footer a:hover {
-        color: var(--dark);
-        text-decoration: underline;
+    /* ===== SPECTRUM BADGE ===== */
+    .spectrum-badge {
+        display: inline-block;
+        padding: 6px 20px;
+        border: 1px solid rgba(255,255,255,0.4);
+        background: rgba(0,0,0,0.6);
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 5px;
+        color: white;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+    .spectrum-badge::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: scanLight 3s infinite;
+    }
+    @keyframes scanLight {
+        0% { left: -100%; }
+        30% { left: 100%; }
+        100% { left: 100%; }
     }
 
+    /* ===== FORM FIELDS — FREQUENCY TUNABLE INSET ===== */
+    .form-group {
+        margin-bottom: 2rem;
+        text-align: left;
+    }
+    .form-label {
+        display: block;
+        color: #ccc;
+        font-size: 0.6rem;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+    }
     .input-icon {
         position: relative;
+        display: flex;
+        align-items: center;
     }
-
-    .input-icon .form-control {
-        padding-left: 3rem;
-    }
-
     .input-icon i {
         position: absolute;
         left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--gray-500);
-        font-size: 1.1rem;
+        color: rgba(255,255,255,0.8);
+        font-size: 1rem;
+        z-index: 3;
+    }
+    .form-control {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        background: rgba(0,0,0,0.8);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 0;
+        font-size: 0.95rem;
+        color: white;
+        font-family: 'Courier New', monospace;
+        transition: all 0.2s ease;
+        box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
+    }
+    .form-control:focus {
+        border-color: white;
+        background: black;
+        box-shadow: inset 0 0 20px black, 0 0 20px rgba(255,255,255,0.2);
+        outline: none;
+    }
+    .form-control::placeholder {
+        color: rgba(255,255,255,0.25);
+        font-size: 0.8rem;
     }
 
-    .login-decoration {
+    /* ===== PASSWORD TOGGLE ===== */
+    .toggle-password {
+        position: absolute;
+        right: 1rem;
+        background: transparent;
+        border: none;
+        color: rgba(255,255,255,0.6);
+        cursor: pointer;
+        padding: 0.3rem;
+        transition: color 0.2s;
+    }
+    .toggle-password:hover {
+        color: white;
+    }
+
+    /* ===== LOGIN BUTTON — SIGNAL LOCK ===== */
+    .btn-login {
+        width: 100%;
+        padding: 1.1rem;
+        background: transparent;
+        border: 1px solid white;
+        color: white;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 8px;
+        text-transform: uppercase;
+        transition: all 0.25s;
+        margin-top: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-login:hover {
+        background: white;
+        color: black;
+        border-color: white;
+        box-shadow: 0 0 30px white;
+    }
+    .btn-login i {
+        font-size: 1.2rem;
+    }
+    .btn-login::before {
+        content: '';
         position: absolute;
         top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary), var(--purple));
-        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    .btn-login:hover::before {
+        left: 100%;
     }
 
-    /* Animation */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    /* ===== FOOTER — FREQUENCY BAND ===== */
+    .login-footer {
+        margin-top: 2.2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.5);
+        font-size: 0.6rem;
+        text-align: center;
+        letter-spacing: 3px;
+        font-family: 'Courier New', monospace;
+    }
+    .login-footer a {
+        color: white;
+        text-decoration: none;
+        border-bottom: 1px dotted rgba(255,255,255,0.4);
+    }
+    .login-footer a:hover {
+        border-bottom-color: white;
     }
 
-    .login-card {
-        animation: fadeIn 0.5s ease-out;
+    /* ===== SPECTRUM WATERFALL READOUT ===== */
+    .waterfall-readout {
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.65rem;
+        font-family: 'Courier New', monospace;
+        background: rgba(0,0,0,0.7);
+        padding: 8px 18px;
+        border: 1px solid rgba(255,255,255,0.2);
+        letter-spacing: 2px;
+        z-index: 500;
+        backdrop-filter: blur(4px);
+    }
+    .waterfall-readout i {
+        margin-right: 8px;
+        animation: blink 1.2s infinite;
+    }
+    @keyframes blink {
+        0%,100% { opacity: 1; }
+        50% { opacity: 0.4; }
     }
 
-    @media (max-width: 480px) {
-        .login-card {
-            padding: 2rem 1.5rem;
-            margin: 1rem;
-        }
-        
-        .login-logo span {
-            font-size: 1.5rem;
-        }
-    }
-
-    /* Hide inline error messages */
-    .error-message, .alert {
-        display: none !important;
-    }
-
-    /* Notification Popup Styles */
+    /* ===== NOTIFICATION — SPECTRUM ALERT ===== */
     .notification-container {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
+        bottom: 30px;
+        right: 30px;
         z-index: 1000;
+        width: 300px;
     }
-
     .notification {
-        background: white;
-        border-radius: var(--border-radius-sm);
-        padding: 1rem 1.25rem;
-        margin-bottom: 0.75rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        border-left: 4px solid;
-        min-width: 280px;
-        max-width: 350px;
-        animation: slideInRight 0.3s ease forwards;
-        transform: translateX(100%);
-        opacity: 0;
+        background: rgba(0,0,0,0.95);
+        border-left: 4px solid white;
+        padding: 1rem 1.2rem;
+        margin-bottom: 0.8rem;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.15);
+        color: white;
+        animation: slideFreq 0.3s;
     }
-
-    .notification.success {
-        border-left-color: var(--success);
-        background: white;
+    @keyframes slideFreq {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
     }
-
-    .notification.error {
-        border-left-color: #dc3545;
-        background: white;
-    }
-
-    .notification.warning {
-        border-left-color: var(--warning);
-        background: white;
-    }
-
-    .notification.info {
-        border-left-color: var(--info);
-        background: white;
-    }
-
-    .notification-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.5rem;
-    }
-
     .notification-title {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-weight: 600;
-        font-size: 0.875rem;
-        color: var(--dark);
+        font-weight: 700;
+        letter-spacing: 2px;
+        font-size: 0.7rem;
+        font-family: 'Courier New', monospace;
     }
-
-    .notification-title i {
-        font-size: 1rem;
-    }
-
-    .success .notification-title i {
-        color: var(--success);
-    }
-
-    .error .notification-title i {
-        color: #dc3545;
-    }
-
-    .warning .notification-title i {
-        color: var(--warning);
-    }
-
-    .info .notification-title i {
-        color: var(--info);
-    }
-
     .notification-close {
+        color: rgba(255,255,255,0.6);
         background: none;
         border: none;
-        color: var(--gray-500);
-        cursor: pointer;
-        padding: 0.25rem;
-        transition: color 0.2s ease;
-        font-size: 0.875rem;
     }
 
-    .notification-close:hover {
-        color: var(--gray-700);
-    }
+    /* ===== HIDE DJANGO DEFAULT ERRORS ===== */
+    .error-message, .alert { display: none !important; }
 
-    .notification-message {
-        color: var(--gray-700);
-        font-size: 0.8125rem;
-        line-height: 1.4;
-        margin: 0;
-    }
-
-    @keyframes slideInRight {
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideOutRight {
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-
-    /* Remove scrollbars */
-    ::-webkit-scrollbar {
-        display: none;
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 500px) {
+        .tuner-card { padding: 2rem 1.5rem; }
+        .frequency-dial { font-size: 0.6rem; letter-spacing: 3px; padding: 4px 16px; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="login-container">
-    <div class="login-card">
-        <div class="login-decoration"></div>
-        
-        <div class="login-header">
-            <a href="{% url 'dashboard' %}" class="login-logo">
-                <i class="bi bi-clipboard-check-fill"></i>
-                <span>ATTSYS</span>
-            </a>
-            <h1 class="login-title">Staff Login</h1>
-            <p class="login-subtitle">Enter your credentials to access the system</p>
-        </div>
+<!-- ===== SPECTRUM ANALYZER BACKGROUND ===== -->
+<div class="spectrum-container">
+    <div class="frequency-bands">
+        <div class="band"></div>
+        <div class="band"></div>
+        <div class="band"></div>
+        <div class="band"></div>
+        <div class="band"></div>
+        <div class="band"></div>
+        <div class="band"></div>
+        <div class="band"></div>
+        <div class="band"></div>
+        <div class="band"></div>
+    </div>
+</div>
+<div class="waterfall"></div>
 
+<!-- SIGNAL METER -->
+<div class="signal-meter">
+    <div class="meter-label">SIGNAL STRENGTH</div>
+    <div class="meter-bar">
+        <div class="meter-fill" id="signalMeterFill"></div>
+    </div>
+    <div class="meter-label" style="font-size:0.55rem;">RF GAIN · LOCK</div>
+</div>
+
+<!-- WATERFALL READOUT -->
+<div class="waterfall-readout">
+    <i class="bi bi-bar-chart-fill"></i> SPECTRUM: <span id="spectrumFreq">104.7</span> MHz
+</div>
+
+<!-- ===== LOGIN CARD — TUNER ===== -->
+<div class="login-container">
+    <div class="tuner-card">
+        <div class="frequency-dial">
+            <i class="bi bi-dial"></i> 104.7 MHz
+        </div>
+        
+        <!-- LOGO — TUNER -->
+        <a href="{% url 'dashboard' %}" class="tuner-logo">
+            <i class="bi bi-broadcast"></i>
+            <span>ATTSYS</span>
+        </a>
+        
+        <div style="text-align: center;">
+            <span class="spectrum-badge">EVENT & ATTENDANCE SYSTEM</span>
+        </div>
+        
+        <p style="color: rgba(255,255,255,0.55); font-size: 0.65rem; text-align: center; margin-bottom: 2.2rem; font-family: 'Courier New'; letter-spacing: 4px;">
+             TUNE TO AUTHENTICATE 
+        </p>
+
+        <!-- FORM — PRECISION TUNING -->
         <form method="post" novalidate id="loginForm">
             {% csrf_token %}
 
             <div class="form-group">
-                <label for="id_username" class="form-label">Username</label>
+                <label for="id_username" class="form-label">FREQUENCY / CALLSIGN</label>
                 <div class="input-icon">
-                    <i class="bi bi-person"></i>
+                    <i class="bi bi-person-badge"></i>
                     <input type="text" 
                            name="username" 
                            id="id_username" 
                            class="form-control" 
-                           placeholder="Enter your username"
+                           placeholder="USER"
                            required
-                           autofocus>
+                           autofocus
+                           autocomplete="username">
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="id_password" class="form-label">Password</label>
+                <label for="id_password" class="form-label">BANDWIDTH / CODE</label>
                 <div class="input-icon">
-                    <i class="bi bi-lock"></i>
+                    <i class="bi bi-shield-lock"></i>
                     <input type="password" 
                            name="password" 
                            id="id_password" 
                            class="form-control" 
-                           placeholder="Enter your password"
-                           required>
+                           placeholder="••••••••"
+                           required
+                           autocomplete="current-password">
                     <button type="button" class="toggle-password" id="togglePassword">
                         <i class="bi bi-eye"></i>
                     </button>
@@ -408,271 +527,206 @@
             </div>
 
             <button type="submit" class="btn-login" id="loginButton">
-                <i class="bi bi-box-arrow-in-right me-2"></i>
-                Login
+                <i class="bi bi-soundwave"></i> LOGIN
+                <i class="bi bi-arrow-right-short"></i>
             </button>
         </form>
 
         <div class="login-footer">
-            <p>
-                Need help? <a href="#">Contact Administrator</a>
+            <p style="margin-bottom: 0.5rem;">
+                <i class="bi bi-shield-check"></i>  ENCRYPTED BAND · 104.7 MHz
             </p>
-            <p class="mt-2 small text-muted">
-                <i class="bi bi-shield-check me-1"></i>
-                Secure login with session protection
-            </p>
+            <a href="#">REQUEST FREQUENCY</a>
         </div>
     </div>
 </div>
 
-<!-- Notification Container -->
-<div class="notification-container" id="notificationContainer">
-    <!-- Notifications will be inserted here by JavaScript -->
-</div>
+<!-- NOTIFICATION CONTAINER -->
+<div class="notification-container" id="notificationContainer"></div>
 
-<!-- Hidden containers for Django messages -->
+<!-- HIDDEN DJANGO MESSAGES — PRESERVED -->
 {% if messages %}
 <div id="djangoMessages" style="display: none;">
     {% for message in messages %}
-    <div class="message" data-tag="{{ message.tags|default:'info' }}">
-        {{ message }}
-    </div>
+    <div class="message" data-tag="{{ message.tags|default:'info' }}">{{ message }}</div>
     {% endfor %}
 </div>
 {% endif %}
-
 {% if form.non_field_errors %}
 <div id="formErrors" style="display: none;">
-    {% for error in form.non_field_errors %}
-    <div class="error">{{ error }}</div>
-    {% endfor %}
+    {% for error in form.non_field_errors %}<div class="error">{{ error }}</div>{% endfor %}
 </div>
 {% endif %}
-
 {% if form.username.errors %}
 <div id="usernameErrors" style="display: none;">
-    {% for error in form.username.errors %}
-    <div class="error">{{ error }}</div>
-    {% endfor %}
+    {% for error in form.username.errors %}<div class="error">{{ error }}</div>{% endfor %}
 </div>
 {% endif %}
-
 {% if form.password.errors %}
 <div id="passwordErrors" style="display: none;">
-    {% for error in form.password.errors %}
-    <div class="error">{{ error }}</div>
-    {% endfor %}
+    {% for error in form.password.errors %}<div class="error">{{ error }}</div>{% endfor %}
 </div>
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('loginForm');
-        const loginButton = document.getElementById('loginButton');
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('id_password');
-        const notificationContainer = document.getElementById('notificationContainer');
+    (function(){
+        'use strict';
+
+        // ===== SPECTRUM ANALYZER — FREQUENCY GENERATOR =====
+        const freqEl = document.getElementById('spectrumFreq');
+        const meterFill = document.getElementById('signalMeterFill');
+        let baseFreq = 104.7;
         
-        // Toggle password visibility
-        togglePassword.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            const eyeIcon = togglePassword.querySelector('i');
-            eyeIcon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
-        });
-
-        // Add focus effects
-        const inputs = document.querySelectorAll('.form-control');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.classList.add('focused');
-            });
-            
-            input.addEventListener('blur', function() {
-                if (!this.value) {
-                    this.parentElement.classList.remove('focused');
+        function tuneSpectrum() {
+            if (freqEl) {
+                let drift = (Math.random() * 0.9 - 0.45).toFixed(1);
+                let newFreq = (baseFreq + parseFloat(drift)).toFixed(1);
+                freqEl.textContent = newFreq;
+                
+                // meter movement
+                if (meterFill) {
+                    let randomWidth = Math.floor(Math.random() * 60 + 30);
+                    meterFill.style.width = randomWidth + '%';
                 }
-            });
-        });
-
-        // Show notification function
-        function showNotification(type, title, message) {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            // Map type to icon
-            let icon = 'bi-info-circle-fill';
-            let displayTitle = title;
-            
-            switch(type) {
-                case 'success':
-                    icon = 'bi-check-circle-fill';
-                    displayTitle = displayTitle || 'Success';
-                    break;
-                case 'error':
-                    icon = 'bi-exclamation-circle-fill';
-                    displayTitle = displayTitle || 'Error';
-                    break;
-                case 'warning':
-                    icon = 'bi-exclamation-triangle-fill';
-                    displayTitle = displayTitle || 'Warning';
-                    break;
-                case 'info':
-                    icon = 'bi-info-circle-fill';
-                    displayTitle = displayTitle || 'Information';
-                    break;
+                
+                // occasional glitch
+                if (Math.random() > 0.8) {
+                    freqEl.style.opacity = '0.5';
+                    setTimeout(() => freqEl.style.opacity = '1', 120);
+                }
             }
-            
-            notification.innerHTML = `
-                <div class="notification-header">
+        }
+        setInterval(tuneSpectrum, 1800);
+        tuneSpectrum();
+
+        // ===== TOGGLE PASSWORD =====
+        const toggle = document.getElementById('togglePassword');
+        const pw = document.getElementById('id_password');
+        if (toggle && pw) {
+            toggle.addEventListener('click', () => {
+                const type = pw.type === 'password' ? 'text' : 'password';
+                pw.type = type;
+                toggle.querySelector('i').className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+            });
+        }
+
+        // ===== NOTIFICATION SYSTEM =====
+        const notifContainer = document.getElementById('notificationContainer');
+        function showNotification(type, title, msg) {
+            if (!notifContainer) return;
+            let icon = 'bi-info-circle-fill';
+            let displayTitle = title || 'INFO';
+            if (type === 'success') { icon = 'bi-check-circle-fill'; displayTitle = 'LOCKED'; }
+            if (type === 'error') { icon = 'bi-exclamation-circle-fill'; displayTitle = 'FREQ ERROR'; }
+            if (type === 'warning') { icon = 'bi-exclamation-triangle-fill'; displayTitle = 'INTERFERENCE'; }
+
+            const n = document.createElement('div');
+            n.className = `notification ${type}`;
+            n.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                     <div class="notification-title">
-                        <i class="bi ${icon}"></i>
-                        ${displayTitle}
+                        <i class="bi ${icon}" style="margin-right:6px;"></i> ${displayTitle}
                     </div>
-                    <button class="notification-close">
+                    <button class="notification-close" style="background:none; border:none;">
                         <i class="bi bi-x"></i>
                     </button>
                 </div>
-                <p class="notification-message">${message}</p>
+                <p class="notification-message" style="margin:0; font-size:0.75rem; color:#ccc;">${msg}</p>
             `;
-            
-            notificationContainer.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.style.animation = 'slideInRight 0.3s ease forwards';
-            }, 10);
-            
-            // Close button functionality
-            const closeBtn = notification.querySelector('.notification-close');
-            closeBtn.addEventListener('click', function() {
-                notification.style.animation = 'slideOutRight 0.3s ease forwards';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.remove();
-                    }
-                }, 300);
-            });
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.style.animation = 'slideOutRight 0.3s ease forwards';
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.remove();
-                        }
-                    }, 300);
+            notifContainer.appendChild(n);
+            const closeBtn = n.querySelector('.notification-close');
+            closeBtn.addEventListener('click', (e) => { e.stopPropagation(); n.remove(); });
+            setTimeout(() => n.remove(), 5000);
+        }
+
+        // ===== LOAD DJANGO ERRORS =====
+        function loadMessages() {
+            const djangoMsgs = document.getElementById('djangoMessages');
+            if (djangoMsgs) {
+                djangoMsgs.querySelectorAll('.message').forEach(m => {
+                    let tag = m.getAttribute('data-tag') || 'info';
+                    showNotification(tag, '', m.textContent.trim());
+                });
+            }
+            const fErrors = document.getElementById('formErrors');
+            if (fErrors) {
+                fErrors.querySelectorAll('.error').forEach(e => showNotification('error', 'AUTH FAILED', e.textContent.trim()));
+            }
+            const uErrors = document.getElementById('usernameErrors');
+            if (uErrors) {
+                uErrors.querySelectorAll('.error').forEach(e => showNotification('error', 'CALLSIGN ERROR', e.textContent.trim()));
+            }
+            const pErrors = document.getElementById('passwordErrors');
+            if (pErrors) {
+                pErrors.querySelectorAll('.error').forEach(e => showNotification('error', 'BANDWIDTH ERROR', e.textContent.trim()));
+            }
+        }
+        setTimeout(loadMessages, 150);
+
+        // ===== FORM SUBMIT: VALIDATION + SPECTRUM EFFECT =====
+        const form = document.getElementById('loginForm');
+        const btn = document.getElementById('loginButton');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const uname = document.getElementById('id_username');
+                const pword = document.getElementById('id_password');
+                let err = false;
+                if (notifContainer) notifContainer.innerHTML = '';
+
+                if (!uname.value.trim()) {
+                    showNotification('error', 'VALIDATION', 'CALLSIGN REQUIRED');
+                    uname.focus();
+                    err = true;
+                } else if (!pword.value.trim()) {
+                    showNotification('error', 'VALIDATION', 'ACCESS CODE REQUIRED');
+                    if (!err) pword.focus();
+                    err = true;
                 }
-            }, 5000);
-        }
-        
-        // Check for Django messages
-        const djangoMessages = document.getElementById('djangoMessages');
-        if (djangoMessages) {
-            const messages = djangoMessages.querySelectorAll('.message');
-            messages.forEach(msg => {
-                const tag = msg.getAttribute('data-tag') || 'info';
-                const message = msg.textContent.trim();
-                showNotification(tag, '', message);
-            });
-        }
-        
-        // Check for form errors
-        const formErrors = document.getElementById('formErrors');
-        if (formErrors) {
-            const errors = formErrors.querySelectorAll('.error');
-            errors.forEach(error => {
-                showNotification('error', 'Login Failed', error.textContent.trim());
-            });
-        }
-        
-        // Check for username errors
-        const usernameErrors = document.getElementById('usernameErrors');
-        if (usernameErrors) {
-            const errors = usernameErrors.querySelectorAll('.error');
-            errors.forEach(error => {
-                showNotification('error', 'Username Error', error.textContent.trim());
-            });
-        }
-        
-        // Check for password errors
-        const passwordErrors = document.getElementById('passwordErrors');
-        if (passwordErrors) {
-            const errors = passwordErrors.querySelectorAll('.error');
-            errors.forEach(error => {
-                showNotification('error', 'Password Error', error.textContent.trim());
-            });
-        }
-        
-        // Form submission validation
-        form.addEventListener('submit', function(e) {
-            const username = document.getElementById('id_username');
-            const password = document.getElementById('id_password');
-            let hasError = false;
-            
-            // Clear any existing notifications
-            const notifications = notificationContainer.querySelectorAll('.notification');
-            notifications.forEach(notif => {
-                notif.style.animation = 'slideOutRight 0.3s ease forwards';
-                setTimeout(() => {
-                    if (notif.parentNode) {
-                        notif.remove();
-                    }
-                }, 300);
-            });
-            
-            // Validate username
-            if (!username.value.trim()) {
-                showNotification('error', 'Validation Error', 'Please enter your username');
-                username.focus();
-                hasError = true;
-            }
-            
-            // Validate password
-            if (!password.value.trim()) {
-                showNotification('error', 'Validation Error', 'Please enter your password');
-                if (!hasError) password.focus();
-                hasError = true;
-            }
-            
-            if (hasError) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Add loading state
-            loginButton.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Logging in...';
-            loginButton.disabled = true;
-            loginButton.style.opacity = '0.7';
-        });
-        
-        // Floating label effect (optional - you can remove if not needed)
-        const labels = document.querySelectorAll('.form-label');
-        labels.forEach(label => {
-            const inputId = label.getAttribute('for');
-            if (inputId) {
-                const input = document.getElementById(inputId);
-                if (input) {
-                    input.addEventListener('input', function() {
-                        if (this.value.trim() !== '') {
-                            label.style.transform = 'translateY(0)';
-                            label.style.fontSize = '0.75rem';
-                            label.style.opacity = '0.7';
-                        } else {
-                            label.style.transform = '';
-                            label.style.fontSize = '';
-                            label.style.opacity = '';
-                        }
-                    });
+                if (err) {
+                    e.preventDefault();
+                    return false;
                 }
-            }
-        });
+
+                // LOCK EFFECT
+                btn.innerHTML = '<i class="bi bi-soundwave"></i> LOCKING... <span style="width:14px; height:14px; border:2px solid white; border-top-color:transparent; border-radius:50%; animation:spin 0.8s infinite; display:inline-block;"></span>';
+                btn.disabled = true;
+                btn.style.opacity = '0.8';
+                
+                // FREQUENCY BURST
+                baseFreq = 104.7 + (Math.random() * 0.8 - 0.4);
+                if (freqEl) freqEl.textContent = baseFreq.toFixed(1);
+                if (meterFill) meterFill.style.width = '92%';
+                
+                // CARD PULSE
+                document.querySelector('.tuner-card').style.transform = 'scale(0.99)';
+                setTimeout(() => document.querySelector('.tuner-card').style.transform = 'scale(1)', 200);
+                
+                // SPECTRUM BURST
+                const bands = document.querySelectorAll('.band');
+                bands.forEach(b => {
+                    b.style.height = Math.floor(Math.random() * 90 + 30) + 'px';
+                });
+            });
+        }
+
+        // ===== FOCUS USERNAME =====
+        document.getElementById('id_username')?.focus();
         
-        // Focus username field on page load
-        document.getElementById('id_username').focus();
-    });
+        // ===== PREVENT BODY SCROLL =====
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('touchmove', (e) => { if (e.target === document.body) e.preventDefault(); }, { passive: false });
+
+        // ===== RANDOM BAND PULSE =====
+        setInterval(() => {
+            const bands = document.querySelectorAll('.band');
+            bands.forEach(b => {
+                if (Math.random() > 0.7) {
+                    b.style.height = Math.floor(Math.random() * 80 + 25) + 'px';
+                }
+            });
+        }, 800);
+    })();
 </script>
 {% endblock %}

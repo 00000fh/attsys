@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = True
 
 # Get Render hostname
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
@@ -30,11 +30,11 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS = [RENDER_EXTERNAL_HOSTNAME, 'localhost', '127.0.0.1']
     CSRF_TRUSTED_ORIGINS = [f'https://{RENDER_EXTERNAL_HOSTNAME}']
-    print(f"✅ Production mode: {RENDER_EXTERNAL_HOSTNAME}")
+    print("DEBUG: Production mode: {RENDER_EXTERNAL_HOSTNAME}")
 else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
     CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
-    print("⚠️ Development mode")
+    print("DEBUG: Development mode")
 
 # For HTTPS in production
 if not DEBUG and RENDER_EXTERNAL_HOSTNAME:
@@ -118,7 +118,7 @@ if DATABASE_URL:
         'sslmode': 'require',
     }
     
-    print(f"✅ Using PostgreSQL database on Render")
+    print(f"DEBUG: Using PostgreSQL database on Render")
 else:
     # SQLite for local development
     DATABASES = {
@@ -127,7 +127,7 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-    print("⚠️ Using SQLite database (for local development)")
+    print("DEBUG: Using SQLite database (for local development)")
 
 # Test database connection
 if 'test' in sys.argv or 'test_coverage' in sys.argv:
@@ -284,7 +284,7 @@ if not DEBUG and RENDER_EXTERNAL_HOSTNAME:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # Configure your email settings here
 
-print(f"✅ Settings loaded successfully")
+print(f"DEBUG: Settings loaded successfully")
 print(f"   DEBUG: {DEBUG}")
 print(f"   ALLOWED_HOSTS: {ALLOWED_HOSTS}")
 print(f"   DATABASE: {DATABASES['default']['ENGINE']}")
