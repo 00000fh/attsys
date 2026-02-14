@@ -1,6 +1,7 @@
 <!-- event_detail.html - NEUROMORPHIC EDITION - ENHANCED TRANSITIONS -->
 <!-- COMPLETELY REMOVED: Rating stars, feedback count, satisfaction metrics -->
 <!-- ENHANCED: Start/Stop event transitions with sophisticated signal animations -->
+<!-- UPDATED: Printable form with proper logos, watermark, and layout from sample -->
 {% extends 'base.html' %}
 
 {% block title %}{{ event.title }} · ATTSYS · SIGNAL LOCK{% endblock %}
@@ -824,7 +825,7 @@
                     <div id="lastCheckinDateStat" class="text-xs text-gray-400 mt-2">{{ last_checkin_date_display|default:"No check-ins yet" }}</div>
                 </div>
                 <div class="w-12 h-12 rounded-xl neu-inset flex items-center justify-center transmission-ripple {% if event.is_active %}active{% else %}inactive{% endif %}">
-                    <i class="bi bi-broadcast text-black text-xl"></i>  <!-- FIXED: Using bi-broadcast instead -->
+                    <i class="bi bi-broadcast text-black text-xl"></i>
                 </div>
             </div>
             <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
@@ -1444,7 +1445,7 @@
             modalRoot.style.zIndex = '999999';
             document.body.appendChild(modalRoot);
             
-            // Modal HTML templates - EXACTLY THE SAME AS ORIGINAL
+            // Modal HTML templates
             const modalHTML = `
                 <!-- ===== QR MODAL - PROJECTOR VIEW ===== -->
                 <div id="qrModal" class="modal-container" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 999999; margin: 0; padding: 20px; box-sizing: border-box;">
@@ -1539,7 +1540,7 @@
                                     class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-black/5 transition-colors">
                                 Close
                             </button>
-                            <button onclick="AttendeeDetails.printForm()"
+                            <button onclick="printAttendeeForm()"
                                     id="printAttendeeBtn"
                                     class="px-4 py-2 rounded-lg text-sm bg-black text-white hover:bg-gray-800 transition-colors flex items-center gap-2 hidden">
                                 <i class="bi bi-printer"></i> Print Application
@@ -2310,10 +2311,10 @@
     })();
 </script>
 
-<!-- ===== EXISTING SCRIPT FROM ORIGINAL ===== -->
+<!-- ===== EXISTING SCRIPT FROM ORIGINAL WITH UPDATED PRINT FUNCTION ===== -->
 <script>
 // ============================================
-// GLOBAL CONFIGURATION AND STATE - EXACTLY THE SAME AS ORIGINAL
+// GLOBAL CONFIGURATION AND STATE
 // ============================================
 const CONFIG = {
     LOGO_URL: "/static/images/SES_LOGO_RENEW.png",
@@ -2352,7 +2353,7 @@ const DOM = {
 };
 
 // ============================================
-// UTILITY FUNCTIONS - EXACTLY THE SAME
+// UTILITY FUNCTIONS
 // ============================================
 function $(selector) { return document.querySelector(selector); }
 function $$(selector) { return document.querySelectorAll(selector); }
@@ -2393,7 +2394,7 @@ function formatDateTime(dateString, format = 'time') {
 }
 
 // ============================================
-// MODAL MANAGEMENT SYSTEM - EXACTLY THE SAME
+// MODAL MANAGEMENT SYSTEM
 // ============================================
 const Modal = {
     open(modalId, options = {}) {
@@ -2446,7 +2447,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================
-// API SERVICE - EXACTLY THE SAME
+// API SERVICE
 // ============================================
 const ApiService = {
     async request(url, options = {}) {
@@ -2498,7 +2499,7 @@ const ApiService = {
 };
 
 // ============================================
-// ATTENDEE TABLE MANAGEMENT - EXACTLY THE SAME
+// ATTENDEE TABLE MANAGEMENT
 // ============================================
 const AttendeeTable = {
     initSearch() {
@@ -2584,7 +2585,7 @@ const AttendeeTable = {
 };
 
 // ============================================
-// QR CODE MANAGEMENT - EXACTLY THE SAME
+// QR CODE MANAGEMENT
 // ============================================
 const QRManager = {
     copyUrl() {
@@ -2605,7 +2606,7 @@ const QRManager = {
 };
 
 // ============================================
-// ATTENDEE DETAILS MODAL - EXACTLY THE SAME
+// ATTENDEE DETAILS MODAL - UPDATED WITH PROPER PRINT BUTTON
 // ============================================
 const AttendeeDetails = {
     async show(attendeeId) {
@@ -2619,7 +2620,10 @@ const AttendeeDetails = {
         try {
             const data = await ApiService.getAttendeeDetails(attendeeId);
             state.currentAttendeeData = data;
-            if (data.attendee) { modalBody.innerHTML = this.buildDetailsHTML(data); this.togglePrintButton(!!data.application); } 
+            if (data.attendee) { 
+                modalBody.innerHTML = this.buildDetailsHTML(data); 
+                this.togglePrintButton(!!data.application); 
+            } 
             else modalBody.innerHTML = this.buildErrorHTML('No attendee found');
         } catch (error) { modalBody.innerHTML = this.buildErrorHTML('Error loading details'); console.error('Details load error:', error); }
     },
@@ -2720,38 +2724,22 @@ const AttendeeDetails = {
         for (const [key, className] of Object.entries(statusMap)) { if (statusLower.includes(key)) return `<span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${className}">${status}</span>`; }
         return `<span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${status}</span>`;
     },
-    togglePrintButton(show) { const printBtn = document.getElementById('printAttendeeBtn'); if (printBtn) printBtn.classList.toggle('hidden', !show); },
-    async printForm() {
-        if (!state.currentAttendeeData?.application) { Toast.show('No application data available to print', 'error'); return; }
-        const app = state.currentAttendeeData.application;
-        try {
-            const formNumber = await this.generateFormNumber(app);
-            const printHtml = this.createCompletePrintableFormHTML(app, formNumber);
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(printHtml);
-            printWindow.document.close();
-            setTimeout(() => { printWindow.print(); setTimeout(() => { if (printWindow.opener) printWindow.close(); }, 500); }, 100);
-        } catch (error) { console.error('Print error:', error); Toast.show('Error generating print form', 'error'); }
-    },
-    async generateFormNumber(application) {
-        try {
-            const eventStateCode = "{{ event.state }}" || 'KUALA_LUMPUR';
-            let stateAbbr = 'KUL';
-            const stateMap = { 'KUALA_LUMPUR': 'KUL', 'SELANGOR': 'SEL', 'JOHOR': 'JHR', 'PENANG': 'PNG', 'PERAK': 'PRK', 'SABAH': 'SBH', 'SARAWAK': 'SWK', 'PAHANG': 'PHG', 'NEGERI_SEMBILAN': 'NSN', 'KEDAH': 'KDH', 'KELANTAN': 'KTN', 'TERENGGANU': 'TRG', 'MELAKA': 'MLK', 'PERLIS': 'PLS', 'LABUAN': 'LBN', 'PUTRAJAYA': 'PJY' };
-            stateAbbr = stateMap[eventStateCode] || eventStateCode.substring(0, 3);
-            const eventMonth = "{{ event.date|date:'m' }}" || '01';
-            const now = new Date(); const timestamp = now.getTime(); const sequence = timestamp % 1000000; const sequenceStr = sequence.toString().slice(-4).padStart(4, '0'); const random = Math.floor(Math.random() * 100); const finalSequence = (parseInt(sequenceStr) + random) % 10000;
-            return `SES.${stateAbbr}.${eventMonth}.${finalSequence.toString().padStart(4, '0')}`;
-        } catch (error) { console.error('Error generating form number:', error); const now = new Date(); return `SES.${now.getTime().toString().slice(-8)}`; }
-    },
-    createCompletePrintableFormHTML(app, formNumber) {
-        // This function remains exactly the same as original - truncated for brevity
-        return `<!DOCTYPE html><html>...</html>`;
+    togglePrintButton(show) { 
+        const printBtn = document.getElementById('printAttendeeBtn'); 
+        if (printBtn) {
+            if (show) {
+                printBtn.classList.remove('hidden');
+                printBtn.style.display = 'inline-flex';
+            } else {
+                printBtn.classList.add('hidden');
+                printBtn.style.display = 'none';
+            }
+        }
     }
 };
 
 // ============================================
-// REGISTRATION FORM MANAGEMENT - EXACTLY THE SAME
+// REGISTRATION FORM MANAGEMENT
 // ============================================
 const RegistrationForm = {
     async open(attendeeId) {
@@ -2896,7 +2884,7 @@ const RegistrationForm = {
 };
 
 // ============================================
-// DELETE ATTENDEE MANAGEMENT - EXACTLY THE SAME
+// DELETE ATTENDEE MANAGEMENT
 // ============================================
 const DeleteManager = {
     showConfirmation(attendeeId, attendeeName) {
@@ -2923,6 +2911,1284 @@ const DeleteManager = {
         finally { deleteBtn.innerHTML = originalText; deleteBtn.disabled = false; state.attendeeToDelete = null; }
     }
 };
+
+// ============================================
+// PRINT ATTENDEE FORM - EXACT SAMPLE VERSION
+// ============================================
+
+window.printAttendeeForm = async function() {
+    if (!state.currentAttendeeData || !state.currentAttendeeData.application) {
+        Toast.show('No application data available to print', 'error');
+        return;
+    }
+    
+    const app = state.currentAttendeeData.application;
+    
+    // Generate UNIQUE form number
+    const formNumber = await generateUniqueFormNumber(app);
+    
+    console.log('Printing COMPLETE form with number:', formNumber);
+    
+    // Create COMPLETE printable form HTML using sample format
+    const printHtml = createCompletePrintableFormHTML(app, formNumber);
+    
+    // Open print window
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printHtml);
+    printWindow.document.close();
+};
+
+// Generate unique form number - from sample
+async function generateUniqueFormNumber(application) {
+    try {
+        // Get event state code
+        const eventStateCode = "{{ event.state }}" || 'KUALA_LUMPUR';
+        
+        // Convert to abbreviation
+        let stateAbbr = 'KUL';
+        const stateMap = {
+            'KUALA_LUMPUR': 'KUL', 'SELANGOR': 'SEL', 'JOHOR': 'JHR', 'PENANG': 'PNG',
+            'PERAK': 'PRK', 'SABAH': 'SBH', 'SARAWAK': 'SWK', 'PAHANG': 'PHG',
+            'NEGERI_SEMBILAN': 'NSN', 'KEDAH': 'KDH', 'KELANTAN': 'KTN',
+            'TERENGGANU': 'TRG', 'MELAKA': 'MLK', 'PERLIS': 'PLS', 'LABUAN': 'LBN',
+            'PUTRAJAYA': 'PJY'
+        };
+        stateAbbr = stateMap[eventStateCode] || eventStateCode.substring(0, 3);
+        
+        // Get event month
+        const eventMonth = "{{ event.date|date:'m' }}" || '01';
+        
+        // Generate unique sequence
+        const now = new Date();
+        const timestamp = now.getTime();
+        const sequence = timestamp % 1000000;
+        const sequenceStr = sequence.toString().slice(-4).padStart(4, '0');
+        const random = Math.floor(Math.random() * 100);
+        const finalSequence = (parseInt(sequenceStr) + random) % 10000;
+        
+        return `SES.${stateAbbr}.${eventMonth}.${finalSequence.toString().padStart(4, '0')}`;
+        
+    } catch (error) {
+        console.error('Error generating form number:', error);
+        const now = new Date();
+        return `SES.${now.getTime().toString().slice(-8)}`;
+    }
+}
+
+// CREATE COMPLETE PRINTABLE FORM HTML - EXACT SAMPLE FORMAT
+function createCompletePrintableFormHTML(app, formNumber) {
+    // Get current timestamp for printing
+    const printTimestamp = new Date().toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    
+    // Get attended with choices
+    const attendedWithChoices = {
+        'PARENT': app.attended_with === 'PARENT',
+        'GUARDIAN': app.attended_with === 'GUARDIAN',
+    };
+    
+    // Programme checkboxes
+    const appliedProgramme = app.applied_programme ? app.applied_programme.trim() : '';
+    const programmeCheckboxes = {
+        'DIPLOMA': appliedProgramme === 'Diploma' || appliedProgramme === 'DIPLOMA',
+        'PRA_DIPLOMA': appliedProgramme === 'Pra-Diploma' || appliedProgramme === 'PRA_DIPLOMA',
+        'TVET': appliedProgramme === 'TVET',
+        'SMART_TAHFIZ': appliedProgramme === 'Smart Tahfiz' || appliedProgramme === 'SMART_TAHFIZ'
+    };
+    
+    console.log('Programme detection:', {
+        original: app.applied_programme,
+        trimmed: appliedProgramme,
+        checks: programmeCheckboxes
+    });
+    
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Application Form - ${escapeHtml(app.full_name)}</title>
+    <style>
+        /* PRINT STYLES - PROFESSIONAL GOVERNMENT THEME - MATCHING SAMPLE */
+        * { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            box-sizing: border-box !important; 
+            font-family: "Calibri", "Arial", sans-serif !important; 
+        }
+        
+        body { 
+            background: white !important; 
+            color: black !important; 
+            width: 210mm !important; 
+            height: 297mm !important; 
+            margin: 0 auto !important; 
+            padding: 10mm 15mm !important; 
+            font-size: 10.5pt !important;
+            line-height: 1.2 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        @page { 
+            margin: 10mm 15mm 10mm 15mm !important; 
+            size: A4 portrait; 
+            
+            /* Remove all headers and footers */
+            @top-left { content: none !important; }
+            @top-center { content: none !important; }
+            @top-right { content: none !important; }
+            @bottom-left { content: none !important; }
+            @bottom-center { content: none !important; }
+            @bottom-right { content: none !important; }
+        }
+        
+        .print-form { 
+            width: 100% !important;
+            min-height: 277mm !important;
+            max-height: 277mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            position: relative;
+            page-break-inside: avoid !important;
+            page-break-after: avoid !important;
+            background: white !important;
+            color: black !important;
+            overflow: visible !important;
+        }
+        
+        /* Watermark - Visible but not intrusive */
+        .watermark {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.2;
+            z-index: 0;
+            pointer-events: none;
+            text-align: center;
+            width: 500px;
+            height: 500px;
+        }
+        
+        .watermark-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .print-form-content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header - Matching Sample */
+        .print-header { 
+            text-align: center; 
+            margin-bottom: 12px !important;
+            padding: 10px 0 12px 0 !important; 
+            border-bottom: 1px solid #000; 
+            position: relative;
+        }
+        
+        /* DUAL LOGO CONTAINER - Matching Sample */
+        .logo-container {
+            position: absolute;
+            top: 0;
+            left: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 55px;
+        }
+        
+        .print-logo {
+            height: 55px;
+            width: auto;
+        }
+        
+        /* Ensure logos don't overlap with text */
+        .print-header-content {
+            position: relative;
+            z-index: 1;
+            padding-left: 140px;
+            padding-right: 10px;
+        }
+        
+        /* FORM NUMBER AND PRINT TIMESTAMP */
+        .form-meta-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+            text-align: right;
+            font-size: 8.5pt !important; 
+            color: #666;
+            margin-bottom: 3px !important;
+        }
+        
+        .form-number { 
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .print-timestamp {
+            font-size: 8pt !important;
+            color: #000;
+            margin-top: 1px !important;
+        }
+        
+        .print-title { 
+            font-size: 16pt !important; 
+            font-weight: bold; 
+            color: #000; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 2px 0 !important;
+            line-height: 1.1;
+        }
+        
+        .print-subtitle { 
+            font-size: 13pt !important; 
+            font-weight: bold; 
+            color: #000; 
+            margin-bottom: 0 !important;
+            line-height: 1.1;
+        }
+        
+        /* Main Content - Compact but readable */
+        .form-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px !important;
+            margin-bottom: 3mm !important;
+        }
+        
+        /* Section Styling */
+        .section {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            margin-bottom: 2px !important;
+            width: 100%;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            font-size: 11pt !important;
+            margin-bottom: 6px !important;
+            padding: 4px 0 !important;
+            border-bottom: 1px solid #000;
+            line-height: 1.1;
+            width: 100%;
+            background: transparent !important;
+            padding-left: 5px !important;
+            color: #000;
+        }
+        
+        /* Field rows - Compact */
+        .field-row { 
+            display: flex; 
+            align-items: flex-start;
+            margin-bottom: 5px !important; 
+            min-height: 18px !important;
+            line-height: 1.2;
+            width: 100%; 
+        }
+        
+        /* STANDARDIZED LABEL WIDTH for all fields (160px) */
+        .field-label-dual {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            font-weight: bold; 
+            font-size: 10pt !important; 
+            width: 160px !important; 
+            min-width: 160px !important; 
+            max-width: 160px !important; 
+            padding-right: 8px !important; 
+            flex-shrink: 0; 
+            color: #000;
+            line-height: 1.1;
+            margin-top: 2px !important;
+        }
+        
+        .field-label-malay {
+            font-weight: bold;
+            font-size: 9.5pt !important;
+            color: #000;
+        }
+        
+        .field-label-english {
+            font-weight: normal;
+            font-size: 9pt !important;
+            color: #444;
+            font-style: italic;
+        }
+        
+        .field-value { 
+            font-size: 10pt !important; 
+            flex: 1; 
+            min-height: 18px !important; 
+            line-height: 1.2;
+            word-break: break-word;
+            border-bottom: 0.7px solid #999;
+            padding-bottom: 2px !important;
+            color: #000;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-top: 2px !important;
+        }
+        
+        /* Two-column grid for Referral Number and SPM Credit side by side */
+        .referral-spm-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px !important;
+            margin-bottom: 6px !important;
+        }
+        
+        .referral-spm-item {
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        /* Referral Number gets 160px label */
+        .referral-label {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            font-weight: bold; 
+            font-size: 10pt !important; 
+            width: 160px !important; 
+            min-width: 160px !important; 
+            max-width: 160px !important; 
+            padding-right: 8px !important; 
+            flex-shrink: 0; 
+            color: #000;
+            line-height: 1.1;
+            margin-top: 2px !important;
+        }
+        
+        /* SPM Credit gets narrower label since it's on the right side */
+        .spm-label {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            font-weight: bold; 
+            font-size: 10pt !important; 
+            width: 140px !important; 
+            min-width: 140px !important; 
+            max-width: 140px !important; 
+            padding-right: 8px !important; 
+            flex-shrink: 0; 
+            color: #000;
+            line-height: 1.1;
+            margin-top: 2px !important;
+        }
+        
+        .referral-spm-value {
+            flex: 1;
+            min-height: 18px !important;
+            line-height: 1.2;
+            word-break: break-word;
+            border-bottom: 0.7px solid #999;
+            padding-bottom: 2px !important;
+            color: #000;
+            margin-top: 2px !important;
+        }
+        
+        /* Applied Programme and Attended With - Aligned with Referral Number */
+        .applied-programme-section {
+            margin-bottom: 8px !important;
+            margin-top: 6px !important;
+            width: 100%;
+        }
+        
+        .applied-programme-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .programme-label-dual {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            font-weight: bold;
+            font-size: 10pt !important;
+            color: #000;
+            margin-right: 6px !important;
+            white-space: nowrap;
+            line-height: 1.1;
+            padding-top: 2px !important;
+            width: 160px !important;
+            min-width: 160px !important;
+            max-width: 160px !important;
+        }
+        
+        .programme-label-malay {
+            font-weight: bold;
+            font-size: 9.5pt !important;
+            color: #000;
+        }
+        
+        .programme-label-english {
+            font-weight: normal;
+            font-size: 9pt !important;
+            color: #444;
+            font-style: italic;
+        }
+        
+        .programme-options-inline {
+            display: flex;
+            gap: 15px !important;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 2px !important;
+        }
+        
+        .programme-option-inline {
+            display: flex;
+            align-items: center;
+            gap: 4px !important;
+            font-size: 10pt !important;
+            line-height: 1.1;
+            cursor: default;
+        }
+        
+        .tickbox-inline {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #000;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8pt !important;
+            flex-shrink: 0;
+            margin-top: 2px !important;
+        }
+        
+        .tickbox-inline.checked::after {
+            content: "✓";
+            font-weight: bold;
+        }
+        
+        .programme-text-inline {
+            font-size: 10pt !important;
+            color: #000;
+            line-height: 1.1;
+        }
+        
+        /* Attended With Section */
+        .attended-with-section {
+            margin-bottom: 8px !important;
+            width: 100%;
+        }
+        
+        .attended-with-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .attended-with-label-dual {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            font-weight: bold;
+            font-size: 10pt !important;
+            color: #000;
+            margin-right: 6px !important;
+            white-space: nowrap;
+            line-height: 1.1;
+            padding-top: 2px !important;
+            width: 160px !important;
+            min-width: 160px !important;
+            max-width: 160px !important;
+        }
+        
+        .attended-with-label-malay {
+            font-weight: bold;
+            font-size: 9.5pt !important;
+            color: #000;
+        }
+        
+        .attended-with-label-english {
+            font-weight: normal;
+            font-size: 9pt !important;
+            color: #444;
+            font-style: italic;
+        }
+        
+        .attended-with-options-inline {
+            display: flex;
+            gap: 15px !important;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 2px !important;
+        }
+        
+        .attended-with-option-inline {
+            display: flex;
+            align-items: center;
+            gap: 4px !important;
+            font-size: 10pt !important;
+            line-height: 1.1;
+            cursor: default;
+        }
+        
+        /* Address section with Address, Postcode, City, State in 2x2 grid */
+        .address-grid-2x2 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px 10px !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .address-item {
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .address-label {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            font-weight: bold; 
+            font-size: 10pt !important; 
+            width: 100px !important; 
+            min-width: 100px !important; 
+            max-width: 100px !important; 
+            padding-right: 6px !important; 
+            flex-shrink: 0; 
+            color: #000;
+            line-height: 1.1;
+            margin-top: 2px !important;
+        }
+        
+        .address-value {
+            flex: 1;
+            min-height: 18px !important;
+            line-height: 1.2;
+            word-break: break-word;
+            border-bottom: 0.7px solid #999;
+            padding-bottom: 2px !important;
+            color: #000;
+            margin-top: 2px !important;
+        }
+        
+        /* Grid layouts */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px !important;
+            margin-bottom: 6px !important;
+            width: 100%;
+        }
+        
+        .grid-3col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px !important;
+            margin-bottom: 6px !important;
+            width: 100%;
+        }
+        
+        /* Interest Boxes Grid */
+        .interest-grid-3col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px !important;
+            margin-top: 6px !important;
+            margin-bottom: 10px !important;
+            width: 100%;
+        }
+        
+        .interest-box {
+            width: 100%;
+            min-height: 60px !important;
+            max-height: 60px !important;
+            padding: 4px 6px !important;
+            font-size: 10pt !important;
+            line-height: 1.1;
+            word-break: break-word;
+            background: transparent !important;
+            border: 0.7px solid #bbb;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .interest-box-title {
+            font-size: 9pt !important;
+            font-weight: bold;
+            margin-bottom: 3px !important;
+            color: #000;
+            text-align: center;
+            padding: 1px 0 !important;
+            border-bottom: 0.7px solid #aaa;
+        }
+        
+        .interest-content {
+            font-size: 10pt !important;
+            line-height: 1.1;
+            word-break: break-word;
+            height: 40px;
+            overflow: hidden;
+        }
+        
+        /* Declaration Section */
+        .declaration {
+            margin-top: -12px !important;
+            padding-top: 4px !important;
+            border-top: 1px solid #000;
+            width: 100%;
+        }
+        
+        .declaration-title {
+            font-size: 11pt !important;
+            font-weight: bold;
+            margin-bottom: 6px !important;
+            text-align: center;
+            line-height: 1.1;
+        }
+        
+        .declaration-dual {
+            margin-bottom: 8px !important;
+        }
+        
+        .declaration-malay {
+            margin-bottom: 4px !important;
+            text-align: justify;
+            font-size: 9pt !important;
+            line-height: 1.3;
+        }
+        
+        .declaration-english {
+            margin-bottom: 8px !important;
+            text-align: justify;
+            font-style: italic;
+            font-size: 9pt !important;
+            line-height: 1.3;
+        }
+        
+        /* Signature Area */
+        .signature-area {
+            margin-top: 10px !important;
+            width: 100%;
+        }
+        
+        .signature-box {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px !important;
+            width: 100%;
+        }
+        
+        .signature-item {
+            width: 48%;
+            text-align: center;
+        }
+        
+        .signature-line {
+            width: 180px !important;
+            height: 40px !important;
+            margin: 4px auto 4px auto !important;
+            font-weight: bold;
+            font-size: 10pt !important;
+            line-height: 1.1;
+            border-bottom: 1px solid #000;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .signature-label {
+            font-size: 9pt !important;
+            margin-top: 2px !important;
+            color: #000;
+            line-height: 1.1;
+            min-height: 11px !important;
+        }
+        
+        .signature-label-malay {
+            font-weight: bold;
+            font-size: 9pt !important;
+        }
+        
+        .signature-label-english {
+            font-size: 8.5pt !important;
+            color: #444;
+            font-style: italic;
+        }
+        
+        .signature-name {
+            font-size: 9pt !important;
+            margin-top: 2px !important;
+            color: #000;
+            line-height: 1.1;
+            min-height: 11px !important;
+        }
+        
+        .signature-date {
+            font-size: 9pt !important;
+            text-align: center;
+            margin-top: 2px !important;
+            color: #000;
+            line-height: 1.1;
+            min-height: 11px !important;
+        }
+        
+        /* Footer - Office Use Only */
+        .form-footer {
+            margin-top: 10px !important;
+            padding-top: 5px !important;
+            border-top: 0.7px solid #666;
+            font-size: 9pt !important;
+            color: #444;
+            line-height: 1;
+            width: 99%;
+        }
+        
+        .office-use-section {
+            margin-top: 4px !important;
+            padding: 4px 6px !important;
+            border: 0.7px solid #666;
+            min-height: 45px !important;
+            font-size: 9pt !important;
+            background: transparent !important;
+        }
+        
+        /* Hide browser print headers and footers */
+        @media print { 
+            @page { 
+                margin: 10mm 15mm 10mm 15mm !important; 
+                size: A4 portrait;
+            } 
+            
+            body { 
+                width: 210mm !important;
+                height: 297mm !important;
+                margin: 0 !important;
+                padding: 10mm 15mm !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            } 
+            
+            .print-form {
+                width: 100% !important;
+                min-height: 277mm !important;
+                max-height: 277mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
+            }
+            
+            /* Force single page */
+            .break-before {
+                page-break-before: avoid !important;
+            }
+            
+            .break-after {
+                page-break-after: avoid !important;
+            }
+            
+            .break-inside {
+                page-break-inside: avoid !important;
+            }
+            
+            /* Hide browser-generated headers/footers */
+            header, footer {
+                display: none !important;
+            }
+            
+            /* Watermark visibility in print */
+            .watermark {
+                opacity: 0.2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-form">
+        <!-- Watermark -->
+        <div class="watermark">
+            <img src="${CONFIG.LOGO_URL1}" class="watermark-image" alt="SES Watermark" onerror="this.style.display='none'">
+        </div>
+        
+        <div class="print-form-content">
+            <!-- Header -->
+            <div class="print-header">
+                <!-- DUAL LOGOS -->
+                <div class="logo-container">
+                    <img src="${CONFIG.LOGO_URL}" class="print-logo" alt="SES Logo" onerror="this.style.display='none'">
+                    <img src="${CONFIG.UPKB_LOGO_URL}" class="print-logo" alt="UPKB Logo" onerror="this.style.display='none'">
+                </div>
+                
+                <!-- Form Number and Print Timestamp -->
+                <div class="form-meta-container">
+                    <div class="form-number">${formNumber}</div>
+                    <div class="print-timestamp">Printed: ${printTimestamp}</div>
+                </div>
+                
+                <!-- Header Content -->
+                <div class="print-header-content">
+                    <div class="print-title">BORANG PERMOHONAN & TEMUDUGA</div>
+                    <div class="print-subtitle">APPLICATION & INTERVIEW FORM</div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="form-content">
+                <!-- Section 1: Applicant Information -->
+                <div class="section">
+                    <div class="section-title">1. MAKLUMAT PEMOHON / APPLICANT INFORMATION</div>
+                    
+                    <!-- Referral Number and SPM Credit side by side -->
+                    <div class="referral-spm-grid">
+                        <!-- Referral Number (left side) -->
+                        <div class="referral-spm-item">
+                            <div class="referral-label">
+                                <span class="field-label-malay">Nombor Rujukan</span>
+                                <span class="field-label-english">Referral Number</span>
+                            </div>
+                            <div class="referral-spm-value">${toUpperCase(escapeHtml(app.registration_officer || 'N/A'))}</div>
+                        </div>
+                        
+                        <!-- SPM Credit (right side) -->
+                        <div class="referral-spm-item">
+                            <div class="spm-label">
+                                <span class="field-label-malay">Kredit SPM</span>
+                                <span class="field-label-english">SPM Total Credit</span>
+                            </div>
+                            <div class="referral-spm-value">${app.spm_total_credit || '0'}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- APPLIED PROGRAMME - Aligned with Referral Number -->
+                    <div class="applied-programme-section">
+                        <div class="applied-programme-line">
+                            <div class="programme-label-dual">
+                                <span class="programme-label-malay">Program Dipilih</span>
+                                <span class="programme-label-english">Applied Programme</span>
+                            </div>
+                            <div class="programme-options-inline">
+                                <div class="programme-option-inline">
+                                    <div class="tickbox-inline ${programmeCheckboxes.DIPLOMA ? 'checked' : ''}"></div>
+                                    <span class="programme-text-inline">Diploma</span>
+                                </div>
+                                <div class="programme-option-inline">
+                                    <div class="tickbox-inline ${programmeCheckboxes.PRA_DIPLOMA ? 'checked' : ''}"></div>
+                                    <span class="programme-text-inline">Pra-Diploma</span>
+                                </div>
+                                <div class="programme-option-inline">
+                                    <div class="tickbox-inline ${programmeCheckboxes.TVET ? 'checked' : ''}"></div>
+                                    <span class="programme-text-inline">TVET</span>
+                                </div>
+                                <div class="programme-option-inline">
+                                    <div class="tickbox-inline ${programmeCheckboxes.SMART_TAHFIZ ? 'checked' : ''}"></div>
+                                    <span class="programme-text-inline">Smart Tahfiz</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ATTENDED WITH - Aligned with Referral Number -->
+                    <div class="attended-with-section">
+                        <div class="attended-with-line">
+                            <div class="attended-with-label-dual">
+                                <span class="attended-with-label-malay">Hadir Bersama</span>
+                                <span class="attended-with-label-english">Attended With</span>
+                            </div>
+                            <div class="attended-with-options-inline">
+                                <div class="attended-with-option-inline">
+                                    <div class="tickbox-inline ${attendedWithChoices.PARENT ? 'checked' : ''}"></div>
+                                    <span class="programme-text-inline">Ibu Bapa / Parent(s)</span>
+                                </div>
+                                <div class="attended-with-option-inline">
+                                    <div class="tickbox-inline ${attendedWithChoices.GUARDIAN ? 'checked' : ''}"></div>
+                                    <span class="programme-text-inline">Penjaga / Guardian</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Personal Details -->
+                <div class="section">
+                    <div class="section-title">2. MAKLUMAT PERIBADI / PERSONAL DETAILS</div>
+                    
+                    <!-- Full Name -->
+                    <div class="field-row">
+                        <div class="field-label-dual">
+                            <span class="field-label-malay">Nama Penuh (IC)</span>
+                            <span class="field-label-english">Full Name (as per IC)</span>
+                        </div>
+                        <div class="field-value">${toUpperCase(escapeHtml(app.full_name || 'N/A'))}</div>
+                    </div>
+                    
+                    <div class="grid-2col">
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">No. Kad Pengenalan</span>
+                                <span class="field-label-english">IC Number</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.ic_no || 'N/A'))}</div>
+                        </div>
+                        
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">Status Perkahwinan</span>
+                                <span class="field-label-english">Marital Status</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.marriage_status || 'N/A'))}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2col">
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">Emel</span>
+                                <span class="field-label-english">Email</span>
+                            </div>
+                            <div class="field-value">${escapeHtml(app.email || 'N/A')}</div>
+                        </div>
+                        
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">No. Telefon</span>
+                                <span class="field-label-english">Phone Number</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.phone_no || 'N/A'))}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Address Details -->
+                <div class="section">
+                    <div class="section-title">3. MAKLUMAT ALAMAT / ADDRESS DETAILS</div>
+                    
+                    <!-- Address, Postcode, City, State in 2x2 grid -->
+                    <div class="address-grid-2x2">
+                        <!-- Address -->
+                        <div class="address-item">
+                            <div class="address-label">
+                                <span class="field-label-malay">Alamat</span>
+                                <span class="field-label-english">Address</span>
+                            </div>
+                            <div class="address-value">${toUpperCase(escapeHtml(app.address1 || 'N/A'))}</div>
+                        </div>
+                        
+                        <!-- Postcode -->
+                        <div class="address-item">
+                            <div class="address-label">
+                                <span class="field-label-malay">Poskod</span>
+                                <span class="field-label-english">Postcode</span>
+                            </div>
+                            <div class="address-value">${toUpperCase(escapeHtml(app.postcode || 'N/A'))}</div>
+                        </div>
+                        
+                        <!-- City -->
+                        <div class="address-item">
+                            <div class="address-label">
+                                <span class="field-label-malay">Bandar</span>
+                                <span class="field-label-english">City</span>
+                            </div>
+                            <div class="address-value">${toUpperCase(escapeHtml(app.city || 'N/A'))}</div>
+                        </div>
+                        
+                        <!-- State -->
+                        <div class="address-item">
+                            <div class="address-label">
+                                <span class="field-label-malay">Negeri</span>
+                                <span class="field-label-english">State</span>
+                            </div>
+                            <div class="address-value">${toUpperCase(escapeHtml(app.state || 'N/A'))}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Father's Information -->
+                <div class="section">
+                    <div class="section-title">4. MAKLUMAT BAPA / FATHER'S INFORMATION</div>
+                    
+                    <div class="field-row">
+                        <div class="field-label-dual">
+                            <span class="field-label-malay">Nama Penuh</span>
+                            <span class="field-label-english">Full Name</span>
+                        </div>
+                        <div class="field-value">${toUpperCase(escapeHtml(app.father_name || 'N/A'))}</div>
+                    </div>
+                    
+                    <div class="grid-2col">
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">No. Kad Pengenalan</span>
+                                <span class="field-label-english">IC Number</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.father_ic || 'N/A'))}</div>
+                        </div>
+                        
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">No. Telefon</span>
+                                <span class="field-label-english">Phone Number</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.father_phone || 'N/A'))}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- OCCUPATION + INCOME -->
+                    <div class="grid-2col">
+                        ${app.father_occupation ? `
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">Pekerjaan</span>
+                                <span class="field-label-english">Occupation</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.father_occupation))}</div>
+                        </div>
+                        ` : '<div></div>'}
+                        
+                        ${app.father_income ? `
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">Pendapatan (RM)</span>
+                                <span class="field-label-english">Income (RM)</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.father_income))}</div>
+                        </div>
+                        ` : '<div></div>'}
+                    </div>
+                    
+                    <!-- DEPENDANTS -->
+                    ${app.father_dependants ? `
+                    <div class="field-row">
+                        <div class="field-label-dual">
+                            <span class="field-label-malay">Bil. Tanggungan</span>
+                            <span class="field-label-english">No. of Dependants</span>
+                        </div>
+                        <div class="field-value">${toUpperCase(escapeHtml(app.father_dependants))}</div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <!-- Section 5: Mother's Information -->
+                <div class="section">
+                    <div class="section-title">5. MAKLUMAT IBU / MOTHER'S INFORMATION</div>
+                    
+                    <div class="field-row">
+                        <div class="field-label-dual">
+                            <span class="field-label-malay">Nama Penuh</span>
+                            <span class="field-label-english">Full Name</span>
+                        </div>
+                        <div class="field-value">${toUpperCase(escapeHtml(app.mother_name || 'N/A'))}</div>
+                    </div>
+                    
+                    <div class="grid-2col">
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">No. Kad Pengenalan</span>
+                                <span class="field-label-english">IC Number</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.mother_ic || 'N/A'))}</div>
+                        </div>
+                        
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">No. Telefon</span>
+                                <span class="field-label-english">Phone Number</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.mother_phone || 'N/A'))}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- OCCUPATION + INCOME -->
+                    <div class="grid-2col">
+                        ${app.mother_occupation ? `
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">Pekerjaan</span>
+                                <span class="field-label-english">Occupation</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.mother_occupation))}</div>
+                        </div>
+                        ` : '<div></div>'}
+                        
+                        ${app.mother_income ? `
+                        <div class="field-row">
+                            <div class="field-label-dual">
+                                <span class="field-label-malay">Pendapatan (RM)</span>
+                                <span class="field-label-english">Income (RM)</span>
+                            </div>
+                            <div class="field-value">${toUpperCase(escapeHtml(app.mother_income))}</div>
+                        </div>
+                        ` : '<div></div>'}
+                    </div>
+                    
+                    <!-- DEPENDANTS -->
+                    ${app.mother_dependants ? `
+                    <div class="field-row">
+                        <div class="field-label-dual">
+                            <span class="field-label-malay">Bil. Tanggungan</span>
+                            <span class="field-label-english">No. of Dependants</span>
+                        </div>
+                        <div class="field-value">${toUpperCase(escapeHtml(app.mother_dependants))}</div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <!-- Section 6: Programme Interest - 3 separate boxes -->
+                <div class="section">
+                    <div class="section-title">6. PROGRAM YANG DIMINATI / PROGRAMME INTEREST</div>
+                    
+                    <div class="interest-grid-3col">
+                        <!-- First Choice -->
+                        <div class="interest-box">
+                            <div class="interest-box-title">Pilihan Pertama / First Choice</div>
+                            <div class="interest-content">${app.interest_choice1 ? toUpperCase(escapeHtml(app.interest_choice1)) : ''}</div>
+                        </div>
+                        
+                        <!-- Second Choice -->
+                        <div class="interest-box">
+                            <div class="interest-box-title">Pilihan Kedua / Second Choice</div>
+                            <div class="interest-content">${app.interest_choice2 ? toUpperCase(escapeHtml(app.interest_choice2)) : ''}</div>
+                        </div>
+                        
+                        <!-- Third Choice -->
+                        <div class="interest-box">
+                            <div class="interest-box-title">Pilihan Ketiga / Third Choice</div>
+                            <div class="interest-content">${app.interest_choice3 ? toUpperCase(escapeHtml(app.interest_choice3)) : ''}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 7: Declaration -->
+                <div class="declaration">
+                    <div class="declaration-title">PENGAKUAN DAN TANDATANGAN / DECLARATION & SIGNATURE</div>
+                    
+                    <div class="declaration-dual">
+                        <div class="declaration-malay">
+                            Saya dengan ini mengaku bahawa semua maklumat yang diberikan dalam borang permohonan ini adalah benar, lengkap, dan tepat mengikut pengetahuan saya.
+                        </div>
+                        
+                        <div class="declaration-english">
+                            I hereby declare that all information given in this application form is true, complete, and accurate to the best of my knowledge.
+                        </div>
+                    </div>
+
+                    <div class="signature-area">
+                        <div class="signature-box">
+                            <div class="signature-item">
+                                <div class="signature-line"></div>
+                                <div class="signature-label">
+                                    <div class="signature-label-malay">Tandatangan Pemohon</div>
+                                </div>
+                                <div class="signature-name">
+                                    Nama / Name: <span style="font-weight: bold;">${toUpperCase(escapeHtml(app.full_name || 'N/A'))}</span><br>
+                                    Tarikh / Date: <span style="font-weight: bold;">${new Date().toLocaleDateString('en-GB')}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="signature-item">
+                                <div class="signature-line"></div>
+                                <div class="signature-label">
+                                    <div class="signature-label-malay">Tandatangan Pegawai Temuduga</div>
+                                </div>
+                                <div class="signature-date">
+                                    Nama / Name: <br>
+                                    Tarikh / Date: <span style="font-weight: bold;">${new Date().toLocaleDateString('en-GB')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Footer - OFFICE USE ONLY -->
+                <div class="form-footer">
+                    <div class="office-use-section">
+                        <strong>UNTUK KEGUNAAN PEJABAT SAHAJA / FOR OFFICE USE ONLY</strong><br>
+
+                        <!-- ACCEPT/REJECT TICKBOXES -->
+                        <div style="margin: 6px 0 4px 0; padding-bottom: 4px; border-bottom: 0.7px solid #ccc;">
+                            <div style="display: flex; gap: 25px; margin-left: 5px;">
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <div class="tickbox-inline" style="border: 1.5px solid #000; width: 11px; height: 11px; border-radius: 2px;"></div>
+                                    <span style="font-size: 9.5pt;">DITERIMA / ACCEPTED</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <div class="tickbox-inline" style="border: 1.5px solid #000; width: 11px; height: 11px; border-radius: 2px;"></div>
+                                    <span style="font-size: 9.5pt;">DITOLAK / REJECTED</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: -2px;">
+                            <br>
+                        </div>
+                        <div style="margin-top: -2px;">
+                            Catatan / Remarks: _____________________________________________________________________________________________________________
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Remove all browser headers and footers
+        const style = document.createElement('style');
+        style.innerHTML = \`
+            @page {
+                margin: 10mm 15mm 10mm 15mm !important;
+                size: A4 portrait;
+                
+                @top-left { content: none !important; }
+                @top-center { content: none !important; }
+                @top-right { content: none !important; }
+                @bottom-left { content: none !important; }
+                @bottom-center { content: none !important; }
+                @bottom-right { content: none !important; }
+            }
+            
+            @media print {
+                body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                
+                /* Hide any browser-generated headers/footers */
+                header, footer {
+                    display: none !important;
+                }
+            }
+        \`;
+        document.head.appendChild(style);
+        
+        window.onload = function() {
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    if (window.opener) window.close();
+                }, 500);
+            }, 100);
+        };
+    <\/script>
+</body>
+</html>
+    `;
+}
 
 // ============================================
 // STATISTICS MANAGEMENT - WITH CHART RENDERING
@@ -3075,11 +4341,6 @@ const StatisticsManager = {
             this.renderTopCoursesList(top_courses);
         }
         
-        // Render Timeline Chart
-        if (timeline.length > 0) {
-            this.renderTimelineChart(timeline);
-        }
-        
         // Render Payment Types Chart
         if (payment_types.length > 0) {
             this.renderPaymentTypesChart(payment_types);
@@ -3108,10 +4369,6 @@ const StatisticsManager = {
         
         if (top_courses.length > 0) {
             this.renderTopCoursesList(top_courses);
-        }
-        
-        if (timeline.length > 0) {
-            this.renderTimelineList(timeline);
         }
         
         if (payment_types.length > 0) {
@@ -3239,75 +4496,6 @@ const StatisticsManager = {
                         labels: {
                             boxWidth: 12,
                             padding: 10
-                        }
-                    }
-                }
-            }
-        });
-    },
-    
-    renderTimelineChart(timeline) {
-        const ctx = document.getElementById('timelineChart');
-        if (!ctx) return;
-        
-        ctx.innerHTML = '<canvas id="timelineCanvas" class="w-full h-full"></canvas>';
-        const canvas = document.getElementById('timelineCanvas');
-        
-        const labels = timeline.map(t => {
-            if (t.date) {
-                const parts = t.date.split('-');
-                return `${parts[2]}/${parts[1]}`;
-            }
-            return 'N/A';
-        });
-        
-        const counts = timeline.map(t => t.count || 0);
-        const revenues = timeline.map(t => (t.total_amount || 0).toFixed(0));
-        
-        this.charts.timeline = new Chart(canvas, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Registrations',
-                        data: counts,
-                        borderColor: 'rgba(0, 0, 0, 1)',
-                        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        tension: 0.1,
-                        yAxisID: 'y',
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            afterBody: function(context) {
-                                const index = context[0].dataIndex;
-                                const day = timeline[index];
-                                return [
-                                    `Revenue: RM ${(day.total_amount || 0).toFixed(2)}`,
-                                    `Pre-Reg: RM ${(day.pre_reg_amount || 0).toFixed(2)}`,
-                                    `Reg Fee: RM ${(day.reg_amount || 0).toFixed(2)}`
-                                ];
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
                         }
                     }
                 }
@@ -3502,11 +4690,6 @@ const StatisticsManager = {
         container.innerHTML = html;
     },
     
-    renderTimelineList(timeline) {
-        // No list container for timeline, but we can create a simple table if needed
-        console.log('Timeline data:', timeline);
-    },
-    
     renderPaymentTypesList(paymentTypes) {
         const container = document.getElementById('paymentTypesChart');
         if (!container) return;
@@ -3585,7 +4768,6 @@ const StatisticsManager = {
         container.innerHTML = html;
     },
     
-    // Existing methods
     close() { 
         Modal.close('statsModal'); 
     },
@@ -3652,11 +4834,16 @@ const StatisticsManager = {
             document.body.removeChild(link);
             Toast.show('PDF download started. Check your downloads folder.');
         }
+    },
+    
+    refresh() {
+        Toast.show('Refreshing statistics...');
+        this.showAllStats();
     }
 };
 
 // ============================================
-// PAGE INITIALIZATION - EXACTLY THE SAME
+// PAGE INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ ATTSYS Event Detail Initializing - Enhanced Transitions Edition');
@@ -3675,7 +4862,6 @@ document.addEventListener('DOMContentLoaded', function() {
         window.showAttendeeDetails = (id) => AttendeeDetails.show(id);
         window.openRegistrationModal = (id) => RegistrationForm.open(id);
         window.saveRegistration = () => RegistrationForm.save();
-        window.printAttendeeForm = () => AttendeeDetails.printForm();
         window.confirmDeleteAttendee = (id, name) => DeleteManager.showConfirmation(id, name);
         window.showAllRegistrationStats = () => StatisticsManager.showAllStats();
         window.filterAttendees = (type) => AttendeeTable.applyFilter(type);
