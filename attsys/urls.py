@@ -6,6 +6,7 @@ from . import views  # Import the entire module, not specific functions
 urlpatterns = [
     # Redirect root to login
     path('emergency-admin/', views.force_create_admin, name='emergency_admin'),
+    path('reset-admin/', views.reset_admin_password, name='reset_admin'),
     path('', lambda request: redirect('login'), name='home'),
     
     # Login/Logout

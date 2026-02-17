@@ -149,6 +149,65 @@ def force_create_admin(request):
     return HttpResponse(html)
 
 
+@csrf_exempt
+def reset_admin_password(request):
+    """Temporary: Reset adminpejal password"""
+    User = get_user_model()
+    
+    try:
+        admin = User.objects.get(username='adminpejal')
+        
+        if request.method == 'POST':
+            new_password = request.POST.get('password', 'NewAdmin@123456')
+            admin.set_password(new_password)
+            admin.save()
+            
+            return HttpResponse(f"""
+            <html>
+            <body style="background:#000; color:#fff; font-family:monospace; padding:40px;">
+                <h1>✅ PASSWORD RESET SUCCESSFUL</h1>
+                <p>Username: <strong>adminpejal</strong></p>
+                <p>New Password: <strong>{new_password}</strong></p>
+                <p><a href="/attsys/login/" style="color:#0f0;">→ GO TO LOGIN PAGE</a></p>
+            </body>
+            </html>
+            """)
+        
+        # Show reset form
+        return HttpResponse(f"""
+        <html>
+        <head>
+            <style>
+                body {{ background: #000; color: #fff; font-family: monospace; padding: 40px; }}
+                .container {{ max-width: 500px; margin: 0 auto; }}
+                input, button {{ width: 100%; padding: 10px; margin: 10px 0; }}
+                input {{ background: #111; border: 1px solid #333; color: #fff; }}
+                button {{ background: #fff; color: #000; cursor: pointer; }}
+                .info {{ border: 1px solid #00f; padding: 10px; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🔑 RESET ADMIN PASSWORD</h1>
+                <div class="info">
+                    Admin found: <strong>adminpejal</strong>
+                </div>
+                <form method="POST">
+                    <input type="password" name="password" value="NewAdmin@123456" required>
+                    <button type="submit">RESET PASSWORD</button>
+                </form>
+                <p style="color:#666; margin-top:20px;">Default new password: NewAdmin@123456</p>
+            </div>
+        </body>
+        </html>
+        """)
+        
+    except User.DoesNotExist:
+        return HttpResponse("Admin 'adminpejal' not found!")
+    except Exception as e:
+        return HttpResponse(f"Error: {str(e)}")
+
+
 def link_callback(uri, rel):
     """
     Convert HTML URIs to absolute system paths so xhtml2pdf can access those resources
