@@ -43,20 +43,6 @@ from django.urls import reverse
 User = get_user_model()
 
 
-def create_admin(request):
-    User = get_user_model()
-    if not User.objects.filter(is_superuser=True).exists():
-        admin = User.objects.create_superuser(
-            username='newadmin',
-            email='admin@example.com',
-            password='Admin@123456',
-            role='ADMIN',
-            is_active=True
-        )
-        return HttpResponse(f"Admin created: {admin.username}")
-    return HttpResponse("Admin already exists")
-
-
 def link_callback(uri, rel):
     """
     Convert HTML URIs to absolute system paths so xhtml2pdf can access those resources
