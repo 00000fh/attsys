@@ -43,30 +43,18 @@ from django.urls import reverse
 User = get_user_model()
 
 
-def create_single_admin(request):
-    """ONE-TIME ADMIN CREATION - DELETE AFTER USE"""
-    # SECURITY: Only works if no admin exists
-    if User.objects.filter(role='ADMIN').exists():
-        return HttpResponse("Admin already exists - setup disabled")
-    
-    # Create admin with fixed credentials (change these!)
-    admin = User.objects.create_superuser(
-        username='admin',
-        email='admin@attsys.local',
-        password='ChangeMe123!',  # CHANGE THIS IMMEDIATELY AFTER LOGIN
-        role='ADMIN',
-        is_active=True,
-        is_staff=True,
-        is_superuser=True
-    )
-    
-    return HttpResponse(f"""
-    <h1>✅ Admin Created</h1>
-    <p>Username: admin</p>
-    <p>Password: ChangeMe123!</p>
-    <p><strong style="color:red">CHANGE PASSWORD IMMEDIATELY AFTER LOGIN!</strong></p>
-    <a href="/login/">Go to Login</a>
-    """)
+def create_admin(request):
+    User = get_user_model()
+    if not User.objects.filter(is_superuser=True).exists():
+        admin = User.objects.create_superuser(
+            username='newadmin',
+            email='admin@example.com',
+            password='Admin@123456',
+            role='ADMIN',
+            is_active=True
+        )
+        return HttpResponse(f"Admin created: {admin.username}")
+    return HttpResponse("Admin already exists")
 
 
 def link_callback(uri, rel):
