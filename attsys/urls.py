@@ -50,7 +50,4 @@ urlpatterns = [
     path('event/<int:event_id>/assign/', views.assign_staff, name='assign_staff'),
     path('staff/', views.manage_staff, name='manage_staff'),
     path('staff/<int:user_id>/toggle/', views.toggle_staff_status, name='toggle_staff'),
-
-    # attsys/urls.py - ADD THIS LINE
-    path('setup-admin/', views.create_admin_setup, name='create_admin_setup'),
 ]

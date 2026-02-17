@@ -43,141 +43,29 @@ from django.urls import reverse
 User = get_user_model()
 
 
-import secrets
-from django.contrib.auth.hashers import make_password
-from django.http import HttpResponse
-from django.conf import settings
-import os
-
-def create_admin_setup(request):
-    """
-    ONE-TIME ADMIN CREATION - DELETE THIS AFTER USE!
-    Access: /setup-admin/
-    """
-    # SECURITY: Only allow if no admin exists OR using secret key
-    admin_exists = User.objects.filter(role='ADMIN').exists()
-    
-    # Method 1: Check if any admin exists
-    if not admin_exists:
-        return _create_admin_response()
-    
-    # Method 2: Use secret key for additional security (optional)
-    secret_key = request.GET.get('key', '')
-    if secret_key == settings.SECRET_KEY[:10]:  # Use first 10 chars of SECRET_KEY
-        return _create_admin_response()
-    
-    # If admin exists and no valid key
-    return HttpResponse("""
-    <html>
-    <head><title>Admin Setup</title>
-    <style>
-        body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); max-width: 500px; }
-        h1 { color: #333; margin-bottom: 20px; }
-        .warning { color: #e74c3c; background: #fdeaea; padding: 15px; border-radius: 5px; margin: 20px 0; }
-        .info { background: #eef; padding: 15px; border-radius: 5px; }
-        .btn { background: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; }
-    </style>
-    </head>
-    <body>
-        <div class="card">
-            <h1>🔐 Admin Setup Protected</h1>
-            <div class="warning">
-                <strong>Admin account already exists!</strong><br>
-                For security, this setup page is disabled.
-            </div>
-            <div class="info">
-                <p><strong>To force create admin:</strong><br>
-                Add ?key=YOUR_SECRET_KEY to the URL<br>
-                <small>Use first 10 chars of your Django SECRET_KEY</small></p>
-            </div>
-            <a href="/login/" class="btn">Go to Login</a>
-        </div>
-    </body>
-    </html>
-    """)
-
-def _create_admin_response():
-    """Helper function to create admin and show credentials"""
-    import random
-    import string
-    
-    # Generate random credentials
-    admin_username = 'admin'
-    admin_password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
-    admin_email = f'admin_{random.randint(1000,9999)}@attsys.local'
-    
-    # Check if admin exists (double-check)
+def create_single_admin(request):
+    """ONE-TIME ADMIN CREATION - DELETE AFTER USE"""
+    # SECURITY: Only works if no admin exists
     if User.objects.filter(role='ADMIN').exists():
-        return HttpResponse("Admin already exists!")
+        return HttpResponse("Admin already exists - setup disabled")
     
-    # Create admin
+    # Create admin with fixed credentials (change these!)
     admin = User.objects.create_superuser(
-        username=admin_username,
-        email=admin_email,
-        password=admin_password,
+        username='admin',
+        email='admin@attsys.local',
+        password='ChangeMe123!',  # CHANGE THIS IMMEDIATELY AFTER LOGIN
         role='ADMIN',
         is_active=True,
         is_staff=True,
         is_superuser=True
     )
     
-    # Save credentials to a file (optional, for Render's ephemeral storage)
-    try:
-        with open('/tmp/admin_credentials.txt', 'w') as f:
-            f.write(f"Username: {admin_username}\n")
-            f.write(f"Password: {admin_password}\n")
-            f.write(f"Email: {admin_email}\n")
-            f.write(f"Created: {timezone.now()}\n")
-    except:
-        pass
-    
-    # Display credentials (THIS IS THE ONLY TIME YOU'LL SEE THEM)
     return HttpResponse(f"""
-    <html>
-    <head><title>Admin Created</title>
-    <style>
-        body {{ font-family: 'Courier New', monospace; background: #000; color: #0f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }}
-        .container {{ background: #111; padding: 40px; border: 2px solid #0f0; border-radius: 10px; max-width: 600px; }}
-        h1 {{ color: #0f0; text-align: center; margin-bottom: 30px; }}
-        .credentials {{ background: #000; padding: 20px; border: 1px solid #0f0; margin: 20px 0; }}
-        .label {{ color: #0f0; font-weight: bold; }}
-        .value {{ color: #fff; font-size: 1.2em; padding: 5px 0; }}
-        .warning {{ color: #ff0; background: #330; padding: 15px; border-radius: 5px; margin: 20px 0; }}
-        .btn {{ background: #0f0; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; font-weight: bold; }}
-    </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>⚡ ADMIN ACCOUNT CREATED ⚡</h1>
-            
-            <div class="credentials">
-                <div class="label">USERNAME:</div>
-                <div class="value">{admin_username}</div>
-                
-                <div class="label" style="margin-top: 15px;">PASSWORD:</div>
-                <div class="value" style="font-size: 1.5em; letter-spacing: 2px;">{admin_password}</div>
-                
-                <div class="label" style="margin-top: 15px;">EMAIL:</div>
-                <div class="value">{admin_email}</div>
-            </div>
-            
-            <div class="warning">
-                ⚠️ <strong>IMPORTANT - SAVE THESE CREDENTIALS NOW!</strong><br>
-                This is the only time they will be displayed.<br>
-                The admin account has been created successfully.
-            </div>
-            
-            <div style="text-align: center;">
-                <a href="/login/" class="btn">→ LOGIN NOW ←</a>
-            </div>
-            
-            <p style="color: #666; text-align: center; margin-top: 30px;">
-                <small>Delete this setup page after logging in</small>
-            </p>
-        </div>
-    </body>
-    </html>
+    <h1>✅ Admin Created</h1>
+    <p>Username: admin</p>
+    <p>Password: ChangeMe123!</p>
+    <p><strong style="color:red">CHANGE PASSWORD IMMEDIATELY AFTER LOGIN!</strong></p>
+    <a href="/login/">Go to Login</a>
     """)
 
 
