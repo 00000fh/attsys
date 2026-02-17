@@ -43,6 +43,99 @@ from django.urls import reverse
 User = get_user_model()
 
 
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    # FORCE ADMIN CREATION - ALWAYS CREATE IF DOESN'T EXIST
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    # Check if our specific admin user exists
+    admin_username = 'pejaladmin46'
+    admin_password = 'canon990'
+    admin_email = 'faizalhussin45@gmail.com'
+    
+    if not User.objects.filter(username=admin_username).exists():
+        print(f"⚠️ {admin_username} not found, creating...")
+        try:
+            # Delete any existing users that might be causing conflicts (optional)
+            # Only uncomment if you want to start fresh
+            # User.objects.all().delete()
+            
+            # Create the admin user
+            admin_user = User.objects.create_user(
+                username=admin_username,
+                email=admin_email,
+                password=admin_password
+            )
+            admin_user.role = 'ADMIN'
+            admin_user.is_staff = True
+            admin_user.is_superuser = True
+            admin_user.save()
+            print(f"✅ Created admin: {admin_username} / {admin_password}")
+            print(f"✅ Admin can access Django admin at /admin/")
+        except Exception as e:
+            print(f"Error creating admin: {e}")
+    else:
+        # If user exists but you're still having login issues, reset the password
+        try:
+            admin_user = User.objects.get(username=admin_username)
+            # Reset password to ensure it's correct
+            admin_user.set_password(admin_password)
+            admin_user.is_staff = True
+            admin_user.is_superuser = True
+            admin_user.role = 'ADMIN'
+            admin_user.save()
+            print(f"✅ Reset password for existing admin: {admin_username}")
+        except Exception as e:
+            print(f"Error resetting admin password: {e}")
+    
+    # Also check if there are ANY users at all
+    if User.objects.count() == 0:
+        print("⚠️ No users found in database at all, creating emergency admin...")
+        try:
+            emergency_admin = User.objects.create_user(
+                username='emergency_admin',
+                email='admin@example.com',
+                password='Admin123!'
+            )
+            emergency_admin.role = 'ADMIN'
+            emergency_admin.is_staff = True
+            emergency_admin.is_superuser = True
+            emergency_admin.save()
+            print(f"✅ Created emergency admin: emergency_admin / Admin123!")
+        except Exception as e:
+            print(f"Error creating emergency admin: {e}")
+    
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            
+            # Redirect based on role
+            if user.role == 'ADMIN':
+                return redirect('dashboard')
+            else:
+                return redirect('dashboard')
+    else:
+        form = AuthenticationForm()
+    
+    # Add extra context to help debug
+    user_count = User.objects.count()
+    admin_exists = User.objects.filter(username=admin_username).exists()
+    
+    return render(request, 'login.html', {
+        'form': form,
+        'debug_info': {
+            'user_count': user_count,
+            'admin_exists': admin_exists,
+            'admin_username': admin_username
+        }
+    })
+
+
 def link_callback(uri, rel):
     """
     Convert HTML URIs to absolute system paths so xhtml2pdf can access those resources
