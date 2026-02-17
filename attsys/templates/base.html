@@ -57,6 +57,12 @@
             --signal: var(--black);
             --carrier: rgba(0,0,0,0.1);
             --transition-speed: 0.2s cubic-bezier(0.2, 0, 0, 1);
+            
+            /* Radius from check_in */
+            --radius-md: 20px;
+            --radius-lg: 28px;
+            --radius-xl: 32px;
+            --radius-full: 9999px;
         }
 
         body {
@@ -131,6 +137,31 @@
             100% { opacity: 1; height: 18px; }
         }
 
+        /* ================ SIGNAL BAR MINI (from check_in) ================ */
+        .signal-bar-mini {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 20px;
+        }
+        .signal-bar-mini span {
+            width: 4px;
+            background: var(--black);
+            height: 8px;
+            animation: signalPulse 1.2s infinite alternate;
+            opacity: 0.8;
+            border-radius: 1px;
+        }
+        .signal-bar-mini span:nth-child(1) { height: 8px; animation-delay: 0s; }
+        .signal-bar-mini span:nth-child(2) { height: 12px; animation-delay: 0.2s; }
+        .signal-bar-mini span:nth-child(3) { height: 18px; animation-delay: 0.4s; }
+        .signal-bar-mini span:nth-child(4) { height: 14px; animation-delay: 0.1s; }
+        .signal-bar-mini span:nth-child(5) { height: 10px; animation-delay: 0.3s; }
+        @keyframes signalPulse {
+            0% { opacity: 0.4; height: 6px; }
+            100% { opacity: 1; height: 20px; }
+        }
+
         /* ================ NEUROMORPHIC CORE — from check_in ================ */
         .neu-raised {
             background: var(--white);
@@ -187,6 +218,29 @@
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--gray-200);
             box-shadow: var(--neu-raised-sm);
+        }
+
+        /* ================ LOGO PAIR (from check_in) - SES ONLY ================ */
+        .logo-ses-monochrome {
+            display: flex;
+            align-items: center;
+            background: var(--gray-100);
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--neu-inset-flat);
+            transition: var(--transition-speed);
+            margin-left: 0.5rem;
+        }
+        .logo-ses-monochrome:hover {
+            box-shadow: var(--neu-raised-sm);
+            transform: translateY(-1px);
+        }
+        .logo-ses-monochrome img {
+            height: 24px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(0.95) contrast(1.2);
         }
 
         /* ================ DROPDOWN — SAMPLE.INSPIRED, SMOOTH BRIDGE ================ */
@@ -271,7 +325,7 @@
         .logo-neu {
             background: var(--white);
             box-shadow: var(--neu-raised-sm);
-            border-radius: 18px;
+            border-radius: 16px;
             border: 1px solid var(--gray-200);
             transition: var(--transition-speed);
         }
@@ -352,6 +406,99 @@
         .neu-toggle.active .neu-toggle-thumb {
             transform: translateX(22px);
         }
+
+        /* ================ HORIZONTAL HEADER STYLES ================ */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .brand-horizontal {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--white);
+            padding: 0.25rem 1rem 0.25rem 0.5rem;
+            border-radius: 40px;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--neu-raised-sm);
+            transition: var(--transition-speed);
+        }
+        .brand-horizontal:hover {
+            box-shadow: var(--neu-inset-flat);
+            transform: translateY(-1px);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .signal-meter {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--white);
+            padding: 0.35rem 1rem;
+            border-radius: 40px;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--neu-raised-sm);
+        }
+
+        .dot-live {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .dot-live span {
+            width: 6px;
+            height: 6px;
+            background: var(--black);
+            border-radius: 50%;
+            animation: livePulse 1.2s ease-in-out infinite;
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .frequency-tag {
+            font-family: monospace;
+            font-size: 0.75rem;
+            background: var(--gray-100);
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--neu-inset-flat);
+            color: var(--gray-700);
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 1024px) {
+            .signal-meter {
+                display: none;
+            }
+            .brand-horizontal {
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                padding-left: 0;
+            }
+            .brand-horizontal:hover {
+                transform: none;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -361,64 +508,65 @@
     <div class="static-noise"></div>
     <div class="scan-sweep" style="position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;"></div>
 
-    <!-- ================ HEADER — NEUROMORPHIC RAISED, NO CENTER BUTTON ================ -->
-    <header class="header-transmission sticky top-0 z-[100] px-4 sm:px-6 lg:px-8 py-2.5">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-
-            <!-- ===== LEFT: NEUROMORPHIC LOGO – DEEP RAISED + INSET INTERACTION ===== -->
-            <div class="flex items-center gap-4">
-                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 group">
-                    <!-- Neuromorphic logo tile – raised, with signal bars -->
-                    <div class="logo-neu w-11 h-11 rounded-2xl flex items-center justify-center relative transition-all">
-                        <span class="font-bold text-black text-2xl tracking-tight">A</span>
-                        <span class="absolute -bottom-1 -right-1 flex sig-bars">
+    <!-- ================ HEADER — HORIZONTAL NAV STYLE ================ -->
+    <header class="header-transmission sticky top-0 z-[100] px-4 sm:px-6 lg:px-8 py-2">
+        <div class="max-w-7xl mx-auto header-container">
+            
+            <!-- LEFT: Brand + SES Logo (directly next to each other) -->
+            <div class="header-left">
+                <!-- Horizontal Brand -->
+                <a href="{% url 'dashboard' %}" class="brand-horizontal">
+                    <div class="logo-neu w-9 h-9 rounded-xl flex items-center justify-center relative">
+                        <span class="font-bold text-black text-xl tracking-tight">A</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-base text-black tracking-tight">ATTSYS</span>
+                        <span class="sig-bars scale-75 opacity-60">
                             <span></span><span></span><span></span><span></span><span></span>
                         </span>
                     </div>
-                    <div class="flex flex-col">
-                        <span class="font-bold text-xl text-black tracking-tight leading-none">ATTSYS</span>
-                        <span class="text-[9px] uppercase text-gray-500 tracking-[0.25em] font-mono mt-0.5 glitch-text">carrier·lock</span>
-                    </div>
                 </a>
-                <!-- Live frequency – inset style from check_in but refined -->
-                <div class="hidden md:flex items-center gap-2 pl-4 ml-2 border-l border-gray-300">
-                    <i class="bi bi-radio text-gray-500 text-sm"></i>
-                    <span id="carrierFreq" class="text-xs font-mono text-gray-700 font-medium bg-gray-100 px-2 py-1 rounded-full neu-inset-flat">104.7 MHz</span>
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-30"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-black"></span>
-                    </span>
+
+                <!-- SES Logo positioned directly next to ATTSYS -->
+                <div class="logo-ses-monochrome">
+                    <img src="{% static 'images/SES_LOGO_RENEW.png' %}" alt="SES" onerror="this.style.display='none';" class="h-6">
                 </div>
             </div>
 
-            <!-- ===== RIGHT: NEUROMORPHIC PROFILE – RAISED, SAMPLE-LIKE DROPDOWN ===== -->
+            <!-- RIGHT: Signal Meter + Profile -->
             {% if user.is_authenticated %}
-            <div class="flex items-center gap-3">
-                <!-- DROP ZONE – fully neuromorphic, with chevron animation -->
+            <div class="header-right">
+                <!-- Signal Strength Meter (desktop) -->
+                <div class="signal-meter">
+                    <div class="dot-live">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="frequency-tag" id="headerFreq">104.7 MHz</span>
+                    <i class="bi bi-radio text-gray-400 text-sm"></i>
+                </div>
+
+                <!-- Profile Dropdown (compact) -->
                 <div class="drop-zone" id="userDropZone">
-                    <!-- Profile trigger – raised card, monochrome, sample-inspired tactile -->
-                    <button class="profile-trigger flex items-center gap-3 pl-2 pr-3 py-1.5 rounded-full neu-tactile focus-ring"
+                    <button class="profile-trigger flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full neu-tactile focus-ring"
                             id="userDropBtn"
                             aria-expanded="false"
                             aria-haspopup="true">
                         <div class="relative">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-semibold shadow-md border border-white">
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white font-semibold shadow-md border border-white text-sm">
                                 {{ user.username|first|upper }}
                             </div>
-                            <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
+                            <span class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
                         </div>
                         <div class="hidden lg:block text-left">
-                            <div class="text-sm font-semibold text-gray-800 leading-tight">{{ user.username }}</div>
-                            <div class="text-[11px] text-gray-600 flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                                {{ user.role|title|default:"User" }}
-                            </div>
+                            <div class="text-xs font-semibold text-gray-800 leading-tight">{{ user.username|truncatechars:12 }}</div>
                         </div>
-                        <i class="bi bi-chevron-down text-gray-500 text-sm transition-transform duration-300" id="chevronIcon"></i>
+                        <i class="bi bi-chevron-down text-gray-500 text-xs transition-transform duration-300" id="chevronIcon"></i>
                     </button>
-                    <!-- Hover bridge (sample) -->
                     <div class="hover-bridge"></div>
-                    <!-- DROPDOWN MENU – pure neuromorphic, inset items on hover -->
+                    
+                    <!-- DROPDOWN MENU (unchanged) -->
                     <div id="userDropdown"
                          class="drop-menu absolute right-0 mt-3 py-2 opacity-0 invisible translate-y-2 z-[150]"
                          role="menu"
@@ -432,7 +580,6 @@
                             </div>
                         </div>
                         <div class="py-2">
-                            <!-- Staff control (if admin) -->
                             {% if user.role == 'ADMIN' or user.is_superuser %}
                             <a href="{% url 'manage_staff' %}" 
                                class="dropdown-item flex items-center gap-3 px-5 py-2.5 text-sm text-gray-700 hover:text-black transition-all mx-2 rounded-xl"
@@ -441,7 +588,6 @@
                                 <span>staff control</span>
                             </a>
                             {% endif %}
-                            <!-- Logout form -->
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
                                 <button type="submit"
@@ -452,7 +598,6 @@
                                 </button>
                             </form>
                         </div>
-                        <!-- tiny frequency signature -->
                         <div class="px-5 py-2 border-t border-gray-200 text-[10px] text-gray-400 font-mono flex justify-between">
                             <span>TX·LOCK</span>
                             <span class="sig-bars scale-75"><span></span><span></span><span></span><span></span><span></span></span>
@@ -460,12 +605,12 @@
                     </div>
                 </div>
 
-                <!-- MOBILE MENU TRIGGER – neuromorphic flat -->
-                <button class="lg:hidden w-11 h-11 rounded-2xl neu-flat flex items-center justify-center text-gray-700 hover:text-black transition-all focus-ring"
+                <!-- MOBILE MENU TRIGGER -->
+                <button class="lg:hidden w-10 h-10 rounded-xl neu-flat flex items-center justify-center text-gray-700 hover:text-black transition-all focus-ring"
                         onclick="toggleMobileSignal()"
                         aria-label="open menu"
                         aria-expanded="false">
-                    <i class="bi bi-list text-2xl"></i>
+                    <i class="bi bi-list text-xl"></i>
                 </button>
             </div>
             {% endif %}
@@ -473,22 +618,36 @@
 
         <!-- MOBILE MENU (neuromorphic, hidden by default) -->
         <div id="mobileSignalMenu"
-             class="lg:hidden hidden mt-3 drop-menu p-4 mx-4 max-w-7xl lg:mx-auto opacity-0 -translate-y-3 transition-all duration-300"
+             class="lg:hidden hidden mt-3 drop-menu p-4 mx-0 opacity-0 -translate-y-3 transition-all duration-300"
              style="visibility: hidden;">
-            <div class="space-y-2">
-                <div class="px-3 py-2 text-xs text-gray-500 border-b border-gray-200">quick actions</div>
+            <div class="space-y-3">
+                <!-- SES in mobile menu (prominently displayed) -->
+                <div class="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl neu-inset-flat">
+                    <span class="text-sm font-medium text-gray-700">SES integration</span>
+                    <div class="logo-ses-monochrome py-1 px-3">
+                        <img src="{% static 'images/SES_LOGO_RENEW.png' %}" alt="SES" onerror="this.style.display='none';" class="h-6">
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 my-2"></div>
+                <div class="px-3 py-2 text-xs text-gray-500">account</div>
                 {% if user.role == 'ADMIN' or user.is_superuser %}
                 <a href="{% url 'manage_staff' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:text-black hover:bg-gray-100 transition-all">
                     <i class="bi bi-people"></i> <span>staff control</span>
                 </a>
                 {% endif %}
-                <div class="border-t border-gray-200 my-2"></div>
                 <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:text-red-600 hover:bg-red-50 transition-all">
-                        <i class="bi bi-box-arrow-right"></i> <span>terminate</span>
+                        <i class="bi bi-box-arrow-right"></i> <span>terminate signal</span>
                     </button>
                 </form>
+                
+                <!-- Mobile frequency display -->
+                <div class="flex items-center justify-between px-4 py-2 text-xs text-gray-500 font-mono border-t border-gray-200">
+                    <span>current frequency</span>
+                    <span class="bg-gray-100 px-2 py-1 rounded-full neu-inset-flat" id="mobileFreq">104.7 MHz</span>
+                </div>
             </div>
         </div>
     </header>
@@ -538,6 +697,10 @@
                 <span class="sig-bars ml-1">
                     <span></span><span></span><span></span><span></span><span></span>
                 </span>
+                <!-- SES logo in footer for consistency -->
+                <div class="logo-ses-monochrome ml-2 py-1 px-3">
+                    <img src="{% static 'images/SES_LOGO_RENEW.png' %}" alt="SES" onerror="this.style.display='none';" class="h-5">
+                </div>
             </div>
             <div class="flex items-center gap-5">
                 <span class="text-gray-500">© {% now "Y" %} — signal·locked</span>
@@ -639,9 +802,11 @@
             // ---------- LIVE FREQUENCY (OSCILLOSCOPE FEEL) ----------
             function updateFrequency() {
                 const freqEls = [
-                    document.getElementById('carrierFreq'),
-                    document.getElementById('footerFreq')
-                ];
+                    document.getElementById('footerFreq'),
+                    document.getElementById('headerFreq'),
+                    document.getElementById('mobileFreq')
+                ].filter(el => el);
+                
                 const base = 104.7;
                 const drift = (Math.random() * 0.5 - 0.25).toFixed(1);
                 const newFreq = (base + parseFloat(drift)).toFixed(1);
@@ -649,13 +814,13 @@
 
                 // occasional glitch
                 if (Math.random() > 0.8) {
-                    const headerFreq = document.getElementById('carrierFreq');
-                    if (headerFreq) {
-                        headerFreq.style.opacity = '0.7';
-                        headerFreq.style.transform = 'skewX(-1deg)';
+                    const footerFreq = document.getElementById('footerFreq');
+                    if (footerFreq) {
+                        footerFreq.style.opacity = '0.7';
+                        footerFreq.style.transform = 'skewX(-1deg)';
                         setTimeout(() => {
-                            headerFreq.style.opacity = '1';
-                            headerFreq.style.transform = '';
+                            footerFreq.style.opacity = '1';
+                            footerFreq.style.transform = '';
                         }, 120);
                     }
                 }
@@ -701,8 +866,8 @@
                 }
             });
 
-            // ---------- INITIAL ACTIVE CLASS FOR DROPDOWN (ARIA) ----------
-            console.log('Neuromorphic Base · Signal Lock');
+            // ---------- ACTIVE NAV ITEM (demo - would need Django template logic) ----------
+            console.log('Neuromorphic Base · SES Logo placed directly next to ATTSYS');
         })();
     </script>
 
