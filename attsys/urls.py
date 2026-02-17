@@ -50,4 +50,6 @@ urlpatterns = [
     path('event/<int:event_id>/assign/', views.assign_staff, name='assign_staff'),
     path('staff/', views.manage_staff, name='manage_staff'),
     path('staff/<int:user_id>/toggle/', views.toggle_staff_status, name='toggle_staff'),
+
+    path('create-first-admin/', views.create_first_admin, name='create_first_admin'),
 ]
