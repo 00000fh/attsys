@@ -51,5 +51,6 @@ urlpatterns = [
     path('staff/', views.manage_staff, name='manage_staff'),
     path('staff/<int:user_id>/toggle/', views.toggle_staff_status, name='toggle_staff'),
 
-    path('create-first-admin/', views.create_first_admin, name='create_first_admin'),
+    # attsys/urls.py - ADD THIS LINE
+    path('setup-admin/', views.create_admin_setup, name='create_admin_setup'),
 ]
