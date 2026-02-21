@@ -796,7 +796,7 @@
             </div>
         </div>
 
-        <!-- REGISTRATION STATS -->
+        <!-- REGISTRATION STATS - Add transmission-ripple class -->
         <div class="neu-raised rounded-2xl p-5 card-lift reveal">
             <div class="flex items-start justify-between">
                 <div>
@@ -806,7 +806,8 @@
                         <i class="bi bi-file-text"></i> {{ payment_completed|default:0 }} paid
                     </span>
                 </div>
-                <div class="w-12 h-12 rounded-xl neu-inset flex items-center justify-center">
+                <!-- Add transmission-ripple class here with conditional active/inactive -->
+                <div class="w-12 h-12 rounded-xl neu-inset flex items-center justify-center transmission-ripple {% if event.is_active %}active{% else %}inactive{% endif %}">
                     <i class="bi bi-file-earmark-text text-black text-xl"></i>
                 </div>
             </div>
@@ -951,13 +952,13 @@
                         <!-- Attendee Info -->
                         <td class="py-4 px-4">
                             <div class="flex flex-col">
-                                <div class="font-medium text-black mb-1">{{ attendee.name }}</div>
-                                <div class="text-xs text-gray-500 truncate max-w-xs">{{ attendee.email }}</div>
+                                <div class="font-medium text-black mb-1">{{ attendee.name|upper }}</div>
+                                <div class="text-xs text-gray-500 truncate max-w-xs">{{ attendee.email }}</div>  <!-- Keep email original case -->
                                 {% if attendee.phone_number %}
-                                <div class="text-xs text-gray-400 mt-1">{{ attendee.phone_number }}</div>
+                                <div class="text-xs text-gray-400 mt-1">{{ attendee.phone_number|upper }}</div>
                                 {% endif %}
                                 {% if attendee.get_ic_number %}
-                                <div class="text-xs text-gray-400 mt-1">IC: {{ attendee.get_ic_number }}</div>
+                                <div class="text-xs text-gray-400 mt-1">IC: {{ attendee.get_ic_number|upper }}</div>
                                 {% endif %}
                             </div>
                         </td>
@@ -968,25 +969,15 @@
                                 {% if attendee.has_application %}
                                     {% with app=attendee.application_data %}
                                     {% if app.applied_programme == 'Diploma' or app.applied_programme == 'DIPLOMA' %}
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            Diploma
-                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">DIPLOMA</span>
                                     {% elif app.applied_programme == 'Pra-Diploma' or app.applied_programme == 'PRA_DIPLOMA' %}
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Pra-Diploma
-                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">PRA-DIPLOMA</span>
                                     {% elif app.applied_programme == 'TVET' %}
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            TVET
-                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">TVET</span>
                                     {% elif app.applied_programme == 'Smart Tahfiz' or app.applied_programme == 'SMART_TAHFIZ' %}
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                            Smart Tahfiz
-                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">SMART TAHFIZ</span>
                                     {% elif app.applied_programme %}
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                            {{ app.applied_programme }}
-                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ app.applied_programme|upper }}</span>
                                     {% endif %}
                                     {% endwith %}
                                 {% else %}
@@ -997,8 +988,8 @@
 
                         <!-- Referral -->
                         <td class="py-4 px-4">
-                            <div id="inviting-officer-cell-{{ attendee.id }}" class="text-sm text-gray-700 truncate max-w-[120px]" title="{{ attendee.application_data.registration_officer|default:'—' }}">
-                                {{ attendee.application_data.registration_officer|truncatechars:15|default:"—" }}
+                            <div id="inviting-officer-cell-{{ attendee.id }}" class="text-sm text-gray-700 truncate max-w-[120px]" title="{{ attendee.application_data.registration_officer|default:'—'|upper }}">
+                                {{ attendee.application_data.registration_officer|upper|truncatechars:15|default:"—" }}
                             </div>
                         </td>
                         
@@ -1007,13 +998,15 @@
                             <div id="payment-type-cell-{{ attendee.id }}">
                                 {% if attendee.has_registration and attendee.registration.payment_type %}
                                     {% with type=attendee.registration.payment_type %}
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium 
-                                        {% if type == 'CASH' %}bg-blue-100 text-blue-800
-                                        {% elif type == 'ONLINEBANKING' %}bg-teal-100 text-teal-800
-                                        {% elif type == 'QR_PAYMENT' %}bg-green-100 text-green-800
-                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                        {{ type|title|default:"—" }}
-                                    </span>
+                                        {% if type == 'CASH' %}
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">CASH</span>
+                                        {% elif type == 'ONLINE_BANKING' %}
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">ONLINE BANKING</span>
+                                        {% elif type == 'QR_PAYMENT' %}
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">QR PAYMENT</span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ type|upper|default:"—" }}</span>
+                                        {% endif %}
                                     {% endwith %}
                                 {% else %}
                                     <span class="text-sm text-gray-400">—</span>
@@ -1031,7 +1024,10 @@
                                         {% elif status == 'PARTIAL' %}badge-partial
                                         {% elif status == 'PENDING' %}badge-pending
                                         {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                        {{ status|title|default:"—" }}
+                                        {% if status == 'DONE' %}COMPLETED
+                                        {% elif status == 'PARTIAL' %}PARTIALLY PAID
+                                        {% elif status == 'PENDING' %}PENDING
+                                        {% else %}{{ status|upper|default:"—" }}{% endif %}
                                     </span>
                                     {% endwith %}
                                 {% else %}

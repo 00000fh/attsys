@@ -316,6 +316,9 @@ def dashboard(request):
     # Get Malaysia time
     today = malaysia_now().date()
     
+    # Get current time for display
+    now = malaysia_now()
+    
     if request.user.role == 'ADMIN':
         # ADMIN VIEW - System-wide stats
         total_events = Event.objects.count()
@@ -335,24 +338,38 @@ def dashboard(request):
         # Average rating across all events
         avg_rating = Feedback.objects.aggregate(Avg('rating'))['rating__avg']
         
-        # Get recent events (all events for admin)
-        events = Event.objects.order_by('-created_at')[:10]
-
+        # Get ALL events (no slicing)
+        events = Event.objects.order_by('-created_at')
+        
+        # Calculate events today
+        events_today = Event.objects.filter(date=today).count()
+        
+        # Calculate weekly events (last 7 days)
+        week_ago = today - timedelta(days=7)
+        weekly_events = Event.objects.filter(date__gte=week_ago).count()
+        
+        # Get total attendees for percentage calculations
+        total_attendees_count = Attendee.objects.count()
+        
         return render(request, 'dashboard.html', {
+            'user': request.user,
             'total_events': total_events,
-            'total_attendees': total_attendees,
-            'total_staff': total_staff,  # Only for admin
+            'total_attendees': total_attendees_count,
+            'total_staff': total_staff,
             'total_feedback': total_feedback,
             'total_applications': total_applications,
             'today_checkins': today_checkins,
             'active_events': active_events,
             'avg_rating': avg_rating,
             'events': events,
-            'is_admin': True  # Add this flag
+            'events_today': events_today,
+            'weekly_events': weekly_events,
+            'now': now,
+            'is_admin': True
         })
 
     else:
-        # STAFF VIEW - Only their own data
+        # STAFF/USER VIEW - Only their own data
         # Get events created by this staff
         user_events = Event.objects.filter(created_by=request.user)
         
@@ -376,19 +393,33 @@ def dashboard(request):
             event__in=user_events
         ).aggregate(Avg('rating'))['rating__avg']
         
-        # Get recent events for this staff
-        events = user_events.order_by('-created_at')[:10]
-
+        # Get ALL events for this staff (no slicing)
+        events = user_events.order_by('-created_at')
+        
+        # Calculate events today for staff
+        events_today = user_events.filter(date=today).count()
+        
+        # Calculate weekly events (last 7 days)
+        week_ago = today - timedelta(days=7)
+        weekly_events = user_events.filter(date__gte=week_ago).count()
+        
+        # Get total attendees for percentage calculations
+        total_attendees_count = total_attendees
+        
         return render(request, 'dashboard.html', {
+            'user': request.user,
             'total_events': total_events,
-            'total_attendees': total_attendees,
+            'total_attendees': total_attendees_count,
             'total_feedback': total_feedback,
             'total_applications': total_applications,
             'today_checkins': today_checkins,
             'active_events': active_events,
             'avg_rating': avg_rating,
             'events': events,
-            'is_admin': False  # Add this flag
+            'events_today': events_today,
+            'weekly_events': weekly_events,
+            'now': now,
+            'is_admin': False
         })
 
 

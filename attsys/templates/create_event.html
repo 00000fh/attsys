@@ -8,12 +8,10 @@
        CREATE EVENT — ASYMMETRIC HORIZONTAL · SIGNAL INTENSITY v2
        White main, Black sub · Oscilloscope heartbeat + Frequency waves
        
-       > ENHANCED: DARK, HIGH-CONTRAST INSET FIELDS
-         All user inputs now have the same deep, recessed appearance
-         as the 'Bilangan Tanggungan' field from check_in page.
-         - Darker background (gray-100)
-         - Strong inset shadows (6px 6px 12px rgba(0,0,0,0.2), -4px -4px 10px rgba(255,255,255,0.9))
-         - Bold, tactile 3D press effect
+       > FIXED: Panel widths now stable regardless of content length
+         - Form panel has fixed width calculation
+         - Long text handled with truncation/wrapping
+         - Dashboard panel maintains its size
     --------------------------------------------------------------- */
 
     :root {
@@ -24,17 +22,16 @@
         --black-300: #525252;
         --white: #ffffff;
         --white-50: #fafafa;
-        --white-100: #f0f0f0;      /* Darker base for inset fields */
+        --white-100: #f0f0f0;
         --white-200: #e5e5e5;
         --white-300: #d4d4d4;
-        --gray-100: #f0f0f0;        /* For dark inset background */
+        --gray-100: #f0f0f0;
         --gray-500: #737373;
         --gray-800: #2d2d2d;
         
         --neu-shadow-dark: #d1d5db;
         --neu-shadow-light: #ffffff;
         
-        /* Dark inset shadow — like Bilangan Tanggungan */
         --neu-inset-dark: 
             inset 6px 6px 12px rgba(0, 0, 0, 0.2),
             inset -4px -4px 10px rgba(255, 255, 255, 0.9);
@@ -90,7 +87,7 @@
         100% { transform: translateX(100%); }
     }
 
-    /* ===== NEUROMORPHIC TOOLS — UPDATED WITH DARK INSET ===== */
+    /* ===== NEUROMORPHIC TOOLS ===== */
     .neu-raise-hard {
         background: linear-gradient(145deg, var(--white), var(--white-100));
         box-shadow: 12px 12px 24px rgba(0,0,0,0.04), -12px -12px 24px rgba(255,255,255,0.9);
@@ -105,20 +102,31 @@
         box-shadow: inset 4px 4px 10px rgba(0,0,0,0.02), inset -4px -4px 10px rgba(255,255,255,0.5);
     }
 
-    /* ===== HORIZONTAL ASYMMETRIC LAYOUT ===== */
+    /* ===== HORIZONTAL ASYMMETRIC LAYOUT - FIXED WIDTHS ===== */
     .create-asymmetric {
         display: grid;
-        grid-template-columns: 1.2fr 0.9fr;
+        grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.9fr);
         gap: 32px;
         align-items: start;
         position: relative;
         z-index: 30;
+        width: 100%;
     }
+    
+    /* Ensure panels don't stretch beyond their grid columns */
+    .form-panel,
+    .signal-dashboard {
+        min-width: 0;  /* Critical: allows content to shrink */
+        width: 100%;
+    }
+    
     @media (max-width: 1000px) {
-        .create-asymmetric { grid-template-columns: 1fr; }
+        .create-asymmetric { 
+            grid-template-columns: 1fr; 
+        }
     }
 
-    /* ===== FORM PANEL — NEUROMORPHIC WHITE (RAISED) ===== */
+    /* ===== FORM PANEL — WITH TEXT CONTAINMENT ===== */
     .form-panel {
         background: var(--white);
         border-radius: 32px;
@@ -128,7 +136,13 @@
         position: relative;
         overflow: hidden;
         box-shadow: 16px 16px 28px rgba(0,0,0,0.08), -14px -14px 28px rgba(255,255,255,0.9);
+        
+        /* Text containment */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
     }
+    
     .form-panel::before {
         content: '';
         position: absolute;
@@ -140,7 +154,7 @@
         opacity: 0.2;
     }
 
-    /* ===== SIGNAL DASHBOARD (RIGHT) — VERTICAL METERS ===== */
+    /* ===== SIGNAL DASHBOARD (RIGHT) ===== */
     .signal-dashboard {
         background: var(--white);
         border-radius: 32px;
@@ -151,13 +165,17 @@
         backdrop-filter: blur(8px);
         background: rgba(255,255,255,0.75);
         box-shadow: 8px 8px 20px rgba(0,0,0,0.02), -8px -8px 20px rgba(255,255,255,0.6);
+        
+        /* Ensure this panel also contains text */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
-    /* ===== FORM FIELDS — DARK, HIGH-CONTRAST INSET (like Bilangan Tanggungan) ===== */
+    /* ===== FORM FIELDS ===== */
     .field-signal {
         width: 100%;
         padding: 16px 20px;
-        background: var(--white-100);  /* Darker background for deep recession */
+        background: var(--white-100);
         border: none;
         border-radius: 24px;
         font-size: 0.95rem;
@@ -165,7 +183,6 @@
         font-weight: 500;
         transition: 0.2s;
         
-        /* DARK INSET — strong shadows, high contrast */
         box-shadow: 
             inset 6px 6px 12px rgba(0, 0, 0, 0.2),
             inset -4px -4px 10px rgba(255, 255, 255, 0.9);
@@ -176,7 +193,6 @@
     .field-signal:focus {
         outline: none;
         border: none;
-        /* Even deeper on focus */
         box-shadow: 
             inset 8px 8px 16px rgba(0, 0, 0, 0.25),
             inset -6px -6px 12px rgba(255, 255, 255, 0.95),
@@ -190,7 +206,7 @@
         opacity: 0.8;
     }
 
-    /* Select fields — same dark inset style */
+    /* Select fields */
     select.field-signal {
         appearance: none;
         background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>');
@@ -200,12 +216,15 @@
         background-color: var(--white-100);
     }
 
-    /* Textarea — consistent dark inset */
+    /* Textarea */
     textarea.field-signal {
         background: var(--white-100);
         box-shadow: 
             inset 6px 6px 12px rgba(0, 0, 0, 0.2),
             inset -4px -4px 10px rgba(255, 255, 255, 0.9);
+        resize: vertical;
+        min-height: 80px;
+        max-height: 200px;
     }
 
     .label-signal {
@@ -224,7 +243,38 @@
         color: var(--black);
     }
 
-    /* ===== SIGNAL BARS (vertical animated) ===== */
+    /* ===== TEXT CONTAINMENT FOR LONG CONTENT ===== */
+    .text-truncate-container {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .text-wrap-container {
+        max-width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    /* For the preview title specifically */
+    #previewTitle {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    /* For venue preview */
+    #previewVenue {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* ===== SIGNAL BARS ===== */
     .v-signal-bank {
         display: flex;
         flex-direction: column;
@@ -237,6 +287,14 @@
         justify-content: space-between;
         padding: 8px 0;
         border-bottom: 1px dashed rgba(0,0,0,0.05);
+        gap: 12px;
+    }
+    .v-signal-row span:first-child {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     .v-signal-meter {
         width: 100px;
@@ -245,6 +303,7 @@
         border-radius: 4px;
         overflow: hidden;
         box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
+        flex-shrink: 0;
     }
     .v-signal-fill {
         height: 100%;
@@ -253,7 +312,7 @@
         transition: width 0.3s;
     }
 
-    /* ===== TRANSMISSION RIPPLE (for buttons) ===== */
+    /* ===== TRANSMISSION RIPPLE ===== */
     .transmit-btn {
         background: var(--black);
         color: white;
@@ -272,6 +331,13 @@
         letter-spacing: 2px;
         position: relative;
         overflow: hidden;
+        
+        /* Text containment */
+        white-space: nowrap;
+    }
+    .transmit-btn span {
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .transmit-btn::after {
         content: '';
@@ -296,7 +362,7 @@
         box-shadow: 0 22px 36px rgba(0,0,0,0.3);
     }
 
-    /* ===== GLITCH EFFECT (text) ===== */
+    /* ===== GLITCH EFFECT ===== */
     .glitch-mini {
         animation: glitchMini 2.5s infinite;
     }
@@ -306,7 +372,7 @@
         40% { text-shadow: 1px 0 0 rgba(0,0,0,0.2), -1px 0 0 rgba(0,0,0,0.2); }
     }
 
-    /* ===== CUSTOM STATE — oscilloscope glow ===== */
+    /* ===== CUSTOM STATE ===== */
     .custom-state-active {
         margin-top: 20px;
         padding: 20px;
@@ -334,9 +400,13 @@
         align-items: center;
         gap: 6px;
         box-shadow: inset 2px 2px 5px rgba(0,0,0,0.02), inset -2px -2px 5px rgba(255,255,255,0.7);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    /* ===== FREQUENCY OSCILLATOR (PREVIEW) ===== */
+    /* ===== FREQUENCY OSCILLATOR ===== */
     .osc-wave {
         width: 100%;
         height: 40px;
@@ -348,6 +418,7 @@
         );
         mask-image: linear-gradient(90deg, transparent, black, transparent);
         opacity: 0.3;
+        flex-shrink: 0;
     }
 
     /* ===== VALIDATION STYLE ===== */
@@ -359,16 +430,53 @@
             0 0 0 2px var(--black) !important;
     }
 
+    /* ===== TOP BANNER TEXT CONTAINMENT ===== */
+    .top-banner-title {
+        max-width: 500px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    @media (max-width: 768px) {
+        .top-banner-title {
+            max-width: 200px;
+        }
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 640px) {
         .form-panel { padding: 24px; }
-        .transmit-btn { padding: 14px 24px; }
+        .transmit-btn { 
+            padding: 14px 24px;
+            font-size: 0.9rem;
+        }
+        .create-asymmetric {
+            gap: 20px;
+        }
+        .v-signal-row {
+            flex-wrap: wrap;
+        }
+    }
+    
+    /* Ensure the main heading doesn't cause layout shift */
+    h1.glitch-mini {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    @media (min-width: 1280px) {
+        h1.glitch-mini {
+            max-width: 400px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- ===== BACKGROUND SIGNATURE (heartbeat + noise) ===== -->
+<!-- ===== BACKGROUND SIGNATURE ===== -->
 <div class="create-signature-scan"></div>
 <div class="create-heartbeat-pulse"></div>
 
@@ -377,8 +485,8 @@
     
     <!-- ===== TOP BANNER — SIGNAL ID ===== -->
     <div class="flex justify-between items-center mb-8 reveal">
-        <div class="flex items-center gap-4">
-            <div class="neu-raise-hard w-14 h-14 rounded-2xl flex items-center justify-center relative">
+        <div class="flex items-center gap-4 min-w-0">  <!-- Added min-w-0 for flex shrinking -->
+            <div class="neu-raise-hard w-14 h-14 rounded-2xl flex items-center justify-center relative flex-shrink-0">
                 <i class="bi bi-broadcast text-black text-2xl"></i>
                 <div class="absolute -bottom-1 -right-1 flex gap-[2px]">
                     <span class="w-1 h-3 bg-black rounded-full animate-pulse"></span>
@@ -386,19 +494,19 @@
                     <span class="w-1 h-5 bg-black rounded-full animate-pulse" style="animation-delay:0.4s"></span>
                 </div>
             </div>
-            <div>
-                <h1 class="text-4xl font-black text-black tracking-tight flex items-center gap-3">
+            <div class="min-w-0">  <!-- Allow text to shrink/truncate -->
+                <h1 class="text-4xl font-black text-black tracking-tight flex items-center gap-3 top-banner-title">
                     <span class="glitch-mini">CREATE</span> EVENT
-                    <span class="text-xs font-mono bg-black text-white px-3 py-1.5 rounded-full">ENCRYPTED</span>
+                    <span class="text-xs font-mono bg-black text-white px-3 py-1.5 rounded-full flex-shrink-0">ENCRYPTED</span>
                 </h1>
-                <div class="flex items-center gap-4 mt-1">
+                <div class="flex items-center gap-4 mt-1 flex-wrap">
                     <span class="hint-badge"><i class="bi bi-shield-check"></i> CARRIER: 104.7 MHz</span>
                     <span class="hint-badge"><i class="bi bi-droplet"></i> SIGNAL LOCK</span>
                 </div>
             </div>
         </div>
         <a href="{% url 'dashboard' %}" 
-           class="group flex items-center gap-2 px-5 py-3 rounded-full border border-black-200 text-black-600 hover:bg-black hover:text-white transition-all duration-300 bg-white/50">
+           class="group flex items-center gap-2 px-5 py-3 rounded-full border border-black-200 text-black-600 hover:bg-black hover:text-white transition-all duration-300 bg-white/50 flex-shrink-0">
             <i class="bi bi-arrow-left-short group-hover:-translate-x-1 transition-transform"></i>
             <span class="text-sm font-medium">RETURN</span>
         </a>
@@ -415,13 +523,13 @@
             
             <!-- SECTION: BASIC PARAMETERS -->
             <div class="flex items-center gap-3 mb-7">
-                <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center">
+                <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center flex-shrink-0">
                     <i class="bi bi-1-circle text-black"></i>
                 </div>
-                <span class="text-xs font-mono text-black-400 tracking-[0.2em]">BASIC CARRIER</span>
+                <span class="text-xs font-mono text-black-400 tracking-[0.2em] whitespace-nowrap">BASIC CARRIER</span>
             </div>
 
-            <!-- Event Title — DARK INSET -->
+            <!-- Event Title — with proper containment -->
             <div class="mb-7">
                 <label class="label-signal required-star">
                     <i class="bi bi-megaphone"></i> EVENT TITLE
@@ -430,12 +538,13 @@
                        class="field-signal" 
                        placeholder="e.g. Future Leaders Summit" 
                        required maxlength="200" autocomplete="off">
-                <div class="mt-2 flex items-center gap-2 text-black-300 text-xs">
-                    <i class="bi bi-info-circle"></i> Be specific. Max 200.
+                <div class="mt-2 flex items-center gap-2 text-black-300 text-xs flex-wrap">
+                    <i class="bi bi-info-circle flex-shrink-0"></i>
+                    <span class="text-wrap-container">Be specific. Max 200 characters.</span>
                 </div>
             </div>
 
-            <!-- Description — DARK INSET -->
+            <!-- Description -->
             <div class="mb-7">
                 <label class="label-signal">
                     <i class="bi bi-file-earmark-text"></i> DESCRIPTION / FREQ
@@ -447,14 +556,14 @@
 
             <!-- SECTION DIVIDER — LOCATION -->
             <div class="flex items-center gap-3 my-8">
-                <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center">
+                <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center flex-shrink-0">
                     <i class="bi bi-2-circle text-black"></i>
                 </div>
-                <span class="text-xs font-mono text-black-400 tracking-[0.2em]">GEOLOCK</span>
-                <div class="flex-1 border-t border-dashed border-black-200"></div>
+                <span class="text-xs font-mono text-black-400 tracking-[0.2em] whitespace-nowrap">GEOLOCK</span>
+                <div class="flex-1 border-t border-dashed border-black-200 min-w-[20px]"></div>
             </div>
 
-            <!-- Venue — DARK INSET -->
+            <!-- Venue -->
             <div class="mb-7">
                 <label class="label-signal required-star">
                     <i class="bi bi-pin-map"></i> VENUE
@@ -465,7 +574,7 @@
                        required maxlength="200">
             </div>
 
-            <!-- State + Custom State — DARK INSET -->
+            <!-- State + Custom State -->
             <div class="mb-6">
                 <label class="label-signal required-star">
                     <i class="bi bi-map"></i> STATE
@@ -491,7 +600,7 @@
                     <option value="OTHER">✧ Other State (specify)</option>
                 </select>
 
-                <!-- Custom State Container — DARK INSET -->
+                <!-- Custom State Container -->
                 <div id="customStateContainer" class="custom-state-active" style="display: none;">
                     <label class="label-signal required-star">
                         <i class="bi bi-pencil-square"></i> SPECIFY STATE
@@ -503,24 +612,24 @@
 
             <!-- SECTION DIVIDER — TIME VECTOR -->
             <div class="flex items-center gap-3 my-8">
-                <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center">
+                <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center flex-shrink-0">
                     <i class="bi bi-3-circle text-black"></i>
                 </div>
-                <span class="text-xs font-mono text-black-400 tracking-[0.2em]">TIME VECTOR</span>
-                <div class="flex-1 border-t border-dashed border-black-200"></div>
+                <span class="text-xs font-mono text-black-400 tracking-[0.2em] whitespace-nowrap">TIME VECTOR</span>
+                <div class="flex-1 border-t border-dashed border-black-200 min-w-[20px]"></div>
             </div>
 
-            <!-- Date & Time Grid — ALL DARK INSET -->
+            <!-- Date & Time Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div>
+                <div class="min-w-0">
                     <label class="label-signal required-star"><i class="bi bi-calendar"></i> DATE</label>
                     <input type="date" name="date" id="eventDate" class="field-signal" required>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label class="label-signal required-star"><i class="bi bi-play-fill"></i> START</label>
                     <input type="time" name="start_time" id="startTime" class="field-signal" required>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label class="label-signal required-star"><i class="bi bi-stop-fill"></i> END</label>
                     <input type="time" name="end_time" id="endTime" class="field-signal" required>
                 </div>
@@ -529,48 +638,49 @@
                 <i class="bi bi-clock-history"></i> End must be > start
             </div>
 
-            <!-- TRANSMIT BUTTON — RAISED (contrast) -->
+            <!-- TRANSMIT BUTTON -->
             <div class="mt-12">
                 <button type="submit" class="transmit-btn" id="submitBtn">
-                    <i class="bi bi-send-plus"></i> ENCODE & TRANSMIT
-                    <i class="bi bi-arrow-right-short text-xl"></i>
+                    <i class="bi bi-send-plus flex-shrink-0"></i>
+                    <span class="truncate">ENCODE & TRANSMIT</span>
+                    <i class="bi bi-arrow-right-short text-xl flex-shrink-0"></i>
                 </button>
-                <div class="flex justify-between mt-4">
-                    <span class="text-[10px] font-mono text-black-300">⏎ Ctrl+S to encode</span>
-                    <span class="text-[10px] font-mono text-black-300">SIGNAL: <span id="signalStrengthVal">64%</span></span>
+                <div class="flex justify-between mt-4 flex-wrap gap-2">
+                    <span class="text-[10px] font-mono text-black-300 whitespace-nowrap">⏎ Ctrl+S to encode</span>
+                    <span class="text-[10px] font-mono text-black-300 whitespace-nowrap">SIGNAL: <span id="signalStrengthVal">64%</span></span>
                 </div>
             </div>
         </div> <!-- END LEFT PANEL -->
 
-        <!-- ========== RIGHT: SIGNAL DASHBOARD (unchanged, light) ========== -->
+        <!-- ========== RIGHT: SIGNAL DASHBOARD ========== -->
         <div class="signal-dashboard neu-raise-soft">
             <!-- Live preview card -->
             <div class="flex items-center justify-between mb-6">
-                <div class="flex items-center gap-2">
-                    <i class="bi bi-radio text-black text-xl"></i>
-                    <span class="font-mono text-sm font-bold text-black">SCOPE</span>
+                <div class="flex items-center gap-2 min-w-0">
+                    <i class="bi bi-radio text-black text-xl flex-shrink-0"></i>
+                    <span class="font-mono text-sm font-bold text-black truncate">SCOPE</span>
                 </div>
-                <div class="flex gap-1">
+                <div class="flex gap-1 flex-shrink-0">
                     <span class="w-2 h-2 bg-black rounded-full animate-ping"></span>
                     <span class="w-2 h-2 bg-black rounded-full animate-ping" style="animation-delay:0.3s"></span>
                     <span class="w-2 h-2 bg-black rounded-full animate-ping" style="animation-delay:0.6s"></span>
                 </div>
             </div>
 
-            <!-- PREVIEW BLOCK (neuromorphic inset) -->
+            <!-- PREVIEW BLOCK -->
             <div class="neu-pressed rounded-3xl p-5 mb-7">
-                <div id="previewTitle" class="text-xl font-extrabold text-black truncate">[Event Title]</div>
-                <div class="flex items-center gap-2 mt-2 text-black-500 text-sm">
-                    <i class="bi bi-geo-alt"></i>
-                    <span id="previewVenue">Venue not set</span>
+                <div id="previewTitle" class="text-xl font-extrabold text-black truncate" title="[Event Title]">[Event Title]</div>
+                <div class="flex items-center gap-2 mt-2 text-black-500 text-sm min-w-0">
+                    <i class="bi bi-geo-alt flex-shrink-0"></i>
+                    <span id="previewVenue" class="truncate" title="Venue not set">Venue not set</span>
                 </div>
-                <div class="flex items-center gap-3 mt-3 text-xs font-mono text-black-400">
-                    <span><i class="bi bi-calendar3"></i> <span id="previewDate">—</span></span>
-                    <span><i class="bi bi-clock"></i> <span id="previewTime">—</span></span>
+                <div class="flex items-center gap-3 mt-3 text-xs font-mono text-black-400 flex-wrap">
+                    <span class="flex items-center gap-1 min-w-0"><i class="bi bi-calendar3 flex-shrink-0"></i> <span id="previewDate" class="truncate">—</span></span>
+                    <span class="flex items-center gap-1 min-w-0"><i class="bi bi-clock flex-shrink-0"></i> <span id="previewTime" class="truncate">—</span></span>
                 </div>
                 <div class="mt-4 pt-3 border-t border-white-200 flex justify-between items-center">
                     <span class="text-black-400 text-xs">STATUS</span>
-                    <span class="bg-black/5 text-black-700 px-4 py-1.5 rounded-full text-xs border border-black/10 flex items-center gap-1.5">
+                    <span class="bg-black/5 text-black-700 px-4 py-1.5 rounded-full text-xs border border-black/10 flex items-center gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span> DRAFT
                     </span>
                 </div>
@@ -596,36 +706,37 @@
             <!-- VERTICAL SIGNAL BANK -->
             <div class="v-signal-bank">
                 <div class="v-signal-row">
-                    <span class="text-xs font-medium text-black-600"><i class="bi bi-check-circle"></i> TITLE</span>
+                    <span class="text-xs font-medium text-black-600 truncate" title="TITLE"><i class="bi bi-check-circle"></i> TITLE</span>
                     <div class="v-signal-meter"><div id="meterTitle" class="v-signal-fill" style="width: 0%"></div></div>
                 </div>
                 <div class="v-signal-row">
-                    <span class="text-xs font-medium text-black-600"><i class="bi bi-pin"></i> VENUE</span>
+                    <span class="text-xs font-medium text-black-600 truncate" title="VENUE"><i class="bi bi-pin"></i> VENUE</span>
                     <div class="v-signal-meter"><div id="meterVenue" class="v-signal-fill" style="width: 0%"></div></div>
                 </div>
                 <div class="v-signal-row">
-                    <span class="text-xs font-medium text-black-600"><i class="bi bi-map"></i> STATE</span>
+                    <span class="text-xs font-medium text-black-600 truncate" title="STATE"><i class="bi bi-map"></i> STATE</span>
                     <div class="v-signal-meter"><div id="meterState" class="v-signal-fill" style="width: 0%"></div></div>
                 </div>
                 <div class="v-signal-row">
-                    <span class="text-xs font-medium text-black-600"><i class="bi bi-calendar"></i> DATE/TIME</span>
+                    <span class="text-xs font-medium text-black-600 truncate" title="DATE/TIME"><i class="bi bi-calendar"></i> DATE/TIME</span>
                     <div class="v-signal-meter"><div id="meterTime" class="v-signal-fill" style="width: 0%"></div></div>
                 </div>
             </div>
 
             <!-- TIP / FREQUENCY HINT -->
             <div class="mt-8 bg-black/5 rounded-2xl p-4 border border-white-200 flex gap-3">
-                <i class="bi bi-shield-lock text-black text-xl"></i>
-                <div class="text-xs text-black-600">
-                    <span class="font-bold text-black">ENCRYPTED SIGNAL</span><br>
-                    All fields marked * are carrier-locked. Preview updates in real time.
+                <i class="bi bi-shield-lock text-black text-xl flex-shrink-0"></i>
+                <div class="text-xs text-black-600 min-w-0">
+                    <span class="font-bold text-black block truncate">ENCRYPTED SIGNAL</span>
+                    <span class="block text-wrap-container">All fields marked * are carrier-locked. Preview updates in real time.</span>
                 </div>
             </div>
             
             <!-- Mini frequency badge -->
             <div class="mt-5 flex justify-end">
-                <span class="bg-white border border-black-200 rounded-full px-4 py-2 text-[10px] font-mono flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 bg-green-600 rounded-full"></span> LIVE FEED · 104.7 MHz
+                <span class="bg-white border border-black-200 rounded-full px-4 py-2 text-[10px] font-mono flex items-center gap-1 truncate max-w-full">
+                    <span class="w-1.5 h-1.5 bg-green-600 rounded-full flex-shrink-0"></span> 
+                    <span class="truncate">LIVE FEED · 104.7 MHz</span>
                 </span>
             </div>
         </div> <!-- END RIGHT DASHBOARD -->
@@ -718,10 +829,20 @@
 
         // ----- update preview + meters + signal strength -----
         function updateAll() {
-            // preview title
-            if (previewTitle) previewTitle.textContent = title?.value?.trim() || '[Signal Title]';
+            // preview title - with truncation handling
+            const titleValue = title?.value?.trim() || '[Signal Title]';
+            if (previewTitle) {
+                previewTitle.textContent = titleValue;
+                previewTitle.title = titleValue; // Show full text on hover
+            }
+            
             // preview venue
-            if (previewVenue) previewVenue.textContent = venue?.value?.trim() || 'Venue not set';
+            const venueValue = venue?.value?.trim() || 'Venue not set';
+            if (previewVenue) {
+                previewVenue.textContent = venueValue;
+                previewVenue.title = venueValue;
+            }
+            
             // date/time preview
             if (previewDate) previewDate.textContent = dateInput?.value || '—';
             if (previewTime) previewTime.textContent = startTime?.value || '—';
@@ -766,7 +887,7 @@
         function showToast(msg, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `fixed top-24 right-6 z-50 neu-raise-hard rounded-xl p-4 border-l-4 ${type === 'error' ? 'border-l-red-500' : 'border-l-blue-500'} bg-white max-w-sm shadow-xl`;
-            toast.innerHTML = `<div class="flex items-start gap-3"><i class="bi ${type==='error'?'bi-exclamation-triangle text-red-600':'bi-info-circle text-blue-600'}"></i><span class="text-sm text-black-700">${msg}</span><button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-black-400"><i class="bi bi-x"></i></button></div>`;
+            toast.innerHTML = `<div class="flex items-start gap-3"><i class="bi ${type==='error'?'bi-exclamation-triangle text-red-600':'bi-info-circle text-blue-600'} flex-shrink-0"></i><span class="text-sm text-black-700 text-wrap-container">${msg}</span><button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-black-400 flex-shrink-0"><i class="bi bi-x"></i></button></div>`;
             document.body.appendChild(toast);
             setTimeout(() => toast?.remove(), 4000);
         }

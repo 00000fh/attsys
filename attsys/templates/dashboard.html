@@ -230,6 +230,53 @@
         background: var(--gray-800);
         transform: translateY(-2px);
     }
+
+    /* ===== SCROLLABLE TABLE STYLES ===== */
+    .events-table-container {
+        max-height: 500px;
+        overflow-y: auto;
+        border-radius: 0 0 1rem 1rem;
+        scrollbar-width: thin;
+        scrollbar-color: #cccccc #f5f5f5;
+    }
+    
+    .events-table-container::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .events-table-container::-webkit-scrollbar-track {
+        background: #f5f5f5;
+        border-radius: 10px;
+    }
+    
+    .events-table-container::-webkit-scrollbar-thumb {
+        background: #cccccc;
+        border-radius: 10px;
+    }
+    
+    .events-table-container::-webkit-scrollbar-thumb:hover {
+        background: #999999;
+    }
+    
+    .sticky-header {
+        position: sticky;
+        top: 0;
+        background: #f5f5f5;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    
+    /* ===== TOTAL SIGNALS BADGE ===== */
+    .signals-badge {
+        background: var(--black);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.2rem 0.8rem;
+        border-radius: 999px;
+        letter-spacing: 0.3px;
+    }
 </style>
 {% endblock %}
 
@@ -263,15 +310,6 @@
         </p>
     </div>
     <div class="flex items-center gap-4 mt-4 md:mt-0">
-        <!-- Live frequency display with glitch -->
-        <div class="neu-raised-sm px-5 py-3 rounded-xl flex items-center gap-3 transmission-ripple">
-            <i class="bi bi-radio text-gray-500"></i>
-            <div>
-                <div id="liveClockFreq" class="text-sm font-mono text-black font-bold">104.7 MHz</div>
-                <div class="text-xs text-gray-400">CARRIER LOCK</div>
-            </div>
-        </div>
-        
         <!-- ===== VISIBLE, HIGH-CONTRAST CREATE EVENT BUTTON ===== -->
         {% if user.role == 'STAFF' %}
         <a href="{% url 'create_event' %}" 
@@ -314,7 +352,7 @@
         <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
             <span>ACTIVE RATE</span>
             <span class="text-black font-mono" id="activeRate">
-                {% widthratio active_events total_events 100 %}%
+                {% if total_events > 0 %}{% widthratio active_events total_events 100 %}{% else %}0{% endif %}%
             </span>
         </div>
     </div>
@@ -346,7 +384,7 @@
             <span>DAILY GROWTH</span>
             <span class="text-black font-mono">
                 {% with growth=today_checkins|default:0 %}
-                {% widthratio growth total_attendees 100 %}%
+                {% if total_attendees > 0 %}{% widthratio growth total_attendees 100 %}{% else %}0{% endif %}%
                 {% endwith %}
             </span>
         </div>
@@ -405,14 +443,13 @@
         <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
             <span>COMPLETION</span>
             <span class="text-black font-mono">
-                {% widthratio total_applications|default:0 total_attendees|default:1 100 %}%
+                {% if total_attendees > 0 %}{% widthratio total_applications|default:0 total_attendees 100 %}{% else %}0{% endif %}%
             </span>
         </div>
     </div>
     {% endif %}
 
-    <!-- RATING CARD COMPLETELY REMOVED -->
-    <!-- Instead, for non-admin we add a placeholder card to maintain 4-column layout -->
+    <!-- Fourth Card - System Health for Admin, Events Today for Others -->
     {% if user.role == 'ADMIN' %}
     <!-- Admin sees fourth card as System Health (replaces rating) -->
     <div class="neu-raised rounded-2xl p-5 card-lift reveal">
@@ -469,7 +506,7 @@
             <span class="text-black font-mono">{{ weekly_events|default:events|length }}</span>
         </div>
         <div class="scan-progress mt-2">
-            <div class="progress-fill" style="width: {% widthratio events_today|default:0 weekly_events|default:events|length|default:1 100 %}%; max-width: 100%;"></div>
+            <div class="progress-fill" style="width: {% if weekly_events > 0 %}{% widthratio events_today|default:0 weekly_events 100 %}{% else %}0{% endif %}%; max-width: 100%;"></div>
         </div>
     </div>
     {% endif %}
@@ -477,7 +514,7 @@
 
 <!-- ===== MAIN DASHBOARD GRID ===== -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- RECENT EVENTS TABLE -->
+    <!-- RECENT EVENTS TABLE - NOW SHOWS ALL EVENTS WITH SCROLL -->
     <div class="lg:col-span-2">
         <div class="neu-raised rounded-2xl overflow-hidden reveal">
             <div class="p-5 border-b border-black/10 flex justify-between items-center">
@@ -489,13 +526,15 @@
                         <div class="bar !w-1 !h-6"></div>
                         <div class="bar !w-1 !h-4"></div>
                     </div>
-                    <h3 class="font-semibold text-black">RECENT TRANSMISSIONS · EVENTS</h3>
+                    <h3 class="font-semibold text-black">ALL TRANSMISSIONS · EVENTS</h3>
                 </div>
-                <span class="text-xs font-mono text-gray-400">{{ events|length }} signals</span>
+                <span class="signals-badge">{{ events|length }} signals</span>
             </div>
-            <div class="overflow-x-auto">
+            
+            <!-- Scrollable Table Container -->
+            <div class="events-table-container">
                 <table class="w-full text-sm">
-                    <thead class="bg-black/5 text-gray-500 text-xs font-mono">
+                    <thead class="sticky-header text-gray-500 text-xs font-mono">
                         <tr>
                             <th class="px-5 py-3 text-left">EVENT</th>
                             <th class="px-5 py-3 text-left">DATE</th>
@@ -505,7 +544,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for event in events|slice:":5" %}
+                        {% for event in events %}
                         <tr class="data-row" onclick="window.location='{% url 'event_detail' event.id %}'">
                             <td class="px-5 py-4">
                                 <div class="flex items-center gap-3">
@@ -513,8 +552,8 @@
                                         <i class="bi bi-calendar-event text-black"></i>
                                     </div>
                                     <div>
-                                        <div class="font-medium text-black">{{ event.title|truncatechars:20 }}</div>
-                                        <div class="text-xs text-gray-400">{{ event.venue|truncatechars:15 }}</div>
+                                        <div class="font-medium text-black">{{ event.title|truncatechars:25 }}</div>
+                                        <div class="text-xs text-gray-400">{{ event.venue|truncatechars:18 }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -561,11 +600,11 @@
                     </tbody>
                 </table>
             </div>
-            {% if events|length > 5 %}
-            <div class="p-4 border-t border-black/10 text-right">
-                <a href="#" class="text-xs text-gray-500 hover:text-black font-mono flex items-center justify-end gap-1">
-                    VIEW ALL SIGNALS <i class="bi bi-arrow-right"></i>
-                </a>
+            
+            <!-- Event count footer -->
+            {% if events|length > 0 %}
+            <div class="p-3 border-t border-black/10 text-center text-xs text-gray-400">
+                Showing all {{ events|length }} event{{ events|length|pluralize }} · Last updated {{ now|date:"g:i A" }}
             </div>
             {% endif %}
         </div>
@@ -608,9 +647,9 @@
                 <span class="bg-black text-white px-2 py-1 rounded-full text-xs font-mono">{{ active_events }}</span>
             </div>
             {% if active_events > 0 %}
-            <div class="space-y-3">
+            <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
                 {% for event in events %}
-                    {% if event.is_active and forloop.counter <= 3 %}
+                    {% if event.is_active %}
                     <div onclick="window.location='{% url 'event_detail' event.id %}'" 
                          class="neu-flat p-3 rounded-xl cursor-pointer hover:border-black/20 transition-all border border-transparent">
                         <div class="flex justify-between items-center">
@@ -712,8 +751,7 @@
 </div>
 {% endif %}
 
-<!-- ===== ACHIEVEMENT / MILESTONE (feedback/rating removed) ===== -->
-<!-- Keep only attendance-based achievement, remove any rating references -->
+<!-- ===== ACHIEVEMENT / MILESTONE ===== -->
 {% if today_checkins and today_checkins > 50 %}
 <div class="mt-8 reveal">
     <div class="neu-raised border-l-4 border-green-500 rounded-2xl p-5 flex items-center justify-between">
@@ -757,7 +795,7 @@
             }, stepTime);
         }
 
-        // Set counters - NO RATING COUNTER
+        // Set counters
         setTimeout(() => {
             animateCounter(document.getElementById('eventCounter'), {{ total_events|default:0 }});
             animateCounter(document.getElementById('attendeeCounter'), {{ total_attendees|default:0 }});
@@ -788,14 +826,33 @@
         }
 
         setTimeout(() => {
+            {% if total_events > 0 %}
             setRing('eventRing', {% widthratio active_events total_events 100 %});
+            {% else %}
+            setRing('eventRing', 0);
+            {% endif %}
+            
+            {% if total_attendees > 0 %}
             setRing('attendeeRing', {% widthratio today_checkins total_attendees 100 %});
+            {% else %}
+            setRing('attendeeRing', 0);
+            {% endif %}
+            
             {% if user.role == 'ADMIN' %}
             setRing('staffRing', 70);
             setRing('systemRing', 98);
             {% else %}
-            setRing('appRing', {% widthratio total_applications|default:0 total_attendees|default:1 100 %});
-            setRing('eventsTodayRing', {% widthratio events_today|default:0 weekly_events|default:events|length|default:1 100 %});
+            {% if total_attendees > 0 %}
+            setRing('appRing', {% widthratio total_applications|default:0 total_attendees 100 %});
+            {% else %}
+            setRing('appRing', 0);
+            {% endif %}
+            
+            {% if weekly_events > 0 %}
+            setRing('eventsTodayRing', {% widthratio events_today|default:0 weekly_events 100 %});
+            {% else %}
+            setRing('eventsTodayRing', 0);
+            {% endif %}
             {% endif %}
         }, 300);
 
@@ -835,6 +892,18 @@
                 bar.style.width = '100%';
             }
         });
+
+        // ===== ADD SCROLL INDICATOR =====
+        const tableContainer = document.querySelector('.events-table-container');
+        if (tableContainer) {
+            tableContainer.addEventListener('scroll', function() {
+                if (this.scrollTop > 10) {
+                    this.classList.add('scrolled');
+                } else {
+                    this.classList.remove('scrolled');
+                }
+            });
+        }
     })();
 </script>
 {% endblock %}
