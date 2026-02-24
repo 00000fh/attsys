@@ -6,7 +6,7 @@
 <style>
     /* ---------------------------------------------------------------
        LOGIN — DARK BLUE & WHITE — CENTERED FORM
-       New radar/signal scanning transition
+       New bar loading transition
     --------------------------------------------------------------- */
     
     /* --- DARK BLUE COLOR VARIABLES --- */
@@ -488,14 +488,15 @@
     
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ===== NEW TRANSITION — RADAR SCANNING ===== */
+    /* ===== NEW BAR LOADING TRANSITION ===== */
     .transition-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: var(--white);
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
         z-index: 10000;
         display: flex;
         align-items: center;
@@ -510,212 +511,197 @@
         visibility: visible;
     }
     
-    .radar-container {
+    .loading-container {
         text-align: center;
         max-width: 500px;
         padding: 40px;
     }
     
-    /* Radar screen */
-    .radar-screen {
-        background: #0a1420;
-        border-radius: 50%;
-        width: 280px;
-        height: 280px;
-        margin: 0 auto 30px;
+    /* Signal strength indicator */
+    .signal-strength {
+        font-family: 'Courier New', monospace;
+        color: var(--dark-blue);
+        font-size: 0.85rem;
+        letter-spacing: 3px;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+    
+    /* Main bar loader - based on the sample */
+    .bar-loader {
         position: relative;
-        overflow: hidden;
-        box-shadow: 
-            0 0 0 2px rgba(58, 90, 140, 0.3),
-            0 20px 40px -10px rgba(26, 43, 76, 0.5);
+        width: 280px;
+        height: 120px;
+        margin: 30px auto 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
     }
     
-    /* Radar grid */
-    .radar-grid {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: 
-            /* Circles */
-            repeating-radial-gradient(circle at 50% 50%, 
-                transparent 0, 
-                transparent 30px, 
-                rgba(58, 90, 140, 0.1) 31px,
-                transparent 32px
-            ),
-            /* Crosshairs */
-            linear-gradient(90deg, rgba(58, 90, 140, 0.1) 1px, transparent 1px),
-            linear-gradient(0deg, rgba(58, 90, 140, 0.1) 1px, transparent 1px);
-        background-size: 100% 100%, 70px 70px, 70px 70px;
-        background-position: center;
-    }
-    
-    /* Scanning line */
-    .radar-scan {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: conic-gradient(
-            from 0deg,
-            transparent 0deg,
-            rgba(58, 90, 140, 0.3) 10deg,
-            transparent 20deg
-        );
-        animation: radarSpin 3s infinite linear;
-        transform-origin: center;
-    }
-    
-    @keyframes radarSpin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    
-    /* Radar blips */
-    .radar-blip {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        background: var(--dark-blue-bright);
-        border-radius: 50%;
-        box-shadow: 0 0 20px var(--dark-blue-bright);
-        animation: blipPulse 2s infinite;
-    }
-    
-    .radar-blip:nth-child(1) {
-        top: 30%;
-        left: 60%;
-        animation-delay: 0s;
-    }
-    
-    .radar-blip:nth-child(2) {
-        top: 65%;
-        left: 40%;
-        animation-delay: 0.5s;
-    }
-    
-    .radar-blip:nth-child(3) {
-        top: 45%;
-        left: 75%;
-        animation-delay: 1s;
-    }
-    
-    .radar-blip:nth-child(4) {
-        top: 70%;
-        left: 70%;
-        animation-delay: 1.5s;
-    }
-    
-    @keyframes blipPulse {
-        0%, 100% { opacity: 0; transform: scale(0); }
-        50% { opacity: 1; transform: scale(1); }
-    }
-    
-    /* Center dot */
-    .radar-center {
-        position: absolute;
-        top: 50%;
-        left: 50%;
+    .bar-loader span {
+        display: block;
+        background: linear-gradient(to top, var(--dark-blue), var(--dark-blue-bright));
         width: 12px;
-        height: 12px;
-        background: var(--dark-blue-bright);
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        box-shadow: 0 0 30px var(--dark-blue-bright);
-        z-index: 10;
+        height: 10%;
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(58, 90, 140, 0.3);
+        transition: all 0.2s ease;
+        animation: barLoad 2.2s infinite ease-in-out;
+    }
+    
+    /* Animation delays for each bar */
+    .bar-loader span:nth-child(1) { animation-delay: 0.0s; }
+    .bar-loader span:nth-child(2) { animation-delay: 0.15s; }
+    .bar-loader span:nth-child(3) { animation-delay: 0.3s; }
+    .bar-loader span:nth-child(4) { animation-delay: 0.45s; }
+    .bar-loader span:nth-child(5) { animation-delay: 0.6s; }
+    .bar-loader span:nth-child(6) { animation-delay: 0.75s; }
+    .bar-loader span:nth-child(7) { animation-delay: 0.9s; }
+    .bar-loader span:nth-child(8) { animation-delay: 1.05s; }
+    .bar-loader span:nth-child(9) { animation-delay: 1.2s; }
+    .bar-loader span:nth-child(10) { animation-delay: 1.35s; }
+    .bar-loader span:nth-child(11) { animation-delay: 1.5s; }
+    .bar-loader span:nth-child(12) { animation-delay: 1.65s; }
+    .bar-loader span:nth-child(13) { animation-delay: 1.8s; }
+    .bar-loader span:nth-child(14) { animation-delay: 1.95s; }
+    .bar-loader span:nth-child(15) { animation-delay: 2.1s; }
+    
+    @keyframes barLoad {
+        0% {
+            background: linear-gradient(to top, var(--dark-blue), var(--dark-blue-bright));
+            height: 10%;
+            opacity: 0.3;
+            transform: scaleY(0.8);
+        }
+        25% {
+            background: linear-gradient(to top, var(--dark-blue-bright), var(--dark-blue));
+            height: 45%;
+            opacity: 0.6;
+            transform: scaleY(1);
+        }
+        50% {
+            background: linear-gradient(to top, var(--dark-blue-bright), #4a6cb0);
+            height: 100%;
+            opacity: 1;
+            transform: scaleY(1.2);
+            box-shadow: 0 0 25px rgba(58, 90, 140, 0.8);
+        }
+        75% {
+            background: linear-gradient(to top, var(--dark-blue), var(--dark-blue-bright));
+            height: 45%;
+            opacity: 0.6;
+            transform: scaleY(1);
+        }
+        100% {
+            background: linear-gradient(to top, var(--dark-blue), var(--dark-blue-bright));
+            height: 10%;
+            opacity: 0.3;
+            transform: scaleY(0.8);
+        }
     }
     
     /* Frequency display */
-    .radar-frequency {
+    .loading-freq {
         font-family: 'Courier New', monospace;
-        font-size: 2.5rem;
-        font-weight: 600;
-        color: var(--dark-blue-bright);
-        text-shadow: 0 0 20px rgba(58, 90, 140, 0.5);
-        margin: 20px 0 10px;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark-blue);
+        margin: 25px 0 15px;
         letter-spacing: 4px;
-        animation: freqGlow 1.5s infinite alternate;
+        animation: freqPulse 1.5s infinite alternate;
+        text-shadow: 0 0 20px rgba(26, 43, 76, 0.3);
     }
     
-    @keyframes freqGlow {
-        from { opacity: 0.7; text-shadow: 0 0 10px rgba(58, 90, 140, 0.3); }
-        to { opacity: 1; text-shadow: 0 0 30px rgba(58, 90, 140, 0.8); }
+    @keyframes freqPulse {
+        from { 
+            opacity: 0.7;
+            text-shadow: 0 0 10px rgba(26, 43, 76, 0.2);
+            transform: scale(0.98);
+        }
+        to { 
+            opacity: 1;
+            text-shadow: 0 0 30px rgba(26, 43, 76, 0.4);
+            transform: scale(1);
+        }
     }
     
     /* Status text */
-    .radar-status {
+    .loading-status {
         font-family: 'Courier New', monospace;
         font-size: 1rem;
         letter-spacing: 4px;
         color: var(--dark-blue);
-        margin: 15px 0;
+        margin: 15px 0 25px;
         font-weight: 600;
+        position: relative;
+        display: inline-block;
+        padding: 0 20px;
     }
     
-    /* Progress bars container */
-    .radar-progress-container {
+    .loading-status::before,
+    .loading-status::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 20px;
+        height: 2px;
+        background: var(--dark-blue);
+        opacity: 0.3;
+    }
+    
+    .loading-status::before {
+        left: -15px;
+    }
+    
+    .loading-status::after {
+        right: -15px;
+    }
+    
+    /* Progress details */
+    .progress-details {
         width: 300px;
-        margin: 25px auto;
-    }
-    
-    .progress-item {
-        margin-bottom: 15px;
+        margin: 30px auto 0;
         text-align: left;
     }
     
-    .progress-label {
-        font-family: 'Courier New', monospace;
-        font-size: 0.75rem;
-        color: var(--dark-blue);
-        margin-bottom: 5px;
-        letter-spacing: 1px;
+    .progress-row {
         display: flex;
         justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        color: var(--dark-blue);
     }
     
-    .progress-track {
-        width: 100%;
-        height: 4px;
-        background: rgba(58, 90, 140, 0.2);
-        border-radius: 4px;
-        overflow: hidden;
-        position: relative;
+    .progress-row span:first-child {
+        opacity: 0.7;
+        letter-spacing: 1px;
     }
     
-    .progress-fill {
-        height: 100%;
-        width: 0%;
-        background: var(--dark-blue-bright);
-        border-radius: 4px;
-        box-shadow: 0 0 10px var(--dark-blue-bright);
-        animation: progressFill 2s infinite ease-in-out;
+    .progress-row span:last-child {
+        font-weight: 700;
+        background: var(--dark-blue-soft);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
     }
     
-    @keyframes progressFill {
-        0% { width: 0%; opacity: 0.5; }
-        50% { width: 100%; opacity: 1; }
-        100% { width: 0%; opacity: 0.5; }
-    }
-    
-    /* Signal strength indicator */
-    .signal-indicator {
+    /* Signal dots */
+    .signal-dots {
         display: flex;
         justify-content: center;
-        gap: 4px;
+        gap: 8px;
         margin: 20px 0;
     }
     
     .signal-dot {
         width: 8px;
         height: 8px;
-        background: var(--dark-blue-bright);
+        background: var(--dark-blue);
         border-radius: 50%;
-        animation: signalDot 1.5s infinite;
+        animation: dotPulse 1.5s infinite;
     }
     
     .signal-dot:nth-child(1) { animation-delay: 0s; }
@@ -724,9 +710,18 @@
     .signal-dot:nth-child(4) { animation-delay: 0.6s; }
     .signal-dot:nth-child(5) { animation-delay: 0.8s; }
     
-    @keyframes signalDot {
-        0%, 100% { opacity: 0.2; transform: scale(0.8); }
-        50% { opacity: 1; transform: scale(1.2); }
+    @keyframes dotPulse {
+        0%, 100% { 
+            opacity: 0.2;
+            transform: scale(0.8);
+            background: var(--dark-blue);
+        }
+        50% { 
+            opacity: 1;
+            transform: scale(1.2);
+            background: var(--dark-blue-bright);
+            box-shadow: 0 0 15px var(--dark-blue-bright);
+        }
     }
 
     /* ===== RESPONSIVE ===== */
@@ -735,9 +730,10 @@
         .signal-meter { top: 15px; right: 15px; padding: 8px 16px; }
         .freq-readout { bottom: 15px; left: 15px; padding: 8px 18px; }
         .logo-main { font-size: 1.8rem; }
-        .radar-screen { width: 220px; height: 220px; }
-        .radar-frequency { font-size: 2rem; }
-        .radar-progress-container { width: 250px; }
+        .bar-loader { width: 240px; }
+        .bar-loader span { width: 10px; }
+        .loading-freq { font-size: 1.6rem; }
+        .progress-details { width: 260px; }
     }
 </style>
 {% endblock %}
@@ -847,67 +843,59 @@
     </div>
 </div>
 
-<!-- ===== NEW TRANSITION — RADAR SCANNING ===== -->
+<!-- ===== NEW BAR LOADING TRANSITION ===== -->
 <div class="transition-overlay" id="transitionOverlay">
-    <div class="radar-container">
-        <!-- Radar screen -->
-        <div class="radar-screen">
-            <div class="radar-grid"></div>
-            <div class="radar-scan"></div>
-            <div class="radar-center"></div>
-            
-            <!-- Radar blips -->
-            <div class="radar-blip"></div>
-            <div class="radar-blip"></div>
-            <div class="radar-blip"></div>
-            <div class="radar-blip"></div>
+    <div class="loading-container">
+        <!-- Signal strength text -->
+        <div class="signal-strength">SIGNAL STRENGTH</div>
+        
+        <!-- Bar loader - adapted from sample -->
+        <div class="bar-loader">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <!-- Signal dots indicator -->
+        <div class="signal-dots">
+            <div class="signal-dot"></div>
+            <div class="signal-dot"></div>
+            <div class="signal-dot"></div>
+            <div class="signal-dot"></div>
+            <div class="signal-dot"></div>
         </div>
         
         <!-- Frequency display -->
-        <div class="radar-frequency" id="transitionFreq">104.7 MHz</div>
+        <div class="loading-freq" id="transitionFreq">104.7 MHz</div>
         
         <!-- Status text -->
-        <div class="radar-status" id="transitionStatus">INITIALIZING RADAR</div>
+        <div class="loading-status" id="transitionStatus">SCANNING FREQUENCY</div>
         
-        <!-- Signal dots -->
-        <div class="signal-indicator">
-            <div class="signal-dot"></div>
-            <div class="signal-dot"></div>
-            <div class="signal-dot"></div>
-            <div class="signal-dot"></div>
-            <div class="signal-dot"></div>
-        </div>
-        
-        <!-- Progress bars -->
-        <div class="radar-progress-container">
-            <div class="progress-item">
-                <div class="progress-label">
-                    <span>SIGNAL ACQUISITION</span>
-                    <span id="progressPercent1">45%</span>
-                </div>
-                <div class="progress-track">
-                    <div class="progress-fill" id="progressFill1"></div>
-                </div>
+        <!-- Progress details -->
+        <div class="progress-details">
+            <div class="progress-row">
+                <span>SIGNAL ACQUISITION</span>
+                <span id="progressPercent1">47%</span>
             </div>
-            
-            <div class="progress-item">
-                <div class="progress-label">
-                    <span>FREQUENCY LOCK</span>
-                    <span id="progressPercent2">60%</span>
-                </div>
-                <div class="progress-track">
-                    <div class="progress-fill" id="progressFill2"></div>
-                </div>
+            <div class="progress-row">
+                <span>FREQUENCY LOCK</span>
+                <span id="progressPercent2">63%</span>
             </div>
-            
-            <div class="progress-item">
-                <div class="progress-label">
-                    <span>AUTHENTICATION</span>
-                    <span id="progressPercent3">30%</span>
-                </div>
-                <div class="progress-track">
-                    <div class="progress-fill" id="progressFill3"></div>
-                </div>
+            <div class="progress-row">
+                <span>AUTHENTICATION</span>
+                <span id="progressPercent3">28%</span>
             </div>
         </div>
     </div>
@@ -959,7 +947,6 @@
     const transitionOverlay = document.getElementById('transitionOverlay');
     const transitionFreq = document.getElementById('transitionFreq');
     const transitionStatus = document.getElementById('transitionStatus');
-    const progressFills = document.querySelectorAll('.progress-fill');
     const progressPercents = [
         document.getElementById('progressPercent1'),
         document.getElementById('progressPercent2'),
@@ -1084,19 +1071,19 @@
                 // Animate frequency
                 let freq = 104.7;
                 const freqInterval = setInterval(() => {
-                    freq = 104.7 + (Math.random() * 0.6 - 0.3);
+                    freq = 104.7 + (Math.random() * 0.8 - 0.4);
                     if (transitionFreq) {
                         transitionFreq.textContent = freq.toFixed(1) + ' MHz';
                     }
-                }, 150);
+                }, 180);
 
                 // Update status messages
                 const statuses = [
-                    'INITIALIZING RADAR',
                     'SCANNING FREQUENCY',
                     'DETECTING SIGNAL',
-                    'ACQUIRING LOCK',
-                    'AUTHENTICATING',
+                    'ANALYZING WAVEFORM',
+                    'SYNCHRONIZING',
+                    'ESTABLISHING LINK',
                     'SIGNAL LOCKED'
                 ];
                 
@@ -1106,23 +1093,22 @@
                         transitionStatus.textContent = statuses[statusIndex];
                         statusIndex++;
                     }
-                }, 400);
+                }, 450);
 
                 // Update progress percentages
-                let progress = [30, 45, 15];
+                let progress = [28, 45, 22];
                 const progressInterval = setInterval(() => {
                     progress = progress.map(p => {
-                        const increment = Math.random() * 15;
+                        const increment = Math.random() * 18;
                         return Math.min(p + increment, 100);
                     });
                     
-                    progressFills.forEach((fill, index) => {
-                        fill.style.width = progress[index] + '%';
-                        if (progressPercents[index]) {
-                            progressPercents[index].textContent = Math.round(progress[index]) + '%';
+                    progressPercents.forEach((percent, index) => {
+                        if (percent) {
+                            percent.textContent = Math.round(progress[index]) + '%';
                         }
                     });
-                }, 300);
+                }, 320);
 
                 // Submit after animation
                 setTimeout(() => {
