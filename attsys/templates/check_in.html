@@ -13,15 +13,11 @@
 
     <style>
         /* ---------------------------------------------------------------
-           NEUROMORPHIC DEEP — DARK INSET · SIGNAL LOCKED
+           NEUROMORPHIC DEEP — DARK BLUE ACCENTS · SIGNAL LOCKED
+           Matched with base template dark blue colorway
            
            > ENHANCED: ALL INPUTS NOW HAVE THE DARK, HIGH-CONTRAST INSET
-             APPEARANCE OF THE 'BILANGAN TANGGUNGAN' FIELD.
-             
-             - Darker background (gray-50 → gray-100)
-             - Stronger, more pronounced inset shadows
-             - Higher contrast between highlight and shadow
-             - Deeper recession effect
+             APPEARANCE OF THE 'BILANGAN TANGGUNGAN' FIELD WITH DARK BLUE ACCENTS.
         --------------------------------------------------------------- */
         * {
             margin: 0;
@@ -30,11 +26,14 @@
         }
 
         :root {
-            /* Monochrome strict — enhanced contrast */
+            /* Dark blue colorway — matched from base template */
             --black: #000000;
+            --dark-blue: #1a2b4c;      /* Primary dark blue */
+            --dark-blue-light: #2c3e5e;  /* Lighter dark blue for hover states */
+            --dark-blue-dark: #0f1e38;   /* Darker dark blue for active states */
             --white: #ffffff;
             --gray-50: #fafafa;
-            --gray-100: #f0f0f0;      /* Slightly darker base */
+            --gray-100: #f0f0f0;
             --gray-200: #e0e0e0;
             --gray-300: #d0d0d0;
             --gray-400: #a0a0a0;
@@ -44,7 +43,16 @@
             --gray-800: #2d2d2d;
             --gray-900: #1a1a1a;
             
-            /* ===== DARK, HIGH-CONTRAST INSET — like Bilangan Tanggungan ===== */
+            /* Signal accents - dark blue */
+            --signal: var(--dark-blue);
+            --carrier: rgba(26, 43, 76, 0.1);
+            
+            /* Neuromorphic depths – raised / inset */
+            --neu-raised-deep: 
+                16px 16px 28px rgba(0, 0, 0, 0.12),
+                -14px -14px 28px rgba(255, 255, 255, 0.9);
+            
+            /* DARK BLUE-TINGED INSET SHADOWS */
             --neu-inset-dark: 
                 inset 6px 6px 12px rgba(0, 0, 0, 0.2),
                 inset -4px -4px 10px rgba(255, 255, 255, 0.9);
@@ -57,12 +65,7 @@
                 inset 8px 8px 16px rgba(0, 0, 0, 0.18),
                 inset -6px -6px 12px rgba(255, 255, 255, 0.9);
             
-            /* Raised shadows — for cards and headers */
-            --neu-raised-deep: 
-                16px 16px 28px rgba(0, 0, 0, 0.12),
-                -14px -14px 28px rgba(255, 255, 255, 0.9);
-            
-            /* Radius */
+            /* Radius - matched from base */
             --radius-md: 20px;
             --radius-lg: 28px;
             --radius-xl: 32px;
@@ -74,9 +77,9 @@
         body {
             background: var(--gray-100);
             background-image: 
-                linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px);
-            background-size: 24px 24px;
+                radial-gradient(circle at 15% 30%, rgba(26,43,76,0.02) 0px, transparent 1px),
+                radial-gradient(circle at 85% 70%, rgba(26,43,76,0.02) 0px, transparent 1px);
+            background-size: 48px 48px;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             color: var(--gray-900);
             line-height: 1.5;
@@ -115,7 +118,7 @@
                 0deg,
                 transparent,
                 transparent 2px,
-                rgba(0,0,0,0.08) 3px,
+                rgba(26,43,76,0.05) 3px,
                 transparent 4px
             );
             pointer-events: none;
@@ -123,7 +126,7 @@
             opacity: 0.1;
         }
 
-        /* ===== SIGNAL BARS ===== */
+        /* ===== SIGNAL BARS - DARK BLUE ===== */
         .signal-bar-mini {
             display: inline-flex;
             align-items: flex-end;
@@ -132,7 +135,7 @@
         }
         .signal-bar-mini span {
             width: 4px;
-            background: var(--black);
+            background: var(--dark-blue);
             height: 8px;
             animation: signalPulse 1.2s infinite alternate;
             opacity: 0.8;
@@ -160,7 +163,7 @@
             left: -30%;
             width: 40%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.12), transparent);
+            background: linear-gradient(90deg, transparent, rgba(26,43,76,0.08), transparent);
             animation: sweep 3s ease-in-out infinite;
             pointer-events: none;
         }
@@ -180,7 +183,7 @@
             left: 50%;
             width: 100%;
             height: 100%;
-            border: 1px solid var(--black);
+            border: 1px solid var(--dark-blue);
             border-radius: inherit;
             transform: translate(-50%, -50%) scale(0.9);
             opacity: 0;
@@ -243,7 +246,7 @@
         }
 
         .badge-monochrome {
-            background: var(--black);
+            background: var(--dark-blue);
             color: var(--white);
             padding: 8px 22px;
             border-radius: var(--radius-full);
@@ -258,11 +261,15 @@
             gap: 6px;
         }
 
+        .badge-monochrome i {
+            color: var(--white);
+        }
+
         .headline-monochrome {
             font-size: 2.2rem;
             font-weight: 700;
             letter-spacing: -0.02em;
-            color: var(--black);
+            color: var(--dark-blue);
             margin-bottom: 4px;
             line-height: 1.1;
             display: flex;
@@ -302,7 +309,7 @@
         }
 
         .meta-item-monochrome i {
-            color: var(--black);
+            color: var(--dark-blue);
         }
 
         /* ----- CARDS — RAISED, HIGH CONTRAST ----- */
@@ -340,7 +347,7 @@
             align-items: center;
             justify-content: center;
             font-size: 1.6rem;
-            color: var(--black);
+            color: var(--dark-blue);
             border: none;
             box-shadow: var(--neu-inset-dark);
         }
@@ -348,7 +355,7 @@
         .section-title-monochrome {
             font-size: 1.2rem;
             font-weight: 700;
-            color: var(--black);
+            color: var(--dark-blue);
             letter-spacing: -0.01em;
         }
 
@@ -361,7 +368,7 @@
             margin-top: 2px;
         }
 
-        /* ===== FORM FIELDS — DARK, HIGH-CONTRAST INSET (like Bilangan Tanggungan) ===== */
+        /* ===== FORM FIELDS — DARK, HIGH-CONTRAST INSET ===== */
         .field-monochrome {
             margin-bottom: 22px;
             position: relative;
@@ -371,7 +378,7 @@
             display: block;
             font-size: 0.7rem;
             font-weight: 700;
-            color: var(--gray-800);
+            color: var(--dark-blue);
             margin-bottom: 8px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
@@ -383,7 +390,7 @@
         .field-monochrome textarea {
             width: 100%;
             padding: 16px 18px;
-            background: var(--gray-100);  /* Darker background for deeper recession */
+            background: var(--gray-100);
             border: none;
             border-radius: 22px;
             font-size: 0.95rem;
@@ -392,25 +399,23 @@
             font-weight: 500;
             transition: var(--transition);
             
-            /* === DARK, HIGH-CONTRAST INSET — exactly like .dependants-monochrome input === */
+            /* Dark inset shadows */
             box-shadow: 
                 inset 6px 6px 12px rgba(0, 0, 0, 0.2),
                 inset -4px -4px 10px rgba(255, 255, 255, 0.9);
             
-            /* Slight inner border definition */
-            border: 1px solid rgba(0,0,0,0.02);
+            border: 1px solid rgba(26,43,76,0.02);
         }
 
         .field-monochrome input:focus,
         .field-monochrome select:focus,
         .field-monochrome textarea:focus {
             outline: none;
-            /* Even darker, more pronounced on focus */
             box-shadow: 
                 inset 8px 8px 16px rgba(0, 0, 0, 0.25),
                 inset -6px -6px 12px rgba(255, 255, 255, 0.95),
-                0 0 0 3px rgba(0,0,0,0.02);
-            background: var(--gray-50);  /* Slightly lighter on focus for contrast */
+                0 0 0 3px rgba(26,43,76,0.1);
+            background: var(--gray-50);
         }
 
         .field-monochrome input::placeholder {
@@ -423,7 +428,7 @@
         select.field-monochrome, 
         .field-monochrome select {
             appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>');
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%231a2b4c" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>');
             background-repeat: no-repeat;
             background-position: right 20px center;
             background-size: 16px;
@@ -459,7 +464,6 @@
             color: var(--gray-800);
             transition: var(--transition);
             
-            /* DARK INSET — matching input fields */
             box-shadow: 
                 inset 6px 6px 12px rgba(0, 0, 0, 0.2),
                 inset -4px -4px 10px rgba(255, 255, 255, 0.9);
@@ -467,21 +471,21 @@
             min-height: 120px;
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.02);
+            border: 1px solid rgba(26,43,76,0.02);
         }
 
         .programme-tile-monochrome label i {
             font-size: 2rem;
             margin-bottom: 10px;
-            color: var(--gray-600);
+            color: var(--dark-blue);
             transition: 0.2s;
         }
 
         .programme-tile-monochrome input[type="radio"]:checked + label {
-            background: var(--black);
+            background: var(--dark-blue);
             color: var(--white);
-            box-shadow: 0 16px 32px -8px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.3);
-            border: 1px solid var(--gray-700);
+            box-shadow: 0 16px 32px -8px rgba(26,43,76,0.6), inset 0 2px 4px rgba(255,255,255,0.3);
+            border: 1px solid var(--dark-blue-light);
         }
 
         .programme-tile-monochrome input[type="radio"]:checked + label i {
@@ -495,7 +499,7 @@
             left: -50%;
             width: 30%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+            background: linear-gradient(90deg, transparent, rgba(26,43,76,0.08), transparent);
             animation: tileScan 4s ease-in-out infinite;
             pointer-events: none;
             opacity: 0;
@@ -510,7 +514,7 @@
             100% { left: 150%; }
         }
 
-        /* ----- DEPENDANTS — DARK INSET (REFERENCE STYLE) ----- */
+        /* ----- DEPENDANTS — DARK INSET ----- */
         .dependants-monochrome {
             display: flex;
             align-items: center;
@@ -531,11 +535,11 @@
             gap: 8px;
             font-size: 0.9rem;
             font-weight: 700;
-            color: var(--gray-800);
+            color: var(--dark-blue);
         }
 
         .dependants-monochrome span i {
-            color: var(--gray-700);
+            color: var(--dark-blue);
         }
 
         .dependants-monochrome input {
@@ -547,13 +551,12 @@
             padding: 12px 8px;
             font-weight: 700;
             font-size: 1rem;
-            color: var(--black);
+            color: var(--dark-blue);
             
-            /* DARK INSET — high contrast */
             box-shadow: 
                 inset 6px 6px 12px rgba(0, 0, 0, 0.2),
                 inset -4px -4px 10px rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(0,0,0,0.02);
+            border: 1px solid rgba(26,43,76,0.02);
         }
 
         .dependants-monochrome input:focus {
@@ -561,11 +564,11 @@
             box-shadow: 
                 inset 8px 8px 16px rgba(0, 0, 0, 0.25),
                 inset -6px -6px 12px rgba(255, 255, 255, 0.95),
-                0 0 0 3px rgba(0,0,0,0.02);
+                0 0 0 3px rgba(26,43,76,0.1);
             background: var(--gray-50);
         }
 
-        /* ----- INTEREST CARDS — DARK INSET (harmonized) ----- */
+        /* ----- INTEREST CARDS — DARK INSET ----- */
         .interest-stack-monochrome {
             display: flex;
             flex-direction: column;
@@ -588,12 +591,12 @@
             gap: 10px;
             font-size: 1rem;
             font-weight: 700;
-            color: var(--black);
+            color: var(--dark-blue);
             margin-bottom: 16px;
         }
 
         .interest-card-monochrome h4 i {
-            color: var(--gray-700);
+            color: var(--dark-blue);
         }
 
         .interest-card-monochrome textarea {
@@ -608,12 +611,11 @@
             color: var(--gray-900);
             font-weight: 500;
             
-            /* DARK INSET — consistent with all inputs */
             box-shadow: 
                 inset 6px 6px 12px rgba(0, 0, 0, 0.2),
                 inset -4px -4px 10px rgba(255, 255, 255, 0.9);
             transition: var(--transition);
-            border: 1px solid rgba(0,0,0,0.02);
+            border: 1px solid rgba(26,43,76,0.02);
         }
 
         .interest-card-monochrome textarea:focus {
@@ -621,7 +623,7 @@
             box-shadow: 
                 inset 8px 8px 16px rgba(0, 0, 0, 0.25),
                 inset -6px -6px 12px rgba(255, 255, 255, 0.95),
-                0 0 0 3px rgba(0,0,0,0.02);
+                0 0 0 3px rgba(26,43,76,0.1);
             background: var(--gray-50);
         }
 
@@ -630,9 +632,9 @@
             font-weight: 400;
         }
 
-        /* ----- CTA BUTTON — DARK RAISED (contrast) ----- */
+        /* ----- CTA BUTTON — DARK BLUE RAISED ----- */
         .btn-monochrome {
-            background: var(--black);
+            background: var(--dark-blue);
             color: var(--white);
             border: none;
             font-weight: 700;
@@ -651,6 +653,12 @@
             border: 1px solid var(--gray-700);
             position: relative;
             overflow: hidden;
+        }
+
+        .btn-monochrome:hover {
+            background: var(--dark-blue-light);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -12px rgba(26,43,76,0.4);
         }
 
         .btn-monochrome::after {
@@ -674,33 +682,34 @@
             box-shadow: 
                 inset 6px 6px 12px rgba(0, 0, 0, 0.3),
                 inset -4px -4px 10px rgba(255, 255, 255, 0.2);
-            background: var(--gray-900);
+            background: var(--dark-blue-dark);
         }
 
         .btn-monochrome i {
             font-size: 1.2rem;
+            color: var(--white);
         }
 
-        /* ===== VALIDATION — DARK INSET + BLACK OUTLINE ===== */
+        /* ===== VALIDATION — DARK BLUE OUTLINE ===== */
         .is-invalid {
             border: none !important;
             box-shadow: 
                 inset 6px 6px 12px rgba(0, 0, 0, 0.2),
                 inset -4px -4px 10px rgba(255, 255, 255, 0.9),
-                0 0 0 2px var(--black) !important;
+                0 0 0 2px var(--dark-blue) !important;
         }
 
         .programme-tile-monochrome .is-invalid-label {
             box-shadow: 
                 inset 6px 6px 12px rgba(0,0,0,0.2),
                 inset -4px -4px 10px rgba(255,255,255,0.9),
-                0 0 0 2px #000000 !important;
+                0 0 0 2px var(--dark-blue) !important;
         }
 
         .brand-monochrome {
             text-align: center;
             padding: 28px 20px 12px;
-            color: var(--gray-500);
+            color: var(--dark-blue);
             font-size: 0.65rem;
             letter-spacing: 4px;
             text-transform: uppercase;
@@ -714,10 +723,10 @@
 
         .error-message {
             background: var(--white);
-            border: 1px solid var(--black);
+            border: 1px solid var(--dark-blue);
             border-radius: 60px;
             padding: 16px;
-            color: var(--black);
+            color: var(--dark-blue);
             text-align: center;
             font-size: 0.85rem;
             font-weight: 600;
@@ -733,6 +742,15 @@
             gap: 12px;
             margin-left: auto;
         }
+
+        /* Glitch text effect - from base */
+        .glitch-text {
+            animation: glitch 4s infinite;
+        }
+        @keyframes glitch {
+            0%, 100% { text-shadow: none; }
+            92% { text-shadow: -0.5px 0 0 rgba(26,43,76,0.2), 0.5px 0 0 rgba(26,43,76,0.2); }
+        }
     </style>
 </head>
 <body>
@@ -740,7 +758,7 @@
     <div class="static-noise"></div>
     <div class="crt-scanlines"></div>
 
-    <!-- HEADER — RAISED -->
+    <!-- HEADER — RAISED with DARK BLUE ACCENTS -->
     <div class="header-monochrome scan-sweep">
         <div class="header-top">
             <div class="logo-pair-monochrome">
@@ -772,11 +790,11 @@
         </div>
     </div>
 
-    <!-- MAIN FORM — EVERY INPUT NOW HAS DARK, HIGH-CONTRAST INSET (LIKE BILANGAN TANGGUNGAN) -->
+    <!-- MAIN FORM — EVERY INPUT NOW HAS DARK BLUE ACCENTS -->
     <form id="dataEntryForm" method="POST" action="{% url 'check_in' event.id event.check_in_token %}" novalidate>
         {% csrf_token %}
 
-        <!-- SECTION 1: Maklumat Pemohon — DARK INSET FIELDS -->
+        <!-- SECTION 1: Maklumat Pemohon -->
         <div class="card-monochrome scan-sweep transmission-ripple">
             <div class="section-header-monochrome">
                 <span class="section-icon-monochrome"><i class="bi bi-person-badge"></i></span>
@@ -801,7 +819,7 @@
             </div>
 
             <div style="margin-top: 20px;">
-                <label style="font-size:0.8rem; font-weight:700; color:var(--gray-800); letter-spacing:0.5px; margin-bottom:12px; display:block;">PROGRAM DIPOHON</label>
+                <label style="font-size:0.8rem; font-weight:700; color:var(--dark-blue); letter-spacing:0.5px; margin-bottom:12px; display:block;">PROGRAM DIPOHON</label>
                 <div class="programme-grid-monochrome">
                     <div class="programme-tile-monochrome">
                         <input type="radio" id="mono_dip" name="applied_programme" value="Diploma" {% if form_data.applied_programme == 'Diploma' %}checked{% endif %}>
@@ -823,7 +841,7 @@
             </div>
         </div>
 
-        <!-- SECTION 2: Maklumat Peribadi — DARK INSET FIELDS -->
+        <!-- SECTION 2: Maklumat Peribadi -->
         <div class="card-monochrome scan-sweep transmission-ripple">
             <div class="section-header-monochrome">
                 <span class="section-icon-monochrome"><i class="bi bi-person-vcard"></i></span>
@@ -860,7 +878,7 @@
             </div>
         </div>
 
-        <!-- SECTION 3: Alamat — DARK INSET FIELDS -->
+        <!-- SECTION 3: Alamat -->
         <div class="card-monochrome scan-sweep transmission-ripple">
             <div class="section-header-monochrome">
                 <span class="section-icon-monochrome"><i class="bi bi-house"></i></span>
@@ -890,7 +908,7 @@
             </div>
         </div>
 
-        <!-- SECTION 4: Maklumat Bapa — DARK INSET FIELDS -->
+        <!-- SECTION 4: Maklumat Bapa -->
         <div class="card-monochrome scan-sweep transmission-ripple">
             <div class="section-header-monochrome">
                 <span class="section-icon-monochrome"><i class="bi bi-person-standing"></i></span>
@@ -918,7 +936,7 @@
             </div>
             
             <div style="margin-top: 16px;">
-                <label style="font-size:0.8rem; font-weight:700; color:var(--gray-800);">BILANGAN TANGGUNGAN</label>
+                <label style="font-size:0.8rem; font-weight:700; color:var(--dark-blue);">BILANGAN TANGGUNGAN</label>
                 <div class="dependants-monochrome">
                     <span><i class="bi bi-people"></i> Anak / tanggungan</span>
                     <input type="number" name="father_dependants" min="0" value="{{ form_data.father_dependants|default:'0' }}" placeholder="0">
@@ -927,7 +945,7 @@
             </div>
         </div>
 
-        <!-- SECTION 5: Maklumat Ibu — DARK INSET FIELDS -->
+        <!-- SECTION 5: Maklumat Ibu -->
         <div class="card-monochrome scan-sweep transmission-ripple">
             <div class="section-header-monochrome">
                 <span class="section-icon-monochrome"><i class="bi bi-person-standing-dress"></i></span>
@@ -955,7 +973,7 @@
             </div>
         </div>
 
-        <!-- SECTION 6: Pilihan Program — DARK INSET FIELDS -->
+        <!-- SECTION 6: Pilihan Program -->
         <div class="card-monochrome scan-sweep transmission-ripple">
             <div class="section-header-monochrome">
                 <span class="section-icon-monochrome"><i class="bi bi-bookmark"></i></span>
@@ -981,7 +999,7 @@
         <!-- Error container -->
         <div id="error-container" style="margin: 0 20px;"></div>
 
-        <!-- SUBMIT BUTTON — RAISED -->
+        <!-- SUBMIT BUTTON — DARK BLUE RAISED -->
         <div style="padding: 8px 20px 20px;">
             <button type="submit" class="btn-monochrome" id="submitBtn">
                 <i class="bi bi-check2-circle"></i> Hantar
@@ -1083,7 +1101,7 @@
                 if (!radioChecked) {
                     isValid = false;
                     document.querySelectorAll('.programme-tile-monochrome label').forEach(l => {
-                        l.style.boxShadow = 'inset 6px 6px 12px rgba(0,0,0,0.2), inset -4px -4px 10px rgba(255,255,255,0.9), 0 0 0 2px #000000';
+                        l.style.boxShadow = 'inset 6px 6px 12px rgba(0,0,0,0.2), inset -4px -4px 10px rgba(255,255,255,0.9), 0 0 0 2px #1a2b4c';
                     });
                 } else {
                     document.querySelectorAll('.programme-tile-monochrome label').forEach(l => {
@@ -1132,7 +1150,7 @@
                         left: 0;
                         width: 100%;
                         height: 100%;
-                        background: rgba(0,0,0,0.03);
+                        background: rgba(26,43,76,0.03);
                         pointer-events: none;
                         z-index: 99999;
                         animation: glitchFlash 0.15s ease-out;
@@ -1165,7 +1183,7 @@
                         
                         // 6. SHOW SUCCESS STATE ON BUTTON (75ms)
                         submitBtn.innerHTML = '<i class="bi bi-check2-circle"></i> DIHANTAR!';
-                        submitBtn.style.background = '#1a1a1a';
+                        submitBtn.style.background = '#1a2b4c';
                         submitBtn.style.transform = 'scale(0.98)';
                         
                         // 7. CLEAR FORM STORAGE (async, non-blocking)
@@ -1229,10 +1247,10 @@
                 setTimeout(() => submitting = false, 5000);
             }, true);
 
-            // ===== FREQUENCY SCAN EFFECT (keep original) =====
+            // ===== FREQUENCY SCAN EFFECT =====
             document.addEventListener('click', function(e) {
                 if (e.target.closest('button') || e.target.closest('.btn-monochrome')) {
-                    // Quick flash effect (reduced from 200ms to 120ms)
+                    // Quick flash effect
                     const flash = document.createElement('div');
                     flash.style.cssText = `
                         position: fixed;
@@ -1240,7 +1258,7 @@
                         left: 0;
                         width: 100%;
                         height: 100%;
-                        background: rgba(0,0,0,0.02);
+                        background: rgba(26,43,76,0.02);
                         pointer-events: none;
                         z-index: 99999;
                         animation: quickFlash 0.12s ease-out;
@@ -1273,7 +1291,7 @@
             });
 
             // ===== INITIALIZE =====
-            console.log('✓ Check-in form initialized with smooth transition');
+            console.log('✓ Check-in form initialized with dark blue colorway');
             
         })();
     </script>

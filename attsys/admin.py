@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Event, Attendee, Application, Feedback, Registration  # ADDED missing imports
+from .models import User, Event, Attendee, Application, Registration  # ADDED missing imports
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
@@ -117,16 +117,6 @@ class ApplicationAdmin(admin.ModelAdmin):
             'fields': ('interest_choice1', 'interest_choice2', 'interest_choice3')
         }),
     )
-
-
-# NEW: Add Feedback admin
-@admin.register(Feedback)
-class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ('event', 'name', 'email', 'rating', 'submitted_at')
-    list_filter = ('rating', 'event', 'submitted_at')
-    search_fields = ('name', 'email', 'comment')
-    readonly_fields = ('submitted_at',)
-    list_per_page = 20
 
 
 # NEW: Add Registration admin

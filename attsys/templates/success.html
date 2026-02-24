@@ -8,12 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <style>
         /* ---------------------------------------------------------------
-           SUCCESS · THE SIGNAL
-           Pure black/white, sample colorway, three WOW effects:
-           1. Radio frequency scan (sweeping line)
-           2. Oscilloscope heartbeat pulse
-           3. Analog noise and static interference
-           4. Transmission received badge
+           SUCCESS · THE SIGNAL — DARK BLUE & WHITE (MATCHING DASHBOARD)
+           Clean, professional dark blue colorway with white accents
         --------------------------------------------------------------- */
         * {
             margin: 0;
@@ -22,45 +18,55 @@
         }
 
         :root {
-            --black: #000000;
+            /* Dark blue colorway (matching dashboard) */
+            --dark-blue: #1a2b4c;           /* Primary dark blue */
+            --dark-blue-light: #2c3e5e;      /* Lighter dark blue */
+            --dark-blue-bright: #3a5a8c;     /* Bright for accents */
+            --dark-blue-soft: #e8edf5;        /* Soft blue for backgrounds */
+            --dark-blue-glow: rgba(26, 43, 76, 0.15);
             --white: #ffffff;
-            --gray-50: #fafafa;
-            --gray-100: #f5f5f5;
-            --gray-200: #e5e5e5;
-            --gray-300: #d4d4d4;
-            --gray-400: #a3a3a3;
-            --gray-500: #737373;
-            --gray-600: #525252;
-            --gray-700: #404040;
-            --gray-800: #262626;
-            --gray-900: #171717;
+            --off-white: #f8fafd;
             
-            --neu-raised: 12px 12px 24px rgba(0,0,0,0.04), -12px -12px 24px rgba(255,255,255,0.9);
-            --neu-inset: inset 4px 4px 12px rgba(0,0,0,0.02), inset -4px -4px 12px rgba(255,255,255,0.8);
-            
-            --transition-signal: 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            --transition-pulse: 0.8s ease-in-out;
+            /* Signal accents */
+            --signal: var(--dark-blue-bright);
+            --carrier: rgba(58, 90, 140, 0.15);
         }
 
         body {
-            background: var(--gray-900);
+            background: var(--white);
             background-image: 
-                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 32px 32px;
+                radial-gradient(circle at 15% 30%, var(--dark-blue-glow) 0px, transparent 1px),
+                radial-gradient(circle at 85% 70%, var(--dark-blue-glow) 0px, transparent 1px);
+            background-size: 48px 48px;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            color: var(--gray-200);
+            color: var(--dark-blue);
             cursor: pointer;
             position: relative;
             overflow: hidden;
         }
 
-        /* ============ WOW 1: RADIO FREQUENCY SCAN ============ */
+        /* ============ GRID BACKGROUND (CLEAN) ============ */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--dark-blue-glow) 1px, transparent 1px),
+                linear-gradient(90deg, var(--dark-blue-glow) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ============ RADIO FREQUENCY SCAN ============ */
         .frequency-scanner {
             position: fixed;
             top: 0;
@@ -68,8 +74,8 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 1;
-            opacity: 0.15;
+            z-index: 2;
+            opacity: 0.2;
         }
 
         .scan-line {
@@ -78,10 +84,10 @@
             left: 0;
             width: 100%;
             height: 2px;
-            background: var(--white);
-            box-shadow: 0 0 20px 5px rgba(255,255,255,0.5);
+            background: var(--dark-blue-bright);
+            box-shadow: 0 0 30px 10px var(--dark-blue-bright);
             animation: scanVertical 4s linear infinite;
-            opacity: 0.3;
+            opacity: 0.4;
         }
 
         @keyframes scanVertical {
@@ -95,10 +101,10 @@
             left: 0;
             width: 2px;
             height: 100%;
-            background: var(--white);
-            box-shadow: 0 0 20px 5px rgba(255,255,255,0.3);
+            background: var(--dark-blue-bright);
+            box-shadow: 0 0 30px 10px var(--dark-blue-bright);
             animation: scanHorizontal 6s linear infinite;
-            opacity: 0.2;
+            opacity: 0.3;
         }
 
         @keyframes scanHorizontal {
@@ -106,71 +112,17 @@
             100% { left: 110%; }
         }
 
-        /* ============ WOW 2: OSCILLOSCOPE HEARTBEAT ============ */
-        .oscilloscope {
-            position: fixed;
-            bottom: 30px;
-            left: 20px;
-            right: 20px;
-            height: 60px;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--gray-600);
-            border-radius: 4px;
-            padding: 8px;
-            z-index: 50;
-            pointer-events: none;
-            backdrop-filter: blur(2px);
-            overflow: hidden;
-        }
-
-        .oscilloscope::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 19px,
-                rgba(255,255,255,0.05) 20px,
-                transparent 21px
-            );
-            pointer-events: none;
-        }
-
-        .heartbeat {
-            width: 100%;
-            height: 100%;
-            stroke: var(--white);
-            stroke-width: 1.5;
-            fill: none;
-            stroke-dasharray: 200;
-            stroke-dashoffset: 200;
-            animation: heartbeatTrace 3s ease-in-out infinite;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
-        }
-
-        @keyframes heartbeatTrace {
-            0% { stroke-dashoffset: 200; opacity: 0.6; }
-            20% { stroke-dashoffset: 120; opacity: 1; }
-            50% { stroke-dashoffset: 80; opacity: 0.8; }
-            70% { stroke-dashoffset: 40; opacity: 1; }
-            100% { stroke-dashoffset: 0; opacity: 0.6; }
-        }
-
-        /* ============ WOW 3: ANALOG NOISE ============ */
+        /* ============ STATIC NOISE (SUBTLE) ============ */
         .static-noise {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="static"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.08 0"/></filter><rect width="200" height="200" filter="url(%23static)" opacity="0.1"/></svg>');
-            opacity: 0.08;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="static"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.1 0"/></filter><rect width="200" height="200" filter="url(%23static)" opacity="0.1"/></svg>');
+            opacity: 0.1;
             pointer-events: none;
-            z-index: 2;
+            z-index: 3;
             animation: staticShift 0.5s infinite;
         }
 
@@ -179,82 +131,84 @@
             100% { background-position: 20px 20px; }
         }
 
-        /* ============ MAIN CARD — TRANSMISSION RECEIVER ============ */
+        /* ============ MAIN CARD — CLEAN WHITE WITH DARK BLUE ACCENTS ============ */
         .signal-card {
             max-width: 440px;
             width: 100%;
-            background: rgba(20, 20, 20, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--gray-600);
+            background: var(--white);
+            border: 2px solid var(--dark-blue-soft);
             padding: 44px 32px 48px;
             text-align: center;
             position: relative;
             z-index: 100;
-            animation: signalAppear 1.2s var(--transition-signal) forwards;
+            animation: signalAppear 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             opacity: 0;
             transform: scale(0.95);
-            box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.05);
+            box-shadow: 0 25px 50px -12px rgba(26, 43, 76, 0.25);
+            border-radius: 32px;
         }
 
         @keyframes signalAppear {
-            0% { opacity: 0; transform: scale(0.95); filter: blur(4px); }
-            50% { opacity: 0.7; transform: scale(1.02); filter: blur(1px); }
-            100% { opacity: 1; transform: scale(1); filter: blur(0); }
+            0% { opacity: 0; transform: scale(0.95); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
         .signal-card:active {
             transform: scale(0.98);
         }
 
-        /* ============ SIGNAL STRENGTH INDICATOR ============ */
+        /* ============ SIGNAL STRENGTH BARS ============ */
         .signal-bars {
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            gap: 6px;
+            gap: 8px;
             margin-bottom: 28px;
-            height: 40px;
+            height: 50px;
         }
 
         .bar {
-            width: 6px;
-            background: var(--white);
+            width: 8px;
+            background: var(--dark-blue);
             height: 10px;
             animation: signalStrength 1.2s infinite alternate;
-            opacity: 0.8;
+            opacity: 0.7;
+            border-radius: 2px;
+            box-shadow: 0 0 15px var(--dark-blue-glow);
         }
 
-        .bar:nth-child(1) { height: 16px; animation-delay: 0s; }
-        .bar:nth-child(2) { height: 24px; animation-delay: 0.2s; }
-        .bar:nth-child(3) { height: 32px; animation-delay: 0.4s; }
-        .bar:nth-child(4) { height: 28px; animation-delay: 0.1s; }
-        .bar:nth-child(5) { height: 20px; animation-delay: 0.3s; }
+        .bar:nth-child(1) { height: 20px; animation-delay: 0s; }
+        .bar:nth-child(2) { height: 30px; animation-delay: 0.2s; }
+        .bar:nth-child(3) { height: 40px; animation-delay: 0.4s; }
+        .bar:nth-child(4) { height: 35px; animation-delay: 0.1s; }
+        .bar:nth-child(5) { height: 25px; animation-delay: 0.3s; }
 
         @keyframes signalStrength {
-            0% { opacity: 0.4; height: 10px; }
-            100% { opacity: 1; height: 35px; }
+            0% { opacity: 0.5; height: 15px; }
+            100% { opacity: 1; height: 45px; }
         }
 
-        /* ============ TRANSMISSION CHECKMARK ============ */
+        /* ============ SUCCESS ICON WITH RIPPLES ============ */
         .transmission-icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 25px;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid var(--gray-500);
+            border: 2px solid var(--dark-blue-soft);
             border-radius: 50%;
-            background: rgba(0,0,0,0.6);
-            box-shadow: 0 0 30px rgba(255,255,255,0.1);
+            background: var(--off-white);
+            box-shadow: 0 10px 25px -8px var(--dark-blue-glow);
         }
 
         .ripple-circle {
             position: absolute;
             width: 100%;
             height: 100%;
-            border: 1px solid var(--white);
+            border: 2px solid var(--dark-blue);
             border-radius: 50%;
             animation: transmitRipple 2s ease-out infinite;
             opacity: 0;
@@ -269,53 +223,48 @@
         }
 
         @keyframes transmitRipple {
-            0% { transform: scale(1); opacity: 0.5; border-width: 1px; }
-            100% { transform: scale(1.8); opacity: 0; border-width: 0.5px; }
+            0% { transform: scale(1); opacity: 0.3; border-width: 2px; }
+            100% { transform: scale(1.8); opacity: 0; border-width: 1px; }
         }
 
         .transmission-icon i {
-            font-size: 4rem;
-            color: var(--white);
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+            font-size: 5rem;
+            color: var(--dark-blue);
+            filter: drop-shadow(0 5px 15px var(--dark-blue-glow));
             animation: pulseTransmit 1.5s infinite alternate;
         }
 
         @keyframes pulseTransmit {
             0% { transform: scale(1); opacity: 0.9; }
-            100% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 20px white; }
+            100% { transform: scale(1.1); opacity: 1; }
         }
 
         /* ============ TYPOGRAPHY ============ */
         .title-signal {
-            font-size: 3.2rem;
-            font-weight: 700;
+            font-size: 3.5rem;
+            font-weight: 800;
             letter-spacing: -0.02em;
-            color: var(--white);
-            margin-bottom: 4px;
+            color: var(--dark-blue);
+            margin-bottom: 8px;
             line-height: 1;
-            text-shadow: 0 0 15px rgba(255,255,255,0.3);
-            animation: textGlitch 3s infinite;
-        }
-
-        @keyframes textGlitch {
-            0%, 100% { text-shadow: 0 0 15px rgba(255,255,255,0.3); }
-            25% { text-shadow: -2px 0 10px rgba(255,255,255,0.5), 2px 0 8px rgba(255,255,255,0.2); }
-            75% { text-shadow: 2px 0 12px rgba(255,255,255,0.5), -1px 0 6px rgba(255,255,255,0.2); }
+            text-shadow: 0 2px 10px var(--dark-blue-glow);
         }
 
         .badge-signal {
-            background: transparent;
-            color: var(--white);
-            padding: 6px 24px;
-            border: 1px solid var(--gray-400);
-            font-size: 0.7rem;
-            font-weight: 600;
+            background: var(--off-white);
+            color: var(--dark-blue);
+            padding: 8px 28px;
+            border: 2px solid var(--dark-blue-soft);
+            font-size: 0.75rem;
+            font-weight: 700;
             letter-spacing: 4px;
             text-transform: uppercase;
             display: inline-block;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
             position: relative;
             overflow: hidden;
+            border-radius: 40px;
+            box-shadow: 0 4px 10px -4px var(--dark-blue-glow);
         }
 
         .badge-signal::before {
@@ -325,130 +274,131 @@
             left: -2px;
             right: -2px;
             bottom: -2px;
-            border: 1px solid var(--white);
-            opacity: 0.3;
+            border: 2px solid var(--dark-blue);
+            opacity: 0.1;
             animation: borderPulse 2s infinite;
+            border-radius: 40px;
         }
 
         @keyframes borderPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.3; }
         }
 
         .message-signal {
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--gray-600);
-            padding: 18px 20px;
+            background: var(--off-white);
+            border: 2px solid var(--dark-blue-soft);
+            padding: 20px 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 14px;
-            margin: 28px 0 12px;
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--gray-200);
+            gap: 16px;
+            margin: 28px 0 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark-blue);
             letter-spacing: 0.5px;
             position: relative;
-            backdrop-filter: blur(4px);
+            border-radius: 30px;
+            box-shadow: 0 8px 20px -8px var(--dark-blue-glow);
         }
 
         .message-signal i {
-            font-size: 1.6rem;
-            color: var(--white);
+            font-size: 2rem;
+            color: var(--dark-blue);
             animation: iconFlicker 2s infinite;
+            filter: drop-shadow(0 2px 5px var(--dark-blue-glow));
         }
 
         @keyframes iconFlicker {
             0%, 100% { opacity: 1; }
             30% { opacity: 0.7; }
-            70% { opacity: 0.9; }
+            70% { opacity: 0.8; }
         }
 
         .frequency-tag {
             font-family: 'Courier New', monospace;
-            font-size: 0.65rem;
-            color: var(--gray-400);
-            margin-top: 8px;
-            letter-spacing: 2px;
-            border-top: 1px solid var(--gray-700);
-            padding-top: 20px;
+            font-size: 0.75rem;
+            color: var(--dark-blue);
+            margin-top: 12px;
+            letter-spacing: 3px;
+            border-top: 2px solid var(--dark-blue-soft);
+            padding-top: 24px;
             display: inline-block;
+            font-weight: 600;
         }
 
         .signal-hint {
-            margin-top: 32px;
-            color: var(--gray-400);
-            font-size: 0.7rem;
+            margin-top: 36px;
+            color: var(--dark-blue);
+            font-size: 0.75rem;
             letter-spacing: 4px;
             text-transform: uppercase;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             font-family: 'Courier New', monospace;
+            font-weight: 600;
         }
 
         .signal-hint i {
-            margin-right: 6px;
+            margin-right: 8px;
             animation: blink 1s infinite;
+            color: var(--dark-blue);
+            font-size: 1.1rem;
         }
 
         @keyframes blink {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+            50% { opacity: 0.4; }
         }
 
         /* ============ TAP INDICATOR ============ */
         .tap-signal {
             position: fixed;
-            bottom: 120px;
+            bottom: 30px;
             left: 0;
             right: 0;
             text-align: center;
-            color: var(--gray-500);
-            font-size: 0.65rem;
-            letter-spacing: 6px;
+            color: var(--dark-blue);
+            font-size: 0.7rem;
+            letter-spacing: 4px;
             text-transform: uppercase;
             pointer-events: none;
             z-index: 200;
             font-family: 'Courier New', monospace;
-            animation: transmitPulse 1.5s infinite;
+            font-weight: 500;
+            opacity: 0.6;
         }
 
-        @keyframes transmitPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; text-shadow: 0 0 8px white; }
-        }
-
-        /* ============ TRANSMISSION FREQUENCY DISPLAY ============ */
+        /* ============ FREQUENCY DISPLAY ============ */
         .frequency-display {
             position: fixed;
             top: 20px;
             right: 20px;
             font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            color: var(--gray-500);
-            border: 1px solid var(--gray-700);
-            padding: 6px 12px;
-            background: rgba(0,0,0,0.6);
+            font-size: 0.8rem;
+            color: var(--dark-blue);
+            border: 2px solid var(--dark-blue-soft);
+            padding: 8px 16px;
+            background: var(--white);
             z-index: 200;
             letter-spacing: 2px;
             pointer-events: none;
+            border-radius: 40px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px -4px var(--dark-blue-glow);
         }
 
         .frequency-display span {
-            color: var(--white);
-            animation: frequencyShift 0.5s infinite;
+            color: var(--dark-blue);
             display: inline-block;
             width: 8px;
             text-align: center;
+            font-weight: 700;
         }
 
-        @keyframes frequencyShift {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* ============ CRT SCANLINES ============ */
+        /* ============ SCANLINES (SUBTLE) ============ */
         .scanlines {
             position: fixed;
             top: 0;
@@ -459,60 +409,61 @@
                 0deg,
                 transparent,
                 transparent 2px,
-                rgba(0,0,0,0.3) 3px,
+                rgba(26, 43, 76, 0.02) 3px,
                 transparent 4px
             );
             pointer-events: none;
             z-index: 1000;
-            opacity: 0.1;
+            opacity: 0.2;
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 500px) {
+            .signal-card {
+                padding: 30px 20px 35px;
+            }
+            
+            .title-signal {
+                font-size: 2.8rem;
+            }
+            
+            .transmission-icon {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .transmission-icon i {
+                font-size: 4rem;
+            }
+            
+            .frequency-display {
+                top: 15px;
+                right: 15px;
+                padding: 6px 12px;
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- GRID BACKGROUND -->
+    <div class="grid-bg"></div>
+    
     <!-- RADIO FREQUENCY SCANNER -->
     <div class="frequency-scanner">
         <div class="scan-line"></div>
         <div class="scan-horizontal"></div>
     </div>
     
-    <!-- ANALOG STATIC NOISE -->
+    <!-- STATIC NOISE -->
     <div class="static-noise"></div>
-    
-    <!-- OSCILLOSCOPE HEARTBEAT -->
-    <div class="oscilloscope">
-        <svg width="100%" height="100%" viewBox="0 0 400 40" preserveAspectRatio="none">
-            <polyline points="
-                0,30
-                20,30
-                40,10
-                60,35
-                80,15
-                100,32
-                120,8
-                140,28
-                160,12
-                180,30
-                200,20
-                220,33
-                240,18
-                260,30
-                280,10
-                300,35
-                320,15
-                340,32
-                360,8
-                380,28
-                400,20
-            " class="heartbeat" />
-        </svg>
-    </div>
     
     <!-- CRT SCANLINES -->
     <div class="scanlines"></div>
     
     <!-- FREQUENCY DISPLAY -->
     <div class="frequency-display">
-        <span>⟁</span> RX: <span id="frequency">104.7</span> MHz
+        <span>⏚</span> <span>RX:</span> <span id="frequency">104.7</span> <span>MHz</span>
     </div>
 
     <!-- MAIN CARD — TRANSMISSION RECEIVED -->
@@ -526,7 +477,7 @@
             <div class="bar"></div>
         </div>
         
-        <!-- TRANSMISSION ICON WITH RIPPLES -->
+        <!-- SUCCESS ICON WITH RIPPLES -->
         <div class="transmission-icon">
             <div class="ripple-circle"></div>
             <div class="ripple-circle"></div>
@@ -542,35 +493,34 @@
             <span>Kehadiran anda telah direkodkan</span>
         </div>
         
-        <p style="color: var(--gray-400); font-size: 0.85rem; margin-top: 8px; font-family: 'Courier New', monospace;">
-            <span style="color: var(--white);">></span> Your attendance is confirmed
+        <p style="color: var(--dark-blue); font-size: 0.9rem; margin-top: 12px; font-family: 'Courier New', monospace; font-weight: 500;">
+            <span style="color: var(--dark-blue-bright); font-weight: 700;">></span> Your attendance is confirmed
         </p>
         
         <div class="frequency-tag">
-             SIGNAL LOCKED · 104.7 MHz 
+            SIGNAL LOCKED · 104.7 MHz
         </div>
         
         <div class="signal-hint">
             <span><i class="bi bi-hand-index-thumb"></i> KETIK UNTUK MENGHANTAR</span>
-            <span style="font-size:0.6rem; color:var(--gray-500);">TAP TO TRANSMIT CLOSE SIGNAL</span>
         </div>
     </div>
 
     <div class="tap-signal">
-         TAP TO CLOSE · TRANSMIT 
+        TAP TO CLOSE · TRANSMIT
     </div>
 
     <script>
         (function(){
             "use strict";
             
-            // ============ WOW: FREQUENCY SHIFT ON TAP ============
+            // ============ FREQUENCY SHIFT ON TAP ============
             const freqElement = document.getElementById('frequency');
             let freq = 104.7;
             
             function shiftFrequency() {
                 // Random frequency shift
-                freq = (Math.random() * 10 + 100).toFixed(1);
+                freq = (104.7 + (Math.random() * 0.6 - 0.3)).toFixed(1);
                 freqElement.textContent = freq;
                 
                 // Create interference burst
@@ -580,7 +530,7 @@
                 interference.style.left = '0';
                 interference.style.width = '100%';
                 interference.style.height = '100%';
-                interference.style.background = 'var(--white)';
+                interference.style.background = 'var(--dark-blue)';
                 interference.style.opacity = '0.1';
                 interference.style.pointerEvents = 'none';
                 interference.style.zIndex = '9999';
@@ -591,9 +541,9 @@
                     style.id = 'interferenceStyle';
                     style.textContent = `
                         @keyframes interference {
-                            0% { opacity: 0.2; transform: scale(1); }
-                            50% { opacity: 0.4; transform: scale(1.02); }
-                            100% { opacity: 0; transform: scale(1); }
+                            0% { opacity: 0.1; }
+                            50% { opacity: 0.2; }
+                            100% { opacity: 0; }
                         }
                     `;
                     document.head.appendChild(style);
@@ -619,8 +569,8 @@
                 signalBurst.style.width = '0';
                 signalBurst.style.height = '0';
                 signalBurst.style.borderRadius = '50%';
-                signalBurst.style.background = 'var(--white)';
-                signalBurst.style.boxShadow = '0 0 40px 20px rgba(255,255,255,0.5)';
+                signalBurst.style.background = 'var(--dark-blue-bright)';
+                signalBurst.style.boxShadow = '0 0 60px 30px rgba(58, 90, 140, 0.5)';
                 signalBurst.style.transform = 'translate(-50%, -50%)';
                 signalBurst.style.pointerEvents = 'none';
                 signalBurst.style.zIndex = '10000';
@@ -632,7 +582,7 @@
                     style.textContent = `
                         @keyframes signalBurst {
                             0% { width: 0; height: 0; opacity: 0.8; }
-                            100% { width: 200px; height: 200px; opacity: 0; }
+                            100% { width: 300px; height: 300px; opacity: 0; }
                         }
                     `;
                     document.head.appendChild(style);
@@ -680,30 +630,48 @@
 
             // Haptic feedback simulation
             const card = document.getElementById('successCard');
-            card.addEventListener('mousedown', () => card.style.transform = 'scale(0.98)');
-            card.addEventListener('mouseup', () => card.style.transform = 'scale(1)');
-            card.addEventListener('mouseleave', () => card.style.transform = 'scale(1)');
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98)';
+                card.style.boxShadow = '0 20px 40px -12px rgba(26, 43, 76, 0.4)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'scale(1)';
+                card.style.boxShadow = '0 25px 50px -12px rgba(26, 43, 76, 0.25)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1)';
+                card.style.boxShadow = '0 25px 50px -12px rgba(26, 43, 76, 0.25)';
+            });
             
-            card.addEventListener('touchstart', () => card.style.transform = 'scale(0.98)');
-            card.addEventListener('touchend', () => card.style.transform = 'scale(1)');
+            card.addEventListener('touchstart', () => {
+                card.style.transform = 'scale(0.98)';
+                card.style.boxShadow = '0 20px 40px -12px rgba(26, 43, 76, 0.4)';
+            });
+            card.addEventListener('touchend', () => {
+                card.style.transform = 'scale(1)';
+                card.style.boxShadow = '0 25px 50px -12px rgba(26, 43, 76, 0.25)';
+            });
             
             // Random frequency fluctuations
             setInterval(() => {
                 if (Math.random() > 0.7) {
-                    freq = (parseFloat(freq) + (Math.random() - 0.5) * 0.5).toFixed(1);
+                    freq = (104.7 + (Math.random() * 0.4 - 0.2)).toFixed(1);
                     freqElement.textContent = freq;
+                    
+                    // Pulse the frequency display
+                    const freqDisplay = document.querySelector('.frequency-display');
+                    if (freqDisplay) {
+                        freqDisplay.style.borderColor = 'var(--dark-blue)';
+                        freqDisplay.style.boxShadow = '0 4px 20px -4px rgba(26, 43, 76, 0.3)';
+                        setTimeout(() => {
+                            freqDisplay.style.borderColor = 'var(--dark-blue-soft)';
+                            freqDisplay.style.boxShadow = '0 4px 15px -4px rgba(26, 43, 76, 0.15)';
+                        }, 200);
+                    }
                 }
             }, 2000);
             
-            // Simulate oscilloscope sweep
-            const heartbeat = document.querySelector('.heartbeat');
-            let offset = 0;
-            setInterval(() => {
-                offset = (offset + 1) % 200;
-                if (heartbeat) {
-                    heartbeat.style.strokeDashoffset = 200 - offset;
-                }
-            }, 50);
+            console.log('✓ Success page — dark blue & white theme');
         })();
     </script>
 </body>

@@ -6,20 +6,27 @@
 <style>
     /* ---------------------------------------------------------------
        CREATE EVENT — ASYMMETRIC HORIZONTAL · SIGNAL INTENSITY v2
-       White main, Black sub · Oscilloscope heartbeat + Frequency waves
+       Dark Blue accents · Oscilloscope heartbeat + Frequency waves
        
-       > FIXED: Panel widths now stable regardless of content length
-         - Form panel has fixed width calculation
-         - Long text handled with truncation/wrapping
-         - Dashboard panel maintains its size
+       > FIXED: Panel widths stable regardless of content length
+       > UPDATED: All black elements transitioned to dark blue (#1a2b4c)
     --------------------------------------------------------------- */
 
     :root {
-        --black: #000000;
-        --black-50: #171717;
-        --black-100: #262626;
-        --black-200: #404040;
-        --black-300: #525252;
+        --dark-blue: #1a2b4c;        /* Primary dark blue */
+        --dark-blue-light: #2c3e5e;   /* Lighter dark blue for hover */
+        --dark-blue-dark: #0f1e38;    /* Darker dark blue for active */
+        --dark-blue-50: #1a2b4c0d;    /* With opacity variations */
+        --dark-blue-100: #1a2b4c1a;
+        --dark-blue-200: #1a2b4c33;
+        --dark-blue-300: #1a2b4c4d;
+        --dark-blue-400: #1a2b4c66;
+        --dark-blue-500: #1a2b4c80;
+        --dark-blue-600: #1a2b4c99;
+        --dark-blue-700: #1a2b4cb3;
+        --dark-blue-800: #1a2b4ccc;
+        --dark-blue-900: #1a2b4ce6;
+        
         --white: #ffffff;
         --white-50: #fafafa;
         --white-100: #f0f0f0;
@@ -47,7 +54,7 @@
         top: 0; left: 0; width: 100%; height: 100%;
         pointer-events: none; z-index: 1;
         background: repeating-linear-gradient(0deg, 
-            rgba(0,0,0,0.01) 0px, 
+            rgba(26,43,76,0.01) 0px, 
             rgba(255,255,255,0.01) 1px,
             transparent 2px,
             transparent 4px
@@ -58,9 +65,9 @@
         position: fixed;
         bottom: 20px; left: 20px;
         width: 180px; height: 40px;
-        background: rgba(0,0,0,0.02);
-        border-left: 2px solid var(--black);
-        border-right: 2px solid var(--black);
+        background: rgba(26,43,76,0.02);
+        border-left: 2px solid var(--dark-blue);
+        border-right: 2px solid var(--dark-blue);
         border-radius: 2px;
         z-index: 5;
         opacity: 0.2;
@@ -74,9 +81,9 @@
         width: 100%; height: 100%;
         background: linear-gradient(90deg, 
             transparent, 
-            var(--black) 20%, 
+            var(--dark-blue) 20%, 
             transparent 40%,
-            var(--black) 60%,
+            var(--dark-blue) 60%,
             transparent 80%
         );
         animation: heartbeatMove 3s infinite linear;
@@ -90,16 +97,16 @@
     /* ===== NEUROMORPHIC TOOLS ===== */
     .neu-raise-hard {
         background: linear-gradient(145deg, var(--white), var(--white-100));
-        box-shadow: 12px 12px 24px rgba(0,0,0,0.04), -12px -12px 24px rgba(255,255,255,0.9);
-        border: 1px solid rgba(0,0,0,0.02);
+        box-shadow: 12px 12px 24px rgba(26,43,76,0.04), -12px -12px 24px rgba(255,255,255,0.9);
+        border: 1px solid rgba(26,43,76,0.02);
     }
     .neu-raise-soft {
         background: var(--white);
-        box-shadow: 6px 6px 14px rgba(0,0,0,0.02), -6px -6px 14px rgba(255,255,255,0.7);
+        box-shadow: 6px 6px 14px rgba(26,43,76,0.02), -6px -6px 14px rgba(255,255,255,0.7);
     }
     .neu-pressed {
         background: linear-gradient(145deg, var(--white-100), var(--white));
-        box-shadow: inset 4px 4px 10px rgba(0,0,0,0.02), inset -4px -4px 10px rgba(255,255,255,0.5);
+        box-shadow: inset 4px 4px 10px rgba(26,43,76,0.02), inset -4px -4px 10px rgba(255,255,255,0.5);
     }
 
     /* ===== HORIZONTAL ASYMMETRIC LAYOUT - FIXED WIDTHS ===== */
@@ -131,11 +138,11 @@
         background: var(--white);
         border-radius: 32px;
         padding: 32px 32px 40px;
-        border: 1px solid rgba(0,0,0,0.03);
+        border: 1px solid rgba(26,43,76,0.03);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-        box-shadow: 16px 16px 28px rgba(0,0,0,0.08), -14px -14px 28px rgba(255,255,255,0.9);
+        box-shadow: 16px 16px 28px rgba(26,43,76,0.08), -14px -14px 28px rgba(255,255,255,0.9);
         
         /* Text containment */
         word-wrap: break-word;
@@ -150,7 +157,7 @@
         left: 0;
         width: 100%;
         height: 4px;
-        background: linear-gradient(90deg, var(--black), transparent);
+        background: linear-gradient(90deg, var(--dark-blue), transparent);
         opacity: 0.2;
     }
 
@@ -164,7 +171,7 @@
         top: 100px;
         backdrop-filter: blur(8px);
         background: rgba(255,255,255,0.75);
-        box-shadow: 8px 8px 20px rgba(0,0,0,0.02), -8px -8px 20px rgba(255,255,255,0.6);
+        box-shadow: 8px 8px 20px rgba(26,43,76,0.02), -8px -8px 20px rgba(255,255,255,0.6);
         
         /* Ensure this panel also contains text */
         word-wrap: break-word;
@@ -179,24 +186,24 @@
         border: none;
         border-radius: 24px;
         font-size: 0.95rem;
-        color: var(--black-100);
+        color: var(--dark-blue-dark);
         font-weight: 500;
         transition: 0.2s;
         
         box-shadow: 
-            inset 6px 6px 12px rgba(0, 0, 0, 0.2),
+            inset 6px 6px 12px rgba(26, 43, 76, 0.2),
             inset -4px -4px 10px rgba(255, 255, 255, 0.9);
         
-        border: 1px solid rgba(0,0,0,0.02);
+        border: 1px solid rgba(26,43,76,0.02);
     }
 
     .field-signal:focus {
         outline: none;
         border: none;
         box-shadow: 
-            inset 8px 8px 16px rgba(0, 0, 0, 0.25),
+            inset 8px 8px 16px rgba(26, 43, 76, 0.25),
             inset -6px -6px 12px rgba(255, 255, 255, 0.95),
-            0 0 0 3px rgba(0,0,0,0.02);
+            0 0 0 3px rgba(26,43,76,0.02);
         background: var(--white-50);
     }
 
@@ -209,7 +216,7 @@
     /* Select fields */
     select.field-signal {
         appearance: none;
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>');
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%231a2b4c" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>');
         background-repeat: no-repeat;
         background-position: right 20px center;
         background-size: 16px;
@@ -220,7 +227,7 @@
     textarea.field-signal {
         background: var(--white-100);
         box-shadow: 
-            inset 6px 6px 12px rgba(0, 0, 0, 0.2),
+            inset 6px 6px 12px rgba(26, 43, 76, 0.2),
             inset -4px -4px 10px rgba(255, 255, 255, 0.9);
         resize: vertical;
         min-height: 80px;
@@ -235,12 +242,12 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: var(--black-500);
+        color: var(--dark-blue-800);
         margin-bottom: 8px;
     }
     .label-signal i {
         font-size: 1rem;
-        color: var(--black);
+        color: var(--dark-blue);
     }
 
     /* ===== TEXT CONTAINMENT FOR LONG CONTENT ===== */
@@ -286,7 +293,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 8px 0;
-        border-bottom: 1px dashed rgba(0,0,0,0.05);
+        border-bottom: 1px dashed rgba(26,43,76,0.05);
         gap: 12px;
     }
     .v-signal-row span:first-child {
@@ -302,19 +309,19 @@
         background: var(--white-200);
         border-radius: 4px;
         overflow: hidden;
-        box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
+        box-shadow: inset 1px 1px 3px rgba(26,43,76,0.05);
         flex-shrink: 0;
     }
     .v-signal-fill {
         height: 100%;
-        background: var(--black);
+        background: var(--dark-blue);
         border-radius: 4px;
         transition: width 0.3s;
     }
 
     /* ===== TRANSMISSION RIPPLE ===== */
     .transmit-btn {
-        background: var(--black);
+        background: var(--dark-blue);
         color: white;
         border: none;
         padding: 18px 36px;
@@ -326,7 +333,7 @@
         justify-content: center;
         gap: 12px;
         transition: 0.25s;
-        box-shadow: 0 16px 28px rgba(0,0,0,0.25);
+        box-shadow: 0 16px 28px rgba(26,43,76,0.25);
         width: 100%;
         letter-spacing: 2px;
         position: relative;
@@ -357,9 +364,15 @@
         opacity: 0;
     }
     .transmit-btn:hover {
-        background: var(--black-100);
+        background: var(--dark-blue-light);
         transform: scale(1.02);
-        box-shadow: 0 22px 36px rgba(0,0,0,0.3);
+        box-shadow: 0 22px 36px rgba(26,43,76,0.3);
+    }
+    
+    .transmit-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none !important;
     }
 
     /* ===== GLITCH EFFECT ===== */
@@ -367,9 +380,9 @@
         animation: glitchMini 2.5s infinite;
     }
     @keyframes glitchMini {
-        0%, 100% { text-shadow: 0 0 0 black; }
-        20% { text-shadow: -1px 0 0 rgba(0,0,0,0.2), 1px 0 0 rgba(0,0,0,0.2); }
-        40% { text-shadow: 1px 0 0 rgba(0,0,0,0.2), -1px 0 0 rgba(0,0,0,0.2); }
+        0%, 100% { text-shadow: 0 0 0 var(--dark-blue); }
+        20% { text-shadow: -1px 0 0 rgba(26,43,76,0.2), 1px 0 0 rgba(26,43,76,0.2); }
+        40% { text-shadow: 1px 0 0 rgba(26,43,76,0.2), -1px 0 0 rgba(26,43,76,0.2); }
     }
 
     /* ===== CUSTOM STATE ===== */
@@ -378,14 +391,14 @@
         padding: 20px;
         background: var(--white-100);
         border-radius: 20px;
-        border: 1px solid var(--black-300);
+        border: 1px solid var(--dark-blue-300);
         animation: borderBlink 1.8s infinite;
         box-shadow: var(--neu-inset-dark);
     }
     @keyframes borderBlink {
-        0% { border-color: rgba(0,0,0,0.2); }
-        50% { border-color: rgba(0,0,0,0.7); }
-        100% { border-color: rgba(0,0,0,0.2); }
+        0% { border-color: rgba(26,43,76,0.2); }
+        50% { border-color: rgba(26,43,76,0.7); }
+        100% { border-color: rgba(26,43,76,0.2); }
     }
 
     /* ===== HINT BADGE ===== */
@@ -395,11 +408,11 @@
         padding: 6px 16px;
         font-size: 0.7rem;
         border: 1px solid var(--white-200);
-        color: var(--black-500);
+        color: var(--dark-blue-700);
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        box-shadow: inset 2px 2px 5px rgba(0,0,0,0.02), inset -2px -2px 5px rgba(255,255,255,0.7);
+        box-shadow: inset 2px 2px 5px rgba(26,43,76,0.02), inset -2px -2px 5px rgba(255,255,255,0.7);
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -411,8 +424,8 @@
         width: 100%;
         height: 40px;
         background: repeating-linear-gradient(90deg, 
-            var(--black) 0px, 
-            var(--black) 2px, 
+            var(--dark-blue) 0px, 
+            var(--dark-blue) 2px, 
             transparent 2px, 
             transparent 8px
         );
@@ -425,9 +438,9 @@
     .is-invalid {
         border: none !important;
         box-shadow: 
-            inset 6px 6px 12px rgba(0, 0, 0, 0.2),
+            inset 6px 6px 12px rgba(26, 43, 76, 0.2),
             inset -4px -4px 10px rgba(255, 255, 255, 0.9),
-            0 0 0 2px var(--black) !important;
+            0 0 0 2px var(--dark-blue) !important;
     }
 
     /* ===== TOP BANNER TEXT CONTAINMENT ===== */
@@ -472,6 +485,28 @@
             max-width: 400px;
         }
     }
+
+    /* ===== TOAST NOTIFICATION ===== */
+    .toast-signal {
+        background: var(--white);
+        border-left: 4px solid var(--dark-blue);
+        box-shadow: 0 10px 25px -5px rgba(26,43,76,0.2);
+        border-radius: 16px;
+        padding: 16px 20px;
+        max-width: 24rem;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
 </style>
 {% endblock %}
 
@@ -487,26 +522,27 @@
     <div class="flex justify-between items-center mb-8 reveal">
         <div class="flex items-center gap-4 min-w-0">  <!-- Added min-w-0 for flex shrinking -->
             <div class="neu-raise-hard w-14 h-14 rounded-2xl flex items-center justify-center relative flex-shrink-0">
-                <i class="bi bi-broadcast text-black text-2xl"></i>
+                <i class="bi bi-broadcast text-dark-blue text-2xl" style="color: var(--dark-blue);"></i>
                 <div class="absolute -bottom-1 -right-1 flex gap-[2px]">
-                    <span class="w-1 h-3 bg-black rounded-full animate-pulse"></span>
-                    <span class="w-1 h-4 bg-black rounded-full animate-pulse" style="animation-delay:0.2s"></span>
-                    <span class="w-1 h-5 bg-black rounded-full animate-pulse" style="animation-delay:0.4s"></span>
+                    <span class="w-1 h-3 bg-dark-blue rounded-full animate-pulse" style="background-color: var(--dark-blue);"></span>
+                    <span class="w-1 h-4 bg-dark-blue rounded-full animate-pulse" style="background-color: var(--dark-blue); animation-delay:0.2s"></span>
+                    <span class="w-1 h-5 bg-dark-blue rounded-full animate-pulse" style="background-color: var(--dark-blue); animation-delay:0.4s"></span>
                 </div>
             </div>
             <div class="min-w-0">  <!-- Allow text to shrink/truncate -->
-                <h1 class="text-4xl font-black text-black tracking-tight flex items-center gap-3 top-banner-title">
+                <h1 class="text-4xl font-black text-dark-blue tracking-tight flex items-center gap-3 top-banner-title" style="color: var(--dark-blue);">
                     <span class="glitch-mini">CREATE</span> EVENT
-                    <span class="text-xs font-mono bg-black text-white px-3 py-1.5 rounded-full flex-shrink-0">ENCRYPTED</span>
+                    <span class="text-xs font-mono bg-dark-blue text-white px-3 py-1.5 rounded-full flex-shrink-0" style="background-color: var(--dark-blue);">ENCRYPTED</span>
                 </h1>
                 <div class="flex items-center gap-4 mt-1 flex-wrap">
-                    <span class="hint-badge"><i class="bi bi-shield-check"></i> CARRIER: 104.7 MHz</span>
-                    <span class="hint-badge"><i class="bi bi-droplet"></i> SIGNAL LOCK</span>
+                    <span class="hint-badge"><i class="bi bi-shield-check" style="color: var(--dark-blue);"></i> CARRIER: 104.7 MHz</span>
+                    <span class="hint-badge"><i class="bi bi-droplet" style="color: var(--dark-blue);"></i> SIGNAL LOCK</span>
                 </div>
             </div>
         </div>
         <a href="{% url 'dashboard' %}" 
-           class="group flex items-center gap-2 px-5 py-3 rounded-full border border-black-200 text-black-600 hover:bg-black hover:text-white transition-all duration-300 bg-white/50 flex-shrink-0">
+           class="group flex items-center gap-2 px-5 py-3 rounded-full border border-dark-blue-200 text-dark-blue-600 hover:bg-dark-blue hover:text-white transition-all duration-300 bg-white/50 flex-shrink-0"
+           style="border-color: var(--dark-blue-200); color: var(--dark-blue-600);">
             <i class="bi bi-arrow-left-short group-hover:-translate-x-1 transition-transform"></i>
             <span class="text-sm font-medium">RETURN</span>
         </a>
@@ -524,22 +560,22 @@
             <!-- SECTION: BASIC PARAMETERS -->
             <div class="flex items-center gap-3 mb-7">
                 <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center flex-shrink-0">
-                    <i class="bi bi-1-circle text-black"></i>
+                    <i class="bi bi-1-circle" style="color: var(--dark-blue);"></i>
                 </div>
-                <span class="text-xs font-mono text-black-400 tracking-[0.2em] whitespace-nowrap">BASIC CARRIER</span>
+                <span class="text-xs font-mono" style="color: var(--dark-blue-400); letter-spacing: 0.2em; white-space: nowrap;">BASIC CARRIER</span>
             </div>
 
             <!-- Event Title — with proper containment -->
             <div class="mb-7">
                 <label class="label-signal required-star">
-                    <i class="bi bi-megaphone"></i> EVENT TITLE
+                    <i class="bi bi-megaphone" style="color: var(--dark-blue);"></i> EVENT TITLE
                 </label>
                 <input type="text" name="title" id="eventTitle" 
                        class="field-signal" 
                        placeholder="e.g. Future Leaders Summit" 
                        required maxlength="200" autocomplete="off">
-                <div class="mt-2 flex items-center gap-2 text-black-300 text-xs flex-wrap">
-                    <i class="bi bi-info-circle flex-shrink-0"></i>
+                <div class="mt-2 flex items-center gap-2 text-xs flex-wrap" style="color: var(--dark-blue-300);">
+                    <i class="bi bi-info-circle flex-shrink-0" style="color: var(--dark-blue);"></i>
                     <span class="text-wrap-container">Be specific. Max 200 characters.</span>
                 </div>
             </div>
@@ -547,7 +583,7 @@
             <!-- Description -->
             <div class="mb-7">
                 <label class="label-signal">
-                    <i class="bi bi-file-earmark-text"></i> DESCRIPTION / FREQ
+                    <i class="bi bi-file-earmark-text" style="color: var(--dark-blue);"></i> DESCRIPTION / FREQ
                 </label>
                 <textarea name="description" id="eventDescription" 
                           class="field-signal" rows="3" 
@@ -557,16 +593,16 @@
             <!-- SECTION DIVIDER — LOCATION -->
             <div class="flex items-center gap-3 my-8">
                 <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center flex-shrink-0">
-                    <i class="bi bi-2-circle text-black"></i>
+                    <i class="bi bi-2-circle" style="color: var(--dark-blue);"></i>
                 </div>
-                <span class="text-xs font-mono text-black-400 tracking-[0.2em] whitespace-nowrap">GEOLOCK</span>
-                <div class="flex-1 border-t border-dashed border-black-200 min-w-[20px]"></div>
+                <span class="text-xs font-mono" style="color: var(--dark-blue-400); letter-spacing: 0.2em; white-space: nowrap;">GEOLOCK</span>
+                <div class="flex-1 border-t border-dashed" style="border-color: var(--dark-blue-200); min-width: 20px;"></div>
             </div>
 
             <!-- Venue -->
             <div class="mb-7">
                 <label class="label-signal required-star">
-                    <i class="bi bi-pin-map"></i> VENUE
+                    <i class="bi bi-pin-map" style="color: var(--dark-blue);"></i> VENUE
                 </label>
                 <input type="text" name="venue" id="eventVenue" 
                        class="field-signal" 
@@ -577,7 +613,7 @@
             <!-- State + Custom State -->
             <div class="mb-6">
                 <label class="label-signal required-star">
-                    <i class="bi bi-map"></i> STATE
+                    <i class="bi bi-map" style="color: var(--dark-blue);"></i> STATE
                 </label>
                 <select name="state" id="eventState" class="field-signal" required>
                     <option value="" selected disabled>— Select state —</option>
@@ -603,7 +639,7 @@
                 <!-- Custom State Container -->
                 <div id="customStateContainer" class="custom-state-active" style="display: none;">
                     <label class="label-signal required-star">
-                        <i class="bi bi-pencil-square"></i> SPECIFY STATE
+                        <i class="bi bi-pencil-square" style="color: var(--dark-blue);"></i> SPECIFY STATE
                     </label>
                     <input type="text" name="custom_state" id="customStateInput" 
                            class="field-signal" placeholder="Enter state name" maxlength="100">
@@ -613,29 +649,29 @@
             <!-- SECTION DIVIDER — TIME VECTOR -->
             <div class="flex items-center gap-3 my-8">
                 <div class="w-9 h-9 rounded-xl neu-pressed flex items-center justify-center flex-shrink-0">
-                    <i class="bi bi-3-circle text-black"></i>
+                    <i class="bi bi-3-circle" style="color: var(--dark-blue);"></i>
                 </div>
-                <span class="text-xs font-mono text-black-400 tracking-[0.2em] whitespace-nowrap">TIME VECTOR</span>
-                <div class="flex-1 border-t border-dashed border-black-200 min-w-[20px]"></div>
+                <span class="text-xs font-mono" style="color: var(--dark-blue-400); letter-spacing: 0.2em; white-space: nowrap;">TIME VECTOR</span>
+                <div class="flex-1 border-t border-dashed" style="border-color: var(--dark-blue-200); min-width: 20px;"></div>
             </div>
 
             <!-- Date & Time Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div class="min-w-0">
-                    <label class="label-signal required-star"><i class="bi bi-calendar"></i> DATE</label>
+                    <label class="label-signal required-star"><i class="bi bi-calendar" style="color: var(--dark-blue);"></i> DATE</label>
                     <input type="date" name="date" id="eventDate" class="field-signal" required>
                 </div>
                 <div class="min-w-0">
-                    <label class="label-signal required-star"><i class="bi bi-play-fill"></i> START</label>
+                    <label class="label-signal required-star"><i class="bi bi-play-fill" style="color: var(--dark-blue);"></i> START</label>
                     <input type="time" name="start_time" id="startTime" class="field-signal" required>
                 </div>
                 <div class="min-w-0">
-                    <label class="label-signal required-star"><i class="bi bi-stop-fill"></i> END</label>
+                    <label class="label-signal required-star"><i class="bi bi-stop-fill" style="color: var(--dark-blue);"></i> END</label>
                     <input type="time" name="end_time" id="endTime" class="field-signal" required>
                 </div>
             </div>
             <div class="mt-3 hint-badge">
-                <i class="bi bi-clock-history"></i> End must be > start
+                <i class="bi bi-clock-history" style="color: var(--dark-blue);"></i> End must be > start
             </div>
 
             <!-- TRANSMIT BUTTON -->
@@ -646,8 +682,8 @@
                     <i class="bi bi-arrow-right-short text-xl flex-shrink-0"></i>
                 </button>
                 <div class="flex justify-between mt-4 flex-wrap gap-2">
-                    <span class="text-[10px] font-mono text-black-300 whitespace-nowrap">⏎ Ctrl+S to encode</span>
-                    <span class="text-[10px] font-mono text-black-300 whitespace-nowrap">SIGNAL: <span id="signalStrengthVal">64%</span></span>
+                    <span class="text-[10px] font-mono" style="color: var(--dark-blue-300); white-space: nowrap;">⏎ Ctrl+S to encode</span>
+                    <span class="text-[10px] font-mono" style="color: var(--dark-blue-300); white-space: nowrap;">SIGNAL: <span id="signalStrengthVal">64%</span></span>
                 </div>
             </div>
         </div> <!-- END LEFT PANEL -->
@@ -657,31 +693,31 @@
             <!-- Live preview card -->
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-2 min-w-0">
-                    <i class="bi bi-radio text-black text-xl flex-shrink-0"></i>
-                    <span class="font-mono text-sm font-bold text-black truncate">SCOPE</span>
+                    <i class="bi bi-radio text-xl flex-shrink-0" style="color: var(--dark-blue);"></i>
+                    <span class="font-mono text-sm font-bold truncate" style="color: var(--dark-blue);">SCOPE</span>
                 </div>
                 <div class="flex gap-1 flex-shrink-0">
-                    <span class="w-2 h-2 bg-black rounded-full animate-ping"></span>
-                    <span class="w-2 h-2 bg-black rounded-full animate-ping" style="animation-delay:0.3s"></span>
-                    <span class="w-2 h-2 bg-black rounded-full animate-ping" style="animation-delay:0.6s"></span>
+                    <span class="w-2 h-2 rounded-full animate-ping" style="background-color: var(--dark-blue);"></span>
+                    <span class="w-2 h-2 rounded-full animate-ping" style="background-color: var(--dark-blue); animation-delay:0.3s"></span>
+                    <span class="w-2 h-2 rounded-full animate-ping" style="background-color: var(--dark-blue); animation-delay:0.6s"></span>
                 </div>
             </div>
 
             <!-- PREVIEW BLOCK -->
             <div class="neu-pressed rounded-3xl p-5 mb-7">
-                <div id="previewTitle" class="text-xl font-extrabold text-black truncate" title="[Event Title]">[Event Title]</div>
-                <div class="flex items-center gap-2 mt-2 text-black-500 text-sm min-w-0">
-                    <i class="bi bi-geo-alt flex-shrink-0"></i>
+                <div id="previewTitle" class="text-xl font-extrabold truncate" style="color: var(--dark-blue);" title="[Event Title]">[Event Title]</div>
+                <div class="flex items-center gap-2 mt-2 text-sm min-w-0" style="color: var(--dark-blue-500);">
+                    <i class="bi bi-geo-alt flex-shrink-0" style="color: var(--dark-blue);"></i>
                     <span id="previewVenue" class="truncate" title="Venue not set">Venue not set</span>
                 </div>
-                <div class="flex items-center gap-3 mt-3 text-xs font-mono text-black-400 flex-wrap">
-                    <span class="flex items-center gap-1 min-w-0"><i class="bi bi-calendar3 flex-shrink-0"></i> <span id="previewDate" class="truncate">—</span></span>
-                    <span class="flex items-center gap-1 min-w-0"><i class="bi bi-clock flex-shrink-0"></i> <span id="previewTime" class="truncate">—</span></span>
+                <div class="flex items-center gap-3 mt-3 text-xs font-mono flex-wrap" style="color: var(--dark-blue-400);">
+                    <span class="flex items-center gap-1 min-w-0"><i class="bi bi-calendar3 flex-shrink-0" style="color: var(--dark-blue);"></i> <span id="previewDate" class="truncate">—</span></span>
+                    <span class="flex items-center gap-1 min-w-0"><i class="bi bi-clock flex-shrink-0" style="color: var(--dark-blue);"></i> <span id="previewTime" class="truncate">—</span></span>
                 </div>
-                <div class="mt-4 pt-3 border-t border-white-200 flex justify-between items-center">
-                    <span class="text-black-400 text-xs">STATUS</span>
-                    <span class="bg-black/5 text-black-700 px-4 py-1.5 rounded-full text-xs border border-black/10 flex items-center gap-1.5 whitespace-nowrap">
-                        <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span> DRAFT
+                <div class="mt-4 pt-3 border-t flex justify-between items-center" style="border-color: var(--white-200);">
+                    <span style="color: var(--dark-blue-400);" class="text-xs">STATUS</span>
+                    <span class="px-4 py-1.5 rounded-full text-xs border flex items-center gap-1.5 whitespace-nowrap" style="background-color: var(--dark-blue-50); color: var(--dark-blue-700); border-color: var(--dark-blue-100);">
+                        <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #f59e0b;"></span> DRAFT
                     </span>
                 </div>
             </div>
@@ -689,13 +725,13 @@
             <!-- SIGNAL STRENGTH METER -->
             <div class="mb-7">
                 <div class="flex justify-between items-center mb-3">
-                    <span class="label-signal"><i class="bi bi-bar-chart"></i> TRANSMISSION dB</span>
-                    <span id="signalPercent" class="text-lg font-bold font-mono text-black">64%</span>
+                    <span class="label-signal"><i class="bi bi-bar-chart" style="color: var(--dark-blue);"></i> TRANSMISSION dB</span>
+                    <span id="signalPercent" class="text-lg font-bold font-mono" style="color: var(--dark-blue);">64%</span>
                 </div>
-                <div class="w-full h-4 bg-white-200 rounded-full overflow-hidden neu-pressed">
-                    <div id="signalMeter" class="h-full bg-black rounded-full transition-all duration-300" style="width: 64%;"></div>
+                <div class="w-full h-4 rounded-full overflow-hidden neu-pressed" style="background-color: var(--white-200);">
+                    <div id="signalMeter" class="h-full rounded-full transition-all duration-300" style="width: 64%; background-color: var(--dark-blue);"></div>
                 </div>
-                <div class="flex justify-between mt-2 text-[0.6rem] font-mono text-black-400 tracking-wider">
+                <div class="flex justify-between mt-2 text-[0.6rem] font-mono tracking-wider" style="color: var(--dark-blue-400);">
                     <span>WEAK</span>
                     <span>MOD</span>
                     <span>LOCK</span>
@@ -706,36 +742,36 @@
             <!-- VERTICAL SIGNAL BANK -->
             <div class="v-signal-bank">
                 <div class="v-signal-row">
-                    <span class="text-xs font-medium text-black-600 truncate" title="TITLE"><i class="bi bi-check-circle"></i> TITLE</span>
+                    <span class="text-xs font-medium truncate" style="color: var(--dark-blue-600);" title="TITLE"><i class="bi bi-check-circle" style="color: var(--dark-blue);"></i> TITLE</span>
                     <div class="v-signal-meter"><div id="meterTitle" class="v-signal-fill" style="width: 0%"></div></div>
                 </div>
                 <div class="v-signal-row">
-                    <span class="text-xs font-medium text-black-600 truncate" title="VENUE"><i class="bi bi-pin"></i> VENUE</span>
+                    <span class="text-xs font-medium truncate" style="color: var(--dark-blue-600);" title="VENUE"><i class="bi bi-pin" style="color: var(--dark-blue);"></i> VENUE</span>
                     <div class="v-signal-meter"><div id="meterVenue" class="v-signal-fill" style="width: 0%"></div></div>
                 </div>
                 <div class="v-signal-row">
-                    <span class="text-xs font-medium text-black-600 truncate" title="STATE"><i class="bi bi-map"></i> STATE</span>
+                    <span class="text-xs font-medium truncate" style="color: var(--dark-blue-600);" title="STATE"><i class="bi bi-map" style="color: var(--dark-blue);"></i> STATE</span>
                     <div class="v-signal-meter"><div id="meterState" class="v-signal-fill" style="width: 0%"></div></div>
                 </div>
                 <div class="v-signal-row">
-                    <span class="text-xs font-medium text-black-600 truncate" title="DATE/TIME"><i class="bi bi-calendar"></i> DATE/TIME</span>
+                    <span class="text-xs font-medium truncate" style="color: var(--dark-blue-600);" title="DATE/TIME"><i class="bi bi-calendar" style="color: var(--dark-blue);"></i> DATE/TIME</span>
                     <div class="v-signal-meter"><div id="meterTime" class="v-signal-fill" style="width: 0%"></div></div>
                 </div>
             </div>
 
             <!-- TIP / FREQUENCY HINT -->
-            <div class="mt-8 bg-black/5 rounded-2xl p-4 border border-white-200 flex gap-3">
-                <i class="bi bi-shield-lock text-black text-xl flex-shrink-0"></i>
-                <div class="text-xs text-black-600 min-w-0">
-                    <span class="font-bold text-black block truncate">ENCRYPTED SIGNAL</span>
+            <div class="mt-8 rounded-2xl p-4 border flex gap-3" style="background-color: var(--dark-blue-50); border-color: var(--white-200);">
+                <i class="bi bi-shield-lock text-xl flex-shrink-0" style="color: var(--dark-blue);"></i>
+                <div class="text-xs min-w-0" style="color: var(--dark-blue-600);">
+                    <span class="font-bold block truncate" style="color: var(--dark-blue);">ENCRYPTED SIGNAL</span>
                     <span class="block text-wrap-container">All fields marked * are carrier-locked. Preview updates in real time.</span>
                 </div>
             </div>
             
             <!-- Mini frequency badge -->
             <div class="mt-5 flex justify-end">
-                <span class="bg-white border border-black-200 rounded-full px-4 py-2 text-[10px] font-mono flex items-center gap-1 truncate max-w-full">
-                    <span class="w-1.5 h-1.5 bg-green-600 rounded-full flex-shrink-0"></span> 
+                <span class="bg-white border rounded-full px-4 py-2 text-[10px] font-mono flex items-center gap-1 truncate max-w-full" style="border-color: var(--dark-blue-200);">
+                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color: #22c55e;"></span> 
                     <span class="truncate">LIVE FEED · 104.7 MHz</span>
                 </span>
             </div>
@@ -886,8 +922,8 @@
         // ----- toast (matching base) -----
         function showToast(msg, type = 'info') {
             const toast = document.createElement('div');
-            toast.className = `fixed top-24 right-6 z-50 neu-raise-hard rounded-xl p-4 border-l-4 ${type === 'error' ? 'border-l-red-500' : 'border-l-blue-500'} bg-white max-w-sm shadow-xl`;
-            toast.innerHTML = `<div class="flex items-start gap-3"><i class="bi ${type==='error'?'bi-exclamation-triangle text-red-600':'bi-info-circle text-blue-600'} flex-shrink-0"></i><span class="text-sm text-black-700 text-wrap-container">${msg}</span><button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-black-400 flex-shrink-0"><i class="bi bi-x"></i></button></div>`;
+            toast.className = `fixed top-24 right-6 z-50 max-w-sm shadow-xl toast-signal`;
+            toast.innerHTML = `<div class="flex items-start gap-3"><i class="bi ${type==='error'?'bi-exclamation-triangle':'bi-info-circle'} flex-shrink-0" style="color: var(--dark-blue);"></i><span class="text-sm text-wrap-container" style="color: var(--dark-blue-dark);">${msg}</span><button onclick="this.parentElement.parentElement.remove()" class="ml-auto flex-shrink-0" style="color: var(--dark-blue-400);"><i class="bi bi-x"></i></button></div>`;
             document.body.appendChild(toast);
             setTimeout(() => toast?.remove(), 4000);
         }

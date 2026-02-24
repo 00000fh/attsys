@@ -1,786 +1,922 @@
 {% extends "base.html" %}
 
-{% block title %}Login · ATTSYS · SPECTRUM LOCK{% endblock %}
+{% block title %}Login · ATTSYS · SIGNAL LOCK{% endblock %}
 
 {% block extra_css %}
 <style>
     /* ---------------------------------------------------------------
-       LOGIN — ALTERNATE VERSION: SPECTRUM ANALYZER / RADIO FREQUENCY
-       Pure B&W, frequency bars, waterfall sweep, tuned signal lock
-       Header/Footer completely eliminated. Layout: sample forms precision.
+       LOGIN — DARK BLUE & WHITE — CENTERED FORM
+       New radar/signal scanning transition
     --------------------------------------------------------------- */
     
-    /* --- OBLITERATE BASE HEADER/FOOTER --- */
+    /* --- DARK BLUE COLOR VARIABLES --- */
+    :root {
+        --dark-blue: #1a2b4c;
+        --dark-blue-light: #2c3e5e;
+        --dark-blue-bright: #3a5a8c;
+        --dark-blue-soft: #e8edf5;
+        --dark-blue-glow: rgba(26, 43, 76, 0.15);
+        --white: #ffffff;
+        --off-white: #f8fafd;
+    }
+    
+    /* --- HIDE BASE HEADER/FOOTER --- */
     .navbar, .footer, header, footer, nav, .breadcrumb, .container-fluid header {
         display: none !important;
     }
+    
     body, html {
         height: 100%;
         margin: 0;
         padding: 0;
-        overflow: hidden;
-        background: #000000 !important;
+        background: var(--white) !important;
         font-family: 'Inter', 'Courier New', monospace;
     }
+    
     body {
-        background-image: 
-            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px),
-            linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 1px) !important;
-        background-size: 24px 24px !important;
+        background: linear-gradient(135deg, var(--white) 0%, var(--off-white) 100%) !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    /* ===== SPECTRUM ANALYZER BACKGROUND ===== */
-    .spectrum-container {
+    /* ===== BACKGROUND GRID ===== */
+    .grid-bg {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
+        background-image: 
+            linear-gradient(var(--dark-blue-glow) 1px, transparent 1px),
+            linear-gradient(90deg, var(--dark-blue-glow) 1px, transparent 1px);
+        background-size: 40px 40px;
+        opacity: 0.5;
         pointer-events: none;
         z-index: 1;
-        opacity: 0.25;
     }
-    .frequency-bands {
-        position: absolute;
+
+    /* ===== SPECTRUM BARS ===== */
+    .spectrum-bars {
+        position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 40%;
+        height: 150px;
         display: flex;
         align-items: flex-end;
-        justify-content: space-evenly;
-        gap: 2px;
-        padding: 0 10px;
-    }
-    .band {
-        width: 8px;
-        background: white;
-        height: 20px;
-        animation: bandPulse 1.8s infinite alternate;
-        opacity: 0.5;
-        border-radius: 1px 1px 0 0;
-    }
-    .band:nth-child(1) { height: 45px; animation-delay: 0s; width: 12px; }
-    .band:nth-child(2) { height: 72px; animation-delay: 0.3s; width: 10px; }
-    .band:nth-child(3) { height: 38px; animation-delay: 0.6s; width: 14px; }
-    .band:nth-child(4) { height: 92px; animation-delay: 0.1s; width: 8px; }
-    .band:nth-child(5) { height: 56px; animation-delay: 0.9s; width: 10px; }
-    .band:nth-child(6) { height: 81px; animation-delay: 0.4s; width: 12px; }
-    .band:nth-child(7) { height: 44px; animation-delay: 0.7s; width: 8px; }
-    .band:nth-child(8) { height: 67px; animation-delay: 0.2s; width: 14px; }
-    .band:nth-child(9) { height: 53px; animation-delay: 0.5s; width: 10px; }
-    .band:nth-child(10) { height: 88px; animation-delay: 0.8s; width: 12px; }
-    @keyframes bandPulse {
-        0% { opacity: 0.3; height: 20px; }
-        100% { opacity: 1; height: 95px; }
-    }
-
-    /* ===== WATERFALL FALLING NOISE (SPECTRUM STYLE) ===== */
-    .waterfall {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: repeating-linear-gradient(
-            180deg,
-            transparent,
-            transparent 4px,
-            rgba(255,255,255,0.02) 5px,
-            rgba(255,255,255,0.01) 6px,
-            transparent 7px
-        );
-        pointer-events: none;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 20px;
         z-index: 2;
-        opacity: 0.25;
-        animation: waterfallShift 3s linear infinite;
+        pointer-events: none;
+        opacity: 0.15;
     }
-    @keyframes waterfallShift {
-        0% { background-position: 0 0; }
-        100% { background-position: 0 40px; }
+    
+    .spectrum-bar {
+        width: 25px;
+        background: var(--dark-blue);
+        height: 20px;
+        border-radius: 4px 4px 0 0;
+        animation: spectrumWave 2.5s infinite ease-in-out;
+    }
+    
+    .spectrum-bar:nth-child(1) { height: 45px; animation-delay: 0s; }
+    .spectrum-bar:nth-child(2) { height: 70px; animation-delay: 0.2s; }
+    .spectrum-bar:nth-child(3) { height: 35px; animation-delay: 0.4s; }
+    .spectrum-bar:nth-child(4) { height: 85px; animation-delay: 0.1s; }
+    .spectrum-bar:nth-child(5) { height: 55px; animation-delay: 0.5s; }
+    .spectrum-bar:nth-child(6) { height: 75px; animation-delay: 0.3s; }
+    .spectrum-bar:nth-child(7) { height: 40px; animation-delay: 0.6s; }
+    .spectrum-bar:nth-child(8) { height: 65px; animation-delay: 0.15s; }
+    .spectrum-bar:nth-child(9) { height: 50px; animation-delay: 0.45s; }
+    .spectrum-bar:nth-child(10) { height: 80px; animation-delay: 0.25s; }
+    
+    @keyframes spectrumWave {
+        0%, 100% { opacity: 0.4; height: 20px; }
+        50% { opacity: 1; height: 100px; }
     }
 
-    /* ===== SIGNAL STRENGTH METER ===== */
+    /* ===== SIGNAL METER ===== */
     .signal-meter {
         position: fixed;
         top: 30px;
-        left: 30px;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        z-index: 300;
-        font-family: 'Courier New', monospace;
-    }
-    .meter-bar {
-        width: 180px;
-        height: 6px;
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.3);
-        position: relative;
-    }
-    .meter-fill {
-        height: 100%;
-        width: 0%;
-        background: white;
-        animation: meterSweep 2.5s infinite alternate;
-    }
-    @keyframes meterSweep {
-        0% { width: 35%; opacity: 0.6; }
-        50% { width: 85%; opacity: 1; }
-        100% { width: 45%; opacity: 0.7; }
-    }
-    .meter-label {
-        color: white;
-        font-size: 0.6rem;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-    }
-
-    /* ===== MAIN CARD — TUNER / RECEIVER ===== */
-    .login-container {
-        min-height: 100vh;
+        right: 30px;
+        background: var(--white);
+        border: 1px solid var(--dark-blue-soft);
+        border-radius: 40px;
+        padding: 10px 22px;
+        box-shadow: 0 10px 25px -8px var(--dark-blue-glow);
+        z-index: 100;
+        backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.95);
         display: flex;
         align-items: center;
-        justify-content: center;
-        padding: 1.5rem;
-        position: relative;
-        z-index: 200;
+        gap: 15px;
     }
-    .tuner-card {
-        max-width: 480px;
-        width: 100%;
-        background: rgba(5, 5, 8, 0.85);
-        backdrop-filter: blur(16px);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-top: 2px solid rgba(255,255,255,0.4);
-        padding: 3rem 2.5rem;
-        position: relative;
-        box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 30px 60px -20px black;
-        animation: tuneIn 1s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-    @keyframes tuneIn {
-        0% { opacity: 0; transform: translateY(20px) scale(0.96); filter: blur(2px); }
-        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-    }
-
-    /* ===== FREQUENCY DIAL ===== */
-    .frequency-dial {
-        position: absolute;
-        top: -12px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: black;
-        border: 1px solid white;
-        padding: 6px 24px;
-        color: white;
-        font-size: 0.75rem;
-        letter-spacing: 6px;
-        font-weight: 600;
-        text-transform: uppercase;
-        border-radius: 30px;
-        box-shadow: 0 0 15px rgba(255,255,255,0.2);
-    }
-
-    /* ===== LOGO — TUNED CIRCUIT ===== */
-    .tuner-logo {
+    
+    .signal-bars {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.8rem;
-        margin-bottom: 0.8rem;
-        color: white;
-        text-decoration: none;
-    }
-    .tuner-logo i {
-        font-size: 2.3rem;
-        color: white;
-        filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
-        animation: dialSpin 12s infinite linear;
-    }
-    @keyframes dialSpin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    .tuner-logo span {
-        font-size: 2rem;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        text-shadow: 0 0 20px white;
-    }
-
-    /* ===== SPECTRUM BADGE ===== */
-    .spectrum-badge {
-        display: inline-block;
-        padding: 6px 20px;
-        border: 1px solid rgba(255,255,255,0.4);
-        background: rgba(0,0,0,0.6);
-        font-size: 0.6rem;
-        font-weight: 600;
-        letter-spacing: 5px;
-        color: white;
-        margin-bottom: 28px;
-        position: relative;
-        overflow: hidden;
-    }
-    .spectrum-badge::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        animation: scanLight 3s infinite;
-    }
-    @keyframes scanLight {
-        0% { left: -100%; }
-        30% { left: 100%; }
-        100% { left: 100%; }
-    }
-
-    /* ===== FORM FIELDS — FREQUENCY TUNABLE INSET ===== */
-    .form-group {
-        margin-bottom: 2rem;
-        text-align: left;
-    }
-    .form-label {
-        display: block;
-        color: #ccc;
-        font-size: 0.6rem;
-        letter-spacing: 4px;
-        text-transform: uppercase;
-        margin-bottom: 0.6rem;
-        font-weight: 600;
-        font-family: 'Courier New', monospace;
-    }
-    .input-icon {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-    .input-icon i:not(.toggle-password i) {
-        position: absolute;
-        left: 1rem;
-        color: rgba(255,255,255,0.8);
-        font-size: 1rem;
-        z-index: 3;
-    }
-    
-    /* ===== PASSWORD FIELD WITH EYE ICON - FIXED POSITIONING ===== */
-    .password-field-container {
-        position: relative;
-        width: 100%;
-    }
-    
-    .password-field-container .form-control {
-        width: 100%;
-        padding: 1rem 3rem 1rem 3rem;
-        background: rgba(0,0,0,0.8);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 0;
-        font-size: 0.95rem;
-        color: white;
-        font-family: 'Courier New', monospace;
-        transition: all 0.2s ease;
-        box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
-    }
-    
-    .password-field-container .form-control:focus {
-        border-color: white;
-        background: black;
-        box-shadow: inset 0 0 20px black, 0 0 20px rgba(255,255,255,0.2);
-        outline: none;
-    }
-    
-    .password-field-container .form-control::placeholder {
-        color: rgba(255,255,255,0.25);
-        font-size: 0.8rem;
-    }
-    
-    .password-field-container .toggle-password {
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        background: transparent;
-        border: none;
-        color: rgba(255,255,255,0.6);
-        cursor: pointer;
-        padding: 0.25rem;
-        transition: color 0.2s;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 24px;
+        align-items: flex-end;
+        gap: 4px;
         height: 24px;
     }
     
-    .password-field-container .toggle-password:hover {
-        color: white;
+    .signal-bar {
+        width: 4px;
+        background: var(--dark-blue);
+        border-radius: 2px;
+        transition: height 0.3s ease;
     }
     
-    .password-field-container .toggle-password i {
-        font-size: 1.2rem;
-        position: static;
-    }
-
-    /* ===== USERNAME FIELD ===== */
-    .username-field-container {
-        position: relative;
-        width: 100%;
-    }
+    .signal-bar:nth-child(1) { height: 10px; }
+    .signal-bar:nth-child(2) { height: 15px; }
+    .signal-bar:nth-child(3) { height: 20px; }
+    .signal-bar:nth-child(4) { height: 18px; }
+    .signal-bar:nth-child(5) { height: 12px; }
     
-    .username-field-container .form-control {
-        width: 100%;
-        padding: 1rem 1rem 1rem 3rem;
-        background: rgba(0,0,0,0.8);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 0;
-        font-size: 0.95rem;
-        color: white;
+    .signal-text {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--dark-blue);
+        letter-spacing: 1.5px;
         font-family: 'Courier New', monospace;
-        transition: all 0.2s ease;
-        box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
-    }
-    
-    .username-field-container .form-control:focus {
-        border-color: white;
-        background: black;
-        box-shadow: inset 0 0 20px black, 0 0 20px rgba(255,255,255,0.2);
-        outline: none;
     }
 
-    /* ===== LOGIN BUTTON — SIGNAL LOCK ===== */
+    /* ===== FREQUENCY READOUT ===== */
+    .freq-readout {
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        background: var(--white);
+        border: 1px solid var(--dark-blue-soft);
+        border-radius: 40px;
+        padding: 10px 25px;
+        box-shadow: 0 10px 25px -8px var(--dark-blue-glow);
+        z-index: 100;
+        backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.95);
+        font-family: 'Courier New', monospace;
+        color: var(--dark-blue);
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: 2px;
+    }
+    
+    .freq-readout i {
+        margin-right: 8px;
+        color: var(--dark-blue);
+    }
+
+    /* ===== MAIN LOGIN CARD - CENTERED ===== */
+    .login-wrapper {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        z-index: 50;
+        min-height: 100vh;
+    }
+    
+    .login-card {
+        max-width: 420px;
+        width: 100%;
+        background: var(--white);
+        border-radius: 24px;
+        padding: 45px 40px;
+        box-shadow: 
+            0 25px 50px -12px rgba(26, 43, 76, 0.25),
+            0 0 0 1px rgba(26, 43, 76, 0.1);
+        position: relative;
+        animation: cardReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        margin: auto;
+    }
+    
+    @keyframes cardReveal {
+        0% { 
+            opacity: 0;
+            transform: translateY(30px) scale(0.96);
+        }
+        100% { 
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* ===== FREQUENCY DIAL ===== */
+    .freq-dial {
+        position: absolute;
+        top: -15px;
+        left: 35px;
+        background: var(--dark-blue);
+        color: var(--white);
+        padding: 6px 22px;
+        border-radius: 40px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        font-family: 'Courier New', monospace;
+        box-shadow: 0 8px 20px -5px var(--dark-blue);
+    }
+    
+    .freq-dial i {
+        margin-right: 8px;
+        font-size: 0.9rem;
+    }
+
+    /* ===== LOGO ===== */
+    .logo-area {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .logo-icon {
+        font-size: 3.2rem;
+        color: var(--dark-blue);
+        margin-bottom: 10px;
+        display: inline-block;
+        animation: pulse 3s infinite ease-in-out;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.9; }
+        50% { transform: scale(1.05); opacity: 1; }
+    }
+    
+    .logo-main {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--dark-blue);
+        letter-spacing: -0.5px;
+        line-height: 1.2;
+        margin-bottom: 8px;
+    }
+    
+    .badge {
+        display: inline-block;
+        background: var(--dark-blue-soft);
+        color: var(--dark-blue);
+        padding: 5px 20px;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border: 1px solid rgba(26, 43, 76, 0.1);
+    }
+
+    /* ===== FORM ===== */
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--dark-blue);
+        margin-bottom: 8px;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 16px;
+        color: var(--dark-blue);
+        font-size: 1.2rem;
+        z-index: 2;
+        opacity: 0.7;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 15px 15px 15px 48px;
+        border: 2px solid var(--dark-blue-soft);
+        border-radius: 16px;
+        font-size: 1rem;
+        color: var(--dark-blue);
+        background: var(--white);
+        transition: all 0.2s ease;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--dark-blue);
+        box-shadow: 0 0 0 4px rgba(26, 43, 76, 0.1);
+    }
+    
+    .form-control::placeholder {
+        color: #a0aec0;
+        font-size: 0.9rem;
+    }
+
+    /* ===== PASSWORD TOGGLE ===== */
+    .pw-toggle {
+        position: absolute;
+        right: 16px;
+        background: none;
+        border: none;
+        color: var(--dark-blue);
+        cursor: pointer;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    
+    .pw-toggle:hover {
+        opacity: 1;
+    }
+    
+    .pw-toggle i {
+        font-size: 1.2rem;
+    }
+
+    /* ===== LOGIN BUTTON ===== */
     .btn-login {
         width: 100%;
-        padding: 1.1rem;
-        background: transparent;
-        border: 1px solid white;
-        color: white;
+        padding: 16px;
+        background: var(--dark-blue);
+        border: none;
+        border-radius: 16px;
+        color: var(--white);
         font-weight: 700;
-        font-size: 0.85rem;
-        letter-spacing: 8px;
+        font-size: 1rem;
+        letter-spacing: 3px;
         text-transform: uppercase;
-        transition: all 0.25s;
-        margin-top: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 12px;
-        background: rgba(0,0,0,0.4);
-        backdrop-filter: blur(4px);
-        position: relative;
-        overflow: hidden;
-        cursor: pointer;
+        margin-top: 15px;
+        box-shadow: 0 10px 25px -8px var(--dark-blue);
     }
+    
     .btn-login:hover {
-        background: white;
-        color: black;
-        border-color: white;
-        box-shadow: 0 0 30px white;
+        background: var(--dark-blue-light);
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px -8px var(--dark-blue);
     }
+    
+    .btn-login:active {
+        transform: translateY(0);
+    }
+    
     .btn-login i {
         font-size: 1.2rem;
-    }
-    .btn-login::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.5s;
-    }
-    .btn-login:hover::before {
-        left: 100%;
-    }
-    .btn-login:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        pointer-events: none;
     }
 
     /* ===== FOOTER ===== */
     .login-footer {
-        margin-top: 2.2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid rgba(255,255,255,0.1);
-        color: rgba(255,255,255,0.5);
-        font-size: 0.6rem;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid var(--dark-blue-soft);
         text-align: center;
-        letter-spacing: 3px;
-        font-family: 'Courier New', monospace;
     }
+    
     .login-footer a {
-        color: white;
+        color: var(--dark-blue);
         text-decoration: none;
-        border-bottom: 1px dotted rgba(255,255,255,0.4);
-        transition: border-color 0.2s;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        font-family: 'Courier New', monospace;
+        transition: all 0.2s;
+        opacity: 0.8;
     }
+    
     .login-footer a:hover {
-        border-bottom-color: white;
+        opacity: 1;
+        text-decoration: underline;
+        text-underline-offset: 4px;
     }
 
-    /* ===== SPECTRUM WATERFALL READOUT ===== */
-    .waterfall-readout {
+    /* ===== NOTIFICATION ===== */
+    .notif-container {
         position: fixed;
-        bottom: 30px;
-        left: 30px;
-        color: rgba(255,255,255,0.7);
-        font-size: 0.65rem;
-        font-family: 'Courier New', monospace;
-        background: rgba(0,0,0,0.7);
-        padding: 8px 18px;
-        border: 1px solid rgba(255,255,255,0.2);
-        letter-spacing: 2px;
-        z-index: 500;
-        backdrop-filter: blur(4px);
-    }
-    .waterfall-readout i {
-        margin-right: 8px;
-        animation: blink 1.2s infinite;
-    }
-    @keyframes blink {
-        0%,100% { opacity: 1; }
-        50% { opacity: 0.4; }
-    }
-
-    /* ===== NOTIFICATION CONTAINER ===== */
-    .notification-container {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 1000;
-        width: 300px;
-        max-width: calc(100vw - 60px);
+        width: 380px;
+        max-width: calc(100vw - 40px);
+        pointer-events: none;
     }
+    
     .notification {
-        background: rgba(0,0,0,0.95);
-        border-left: 4px solid white;
-        padding: 1rem 1.2rem;
-        margin-bottom: 0.8rem;
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.15);
-        color: white;
-        animation: slideFreq 0.3s;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        background: var(--white);
+        border-radius: 16px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        box-shadow: 0 20px 40px -12px rgba(26, 43, 76, 0.3);
+        border-left: 4px solid var(--dark-blue);
+        animation: slideDown 0.3s ease;
+        pointer-events: auto;
+        border: 1px solid rgba(26, 43, 76, 0.1);
     }
-    @keyframes slideFreq {
-        from { opacity: 0; transform: translateX(20px); }
-        to { opacity: 1; transform: translateX(0); }
+    
+    .notification.success { border-left-color: #10b981; }
+    .notification.error { border-left-color: #ef4444; }
+    .notification.warning { border-left-color: #f59e0b; }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-    .notification-title {
+    
+    .notif-title {
         font-weight: 700;
-        letter-spacing: 2px;
-        font-size: 0.7rem;
-        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        color: var(--dark-blue);
         display: flex;
         align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
     }
-    .notification-close {
-        color: rgba(255,255,255,0.6);
+    
+    .notif-title i { color: var(--dark-blue); }
+    
+    .notif-message {
+        font-size: 0.8rem;
+        color: #4b5563;
+        margin-left: 24px;
+    }
+    
+    .notif-close {
+        float: right;
         background: none;
         border: none;
+        color: #9ca3af;
         cursor: pointer;
-        padding: 0.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: color 0.2s;
+        padding: 4px;
     }
-    .notification-close:hover {
-        color: white;
-    }
+    
+    .notif-close:hover { color: #4b5563; }
 
-    /* ===== HIDE DJANGO DEFAULT ERRORS ===== */
-    .error-message, .alert { display: none !important; }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 500px) {
-        .tuner-card { padding: 2rem 1.5rem; }
-        .frequency-dial { font-size: 0.6rem; letter-spacing: 3px; padding: 4px 16px; }
-        .signal-meter { top: 15px; left: 15px; }
-        .signal-meter .meter-bar { width: 120px; }
-        .waterfall-readout { bottom: 15px; left: 15px; padding: 6px 12px; }
-        .notification-container { bottom: 15px; right: 15px; width: 280px; }
-    }
-
-    /* Loading spinner */
-    .btn-login .spinner {
-        width: 14px;
-        height: 14px;
-        border: 2px solid white;
+    /* ===== SPINNER ===== */
+    .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--white);
         border-top-color: transparent;
         border-radius: 50%;
-        animation: spin 0.8s infinite linear;
+        animation: spin 0.8s linear infinite;
         display: inline-block;
-        margin-left: 8px;
     }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ===== ELEGANT TRANSITION STYLES ===== */
+    /* ===== NEW TRANSITION — RADAR SCANNING ===== */
     .transition-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: #000;
-        z-index: 9999;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+        background: var(--white);
+        z-index: 10000;
         display: flex;
         align-items: center;
         justify-content: center;
-        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease, visibility 0.4s ease;
     }
     
     .transition-overlay.active {
         opacity: 1;
         visibility: visible;
-        pointer-events: all;
     }
     
-    .transition-content {
+    .radar-container {
         text-align: center;
-        color: white;
-        font-family: 'Courier New', monospace;
-        transform: translateY(20px);
-        opacity: 0;
-        transition: all 0.6s cubic-bezier(0.65, 0, 0.35, 1) 0.2s;
+        max-width: 500px;
+        padding: 40px;
     }
     
-    .transition-overlay.active .transition-content {
-        transform: translateY(0);
-        opacity: 1;
-    }
-    
-    .transition-frequency {
-        font-size: 5rem;
-        font-weight: 300;
-        letter-spacing: 8px;
-        margin-bottom: 1rem;
-        text-shadow: 0 0 20px rgba(255,255,255,0.3);
-        animation: frequencyPulse 2s infinite;
-    }
-    
-    @keyframes frequencyPulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.8; }
-    }
-    
-    .transition-lock {
-        font-size: 1.2rem;
-        letter-spacing: 12px;
-        text-transform: uppercase;
-        margin-bottom: 2rem;
-        color: rgba(255,255,255,0.8);
-    }
-    
-    .transition-progress-container {
-        width: 300px;
-        height: 2px;
-        background: rgba(255,255,255,0.1);
-        margin: 2rem auto;
+    /* Radar screen */
+    .radar-screen {
+        background: #0a1420;
+        border-radius: 50%;
+        width: 280px;
+        height: 280px;
+        margin: 0 auto 30px;
         position: relative;
         overflow: hidden;
+        box-shadow: 
+            0 0 0 2px rgba(58, 90, 140, 0.3),
+            0 20px 40px -10px rgba(26, 43, 76, 0.5);
     }
     
-    .transition-progress-bar {
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: white;
-        animation: progressSweep 2.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-    }
-    
-    @keyframes progressSweep {
-        0% { left: -100%; }
-        50% { left: 0; }
-        100% { left: 100%; }
-    }
-    
-    .transition-status {
-        font-size: 0.8rem;
-        letter-spacing: 4px;
-        color: rgba(255,255,255,0.5);
-        margin-top: 1rem;
-    }
-    
-    .transition-wave {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 30%;
-        background: linear-gradient(180deg, transparent, rgba(255,255,255,0.02));
-        pointer-events: none;
-    }
-    
-    .transition-wave::before {
-        content: '';
+    /* Radar grid */
+    .radar-grid {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: repeating-linear-gradient(
-            90deg,
-            transparent,
-            transparent 20px,
-            rgba(255,255,255,0.02) 21px,
-            transparent 22px
+        border-radius: 50%;
+        background: 
+            /* Circles */
+            repeating-radial-gradient(circle at 50% 50%, 
+                transparent 0, 
+                transparent 30px, 
+                rgba(58, 90, 140, 0.1) 31px,
+                transparent 32px
+            ),
+            /* Crosshairs */
+            linear-gradient(90deg, rgba(58, 90, 140, 0.1) 1px, transparent 1px),
+            linear-gradient(0deg, rgba(58, 90, 140, 0.1) 1px, transparent 1px);
+        background-size: 100% 100%, 70px 70px, 70px 70px;
+        background-position: center;
+    }
+    
+    /* Scanning line */
+    .radar-scan {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            rgba(58, 90, 140, 0.3) 10deg,
+            transparent 20deg
         );
-        animation: waveShift 3s linear infinite;
+        animation: radarSpin 3s infinite linear;
+        transform-origin: center;
     }
     
-    @keyframes waveShift {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(40px); }
+    @keyframes radarSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
     
-    .btn-login.transitioning {
-        animation: buttonGlow 1s infinite alternate;
+    /* Radar blips */
+    .radar-blip {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: var(--dark-blue-bright);
+        border-radius: 50%;
+        box-shadow: 0 0 20px var(--dark-blue-bright);
+        animation: blipPulse 2s infinite;
     }
     
-    @keyframes buttonGlow {
-        0% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
-        100% { box-shadow: 0 0 30px rgba(255,255,255,0.8); }
+    .radar-blip:nth-child(1) {
+        top: 30%;
+        left: 60%;
+        animation-delay: 0s;
     }
-}
+    
+    .radar-blip:nth-child(2) {
+        top: 65%;
+        left: 40%;
+        animation-delay: 0.5s;
+    }
+    
+    .radar-blip:nth-child(3) {
+        top: 45%;
+        left: 75%;
+        animation-delay: 1s;
+    }
+    
+    .radar-blip:nth-child(4) {
+        top: 70%;
+        left: 70%;
+        animation-delay: 1.5s;
+    }
+    
+    @keyframes blipPulse {
+        0%, 100% { opacity: 0; transform: scale(0); }
+        50% { opacity: 1; transform: scale(1); }
+    }
+    
+    /* Center dot */
+    .radar-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 12px;
+        height: 12px;
+        background: var(--dark-blue-bright);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 30px var(--dark-blue-bright);
+        z-index: 10;
+    }
+    
+    /* Frequency display */
+    .radar-frequency {
+        font-family: 'Courier New', monospace;
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--dark-blue-bright);
+        text-shadow: 0 0 20px rgba(58, 90, 140, 0.5);
+        margin: 20px 0 10px;
+        letter-spacing: 4px;
+        animation: freqGlow 1.5s infinite alternate;
+    }
+    
+    @keyframes freqGlow {
+        from { opacity: 0.7; text-shadow: 0 0 10px rgba(58, 90, 140, 0.3); }
+        to { opacity: 1; text-shadow: 0 0 30px rgba(58, 90, 140, 0.8); }
+    }
+    
+    /* Status text */
+    .radar-status {
+        font-family: 'Courier New', monospace;
+        font-size: 1rem;
+        letter-spacing: 4px;
+        color: var(--dark-blue);
+        margin: 15px 0;
+        font-weight: 600;
+    }
+    
+    /* Progress bars container */
+    .radar-progress-container {
+        width: 300px;
+        margin: 25px auto;
+    }
+    
+    .progress-item {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+    
+    .progress-label {
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        color: var(--dark-blue);
+        margin-bottom: 5px;
+        letter-spacing: 1px;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .progress-track {
+        width: 100%;
+        height: 4px;
+        background: rgba(58, 90, 140, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--dark-blue-bright);
+        border-radius: 4px;
+        box-shadow: 0 0 10px var(--dark-blue-bright);
+        animation: progressFill 2s infinite ease-in-out;
+    }
+    
+    @keyframes progressFill {
+        0% { width: 0%; opacity: 0.5; }
+        50% { width: 100%; opacity: 1; }
+        100% { width: 0%; opacity: 0.5; }
+    }
+    
+    /* Signal strength indicator */
+    .signal-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin: 20px 0;
+    }
+    
+    .signal-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--dark-blue-bright);
+        border-radius: 50%;
+        animation: signalDot 1.5s infinite;
+    }
+    
+    .signal-dot:nth-child(1) { animation-delay: 0s; }
+    .signal-dot:nth-child(2) { animation-delay: 0.2s; }
+    .signal-dot:nth-child(3) { animation-delay: 0.4s; }
+    .signal-dot:nth-child(4) { animation-delay: 0.6s; }
+    .signal-dot:nth-child(5) { animation-delay: 0.8s; }
+    
+    @keyframes signalDot {
+        0%, 100% { opacity: 0.2; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 500px) {
+        .login-card { padding: 35px 25px; }
+        .signal-meter { top: 15px; right: 15px; padding: 8px 16px; }
+        .freq-readout { bottom: 15px; left: 15px; padding: 8px 18px; }
+        .logo-main { font-size: 1.8rem; }
+        .radar-screen { width: 220px; height: 220px; }
+        .radar-frequency { font-size: 2rem; }
+        .radar-progress-container { width: 250px; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- ===== SPECTRUM ANALYZER BACKGROUND ===== -->
-<div class="spectrum-container">
-    <div class="frequency-bands">
-        <div class="band"></div>
-        <div class="band"></div>
-        <div class="band"></div>
-        <div class="band"></div>
-        <div class="band"></div>
-        <div class="band"></div>
-        <div class="band"></div>
-        <div class="band"></div>
-        <div class="band"></div>
-        <div class="band"></div>
-    </div>
-</div>
-<div class="waterfall"></div>
+<!-- ===== BACKGROUND ===== -->
+<div class="grid-bg"></div>
 
-<!-- SIGNAL METER -->
+<!-- ===== SPECTRUM BARS ===== -->
+<div class="spectrum-bars">
+    <div class="spectrum-bar"></div>
+    <div class="spectrum-bar"></div>
+    <div class="spectrum-bar"></div>
+    <div class="spectrum-bar"></div>
+    <div class="spectrum-bar"></div>
+    <div class="spectrum-bar"></div>
+    <div class="spectrum-bar"></div>
+    <div class="spectrum-bar"></div>
+    <div class="spectrum-bar"></div>
+    <div class="spectrum-bar"></div>
+</div>
+
+<!-- ===== SIGNAL METER ===== -->
 <div class="signal-meter">
-    <div class="meter-label">SIGNAL STRENGTH</div>
-    <div class="meter-bar">
-        <div class="meter-fill" id="signalMeterFill"></div>
+    <div class="signal-bars">
+        <div class="signal-bar"></div>
+        <div class="signal-bar"></div>
+        <div class="signal-bar"></div>
+        <div class="signal-bar"></div>
+        <div class="signal-bar"></div>
     </div>
-    <div class="meter-label" style="font-size:0.55rem;">RF GAIN · LOCK</div>
+    <span class="signal-text">SIGNAL LOCK</span>
 </div>
 
-<!-- WATERFALL READOUT -->
-<div class="waterfall-readout">
-    <i class="bi bi-bar-chart-fill"></i> SPECTRUM: <span id="spectrumFreq">104.7</span> MHz
+<!-- ===== FREQUENCY READOUT ===== -->
+<div class="freq-readout">
+    <i class="bi bi-broadcast"></i> 104.7 MHz
 </div>
 
-<!-- ===== LOGIN CARD — TUNER ===== -->
-<div class="login-container">
-    <div class="tuner-card">
-        <div class="frequency-dial">
+<!-- ===== CENTERED LOGIN CARD ===== -->
+<div class="login-wrapper">
+    <div class="login-card">
+        <!-- Frequency Dial -->
+        <div class="freq-dial">
             <i class="bi bi-dial"></i> 104.7 MHz
         </div>
-        
-        <!-- LOGO — TUNER -->
-        <a href="{% url 'dashboard' %}" class="tuner-logo">
-            <i class="bi bi-broadcast"></i>
-            <span>ATTSYS</span>
-        </a>
-        
-        <div style="text-align: center;">
-            <span class="spectrum-badge">EVENT & ATTENDANCE SYSTEM</span>
-        </div>
-        
-        <p style="color: rgba(255,255,255,0.55); font-size: 0.65rem; text-align: center; margin-bottom: 2.2rem; font-family: 'Courier New'; letter-spacing: 4px;">
-            TUNE TO AUTHENTICATE 
-        </p>
 
-        <!-- FORM — PRECISION TUNING -->
+        <!-- Logo -->
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="bi bi-broadcast"></i>
+            </div>
+            <div class="logo-main">ATTSYS</div>
+            <span class="badge">EVENT & ATTENDANCE SYSTEM</span>
+        </div>
+
+        <!-- Form -->
         <form method="post" novalidate id="loginForm">
             {% csrf_token %}
 
             <div class="form-group">
-                <label for="id_username" class="form-label">FREQUENCY / CALLSIGN</label>
-                <div class="input-icon">
-                    <i class="bi bi-person-badge"></i>
-                    <div class="username-field-container">
-                        <input type="text" 
-                               name="username" 
-                               id="id_username" 
-                               class="form-control" 
-                               placeholder="USER"
-                               required
-                               autofocus
-                               autocomplete="username"
-                               value="{{ form.username.value|default:'' }}">
-                    </div>
+                <label for="id_username" class="form-label">CALLSIGN</label>
+                <div class="input-wrapper">
+                    <i class="bi bi-person-badge input-icon"></i>
+                    <input type="text" 
+                           name="username" 
+                           id="id_username" 
+                           class="form-control" 
+                           placeholder="Enter username"
+                           required
+                           autofocus
+                           autocomplete="username"
+                           value="{{ form.username.value|default:'' }}">
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="id_password" class="form-label">BANDWIDTH / CODE</label>
-                <div class="input-icon">
-                    <i class="bi bi-shield-lock"></i>
-                    <div class="password-field-container">
-                        <input type="password" 
-                               name="password" 
-                               id="id_password" 
-                               class="form-control" 
-                               placeholder="••••••••"
-                               required
-                               autocomplete="current-password">
-                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
+                <label for="id_password" class="form-label">ACCESS CODE</label>
+                <div class="input-wrapper">
+                    <i class="bi bi-key input-icon"></i>
+                    <input type="password" 
+                           name="password" 
+                           id="id_password" 
+                           class="form-control" 
+                           placeholder="Enter password"
+                           required
+                           autocomplete="current-password">
+                    <button type="button" class="pw-toggle" id="togglePassword">
+                        <i class="bi bi-eye"></i>
+                    </button>
                 </div>
             </div>
 
             <button type="submit" class="btn-login" id="loginButton">
-                <i class="bi bi-soundwave"></i> LOGIN
+                <i class="bi bi-soundwave"></i>
+                LOGIN
                 <i class="bi bi-arrow-right-short"></i>
             </button>
         </form>
 
+        <!-- Footer -->
         <div class="login-footer">
-            <p style="margin-bottom: 0.5rem;">
-                <i class="bi bi-shield-check"></i>  ENCRYPTED BAND · 104.7 MHz
-            </p>
-            <a href="#">REQUEST FREQUENCY</a>
+            <a href="#">
+                <i class="bi bi-shield-check"></i> REQUEST ACCESS
+            </a>
         </div>
     </div>
 </div>
 
-<!-- ELEGANT TRANSITION OVERLAY -->
+<!-- ===== NEW TRANSITION — RADAR SCANNING ===== -->
 <div class="transition-overlay" id="transitionOverlay">
-    <div class="transition-content">
-        <div class="transition-frequency" id="transitionFrequency">104.7 MHz</div>
-        <div class="transition-lock">ESTABLISHING LINK</div>
-        <div class="transition-progress-container">
-            <div class="transition-progress-bar"></div>
+    <div class="radar-container">
+        <!-- Radar screen -->
+        <div class="radar-screen">
+            <div class="radar-grid"></div>
+            <div class="radar-scan"></div>
+            <div class="radar-center"></div>
+            
+            <!-- Radar blips -->
+            <div class="radar-blip"></div>
+            <div class="radar-blip"></div>
+            <div class="radar-blip"></div>
+            <div class="radar-blip"></div>
         </div>
-        <div class="transition-status" id="transitionStatus">TUNING TO SECURE CHANNEL</div>
+        
+        <!-- Frequency display -->
+        <div class="radar-frequency" id="transitionFreq">104.7 MHz</div>
+        
+        <!-- Status text -->
+        <div class="radar-status" id="transitionStatus">INITIALIZING RADAR</div>
+        
+        <!-- Signal dots -->
+        <div class="signal-indicator">
+            <div class="signal-dot"></div>
+            <div class="signal-dot"></div>
+            <div class="signal-dot"></div>
+            <div class="signal-dot"></div>
+            <div class="signal-dot"></div>
+        </div>
+        
+        <!-- Progress bars -->
+        <div class="radar-progress-container">
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>SIGNAL ACQUISITION</span>
+                    <span id="progressPercent1">45%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill1"></div>
+                </div>
+            </div>
+            
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>FREQUENCY LOCK</span>
+                    <span id="progressPercent2">60%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill2"></div>
+                </div>
+            </div>
+            
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>AUTHENTICATION</span>
+                    <span id="progressPercent3">30%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill3"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="transition-wave"></div>
 </div>
 
-<!-- NOTIFICATION CONTAINER -->
-<div class="notification-container" id="notificationContainer"></div>
+<!-- ===== NOTIFICATION CONTAINER ===== -->
+<div class="notif-container" id="notificationContainer"></div>
 
-<!-- HIDDEN DJANGO MESSAGES — PRESERVED -->
+<!-- ===== HIDDEN DJANGO MESSAGES ===== -->
 {% if messages %}
 <div id="djangoMessages" style="display: none;">
     {% for message in messages %}
@@ -788,16 +924,19 @@
     {% endfor %}
 </div>
 {% endif %}
+
 {% if form.non_field_errors %}
 <div id="formErrors" style="display: none;">
     {% for error in form.non_field_errors %}<div class="error">{{ error }}</div>{% endfor %}
 </div>
 {% endif %}
+
 {% if form.username.errors %}
 <div id="usernameErrors" style="display: none;">
     {% for error in form.username.errors %}<div class="error">{{ error }}</div>{% endfor %}
 </div>
 {% endif %}
+
 {% if form.password.errors %}
 <div id="passwordErrors" style="display: none;">
     {% for error in form.password.errors %}<div class="error">{{ error }}</div>{% endfor %}
@@ -810,340 +949,212 @@
 (function() {
     'use strict';
 
-    // ===== SAFELY GET ELEMENTS =====
-    var freqEl = document.getElementById('spectrumFreq');
-    var meterFill = document.getElementById('signalMeterFill');
-    var toggle = document.getElementById('togglePassword');
-    var pw = document.getElementById('id_password');
-    var notifContainer = document.getElementById('notificationContainer');
-    var form = document.getElementById('loginForm');
-    var btn = document.getElementById('loginButton');
-    var usernameField = document.getElementById('id_username');
-    var passwordField = document.getElementById('id_password');
-    var transitionOverlay = document.getElementById('transitionOverlay');
-    var transitionFreq = document.getElementById('transitionFrequency');
-    var transitionStatus = document.getElementById('transitionStatus');
-    
-    var baseFreq = 104.7;
-    var tuneInterval = null;
-    var bandInterval = null;
+    // ===== ELEMENTS =====
+    const toggle = document.getElementById('togglePassword');
+    const password = document.getElementById('id_password');
+    const form = document.getElementById('loginForm');
+    const btn = document.getElementById('loginButton');
+    const username = document.getElementById('id_username');
+    const notifContainer = document.getElementById('notificationContainer');
+    const transitionOverlay = document.getElementById('transitionOverlay');
+    const transitionFreq = document.getElementById('transitionFreq');
+    const transitionStatus = document.getElementById('transitionStatus');
+    const progressFills = document.querySelectorAll('.progress-fill');
+    const progressPercents = [
+        document.getElementById('progressPercent1'),
+        document.getElementById('progressPercent2'),
+        document.getElementById('progressPercent3')
+    ];
 
-    // ===== SPECTRUM ANALYZER — FREQUENCY GENERATOR =====
-    function tuneSpectrum() {
-        if (freqEl) {
-            var drift = (Math.random() * 0.9 - 0.45).toFixed(1);
-            var newFreq = (baseFreq + parseFloat(drift)).toFixed(1);
-            freqEl.textContent = newFreq;
-        }
-        
-        if (meterFill) {
-            var randomWidth = Math.floor(Math.random() * 60 + 30);
-            meterFill.style.width = randomWidth + '%';
-        }
-        
-        if (freqEl && Math.random() > 0.8) {
-            freqEl.style.opacity = '0.5';
-            setTimeout(function() {
-                if (freqEl) freqEl.style.opacity = '1';
-            }, 120);
-        }
-    }
-    
-    if (freqEl || meterFill) {
-        tuneSpectrum();
-        tuneInterval = setInterval(tuneSpectrum, 1800);
-    }
-
-    // ===== TOGGLE PASSWORD =====
-    if (toggle && pw) {
-        toggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var type = pw.type === 'password' ? 'text' : 'password';
-            pw.type = type;
-            var icon = toggle.querySelector('i');
+    // ===== PASSWORD TOGGLE =====
+    if (toggle && password) {
+        toggle.addEventListener('click', function() {
+            const type = password.type === 'password' ? 'text' : 'password';
+            password.type = type;
+            const icon = toggle.querySelector('i');
             if (icon) {
                 icon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             }
-            pw.focus();
         });
     }
 
     // ===== NOTIFICATION SYSTEM =====
-    function showNotification(type, title, msg) {
+    function showNotification(type, title, message) {
         if (!notifContainer) return;
-        
-        var icon = 'bi-info-circle-fill';
-        var displayTitle = title || 'INFO';
-        
-        if (type === 'success') { 
-            icon = 'bi-check-circle-fill'; 
-            displayTitle = 'LOCKED'; 
-        }
-        if (type === 'error') { 
-            icon = 'bi-exclamation-circle-fill'; 
-            displayTitle = 'FREQ ERROR'; 
-        }
-        if (type === 'warning') { 
-            icon = 'bi-exclamation-triangle-fill'; 
-            displayTitle = 'INTERFERENCE'; 
-        }
 
-        var n = document.createElement('div');
-        n.className = 'notification ' + type;
-        n.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <div class="notification-title">
-                    <i class="bi ${icon}" style="margin-right:6px;"></i> ${displayTitle}
-                </div>
-                <button class="notification-close" style="background:none; border:none;" aria-label="Close">
-                    <i class="bi bi-x"></i>
-                </button>
+        const icons = {
+            success: 'bi-check-circle-fill',
+            error: 'bi-exclamation-circle-fill',
+            warning: 'bi-exclamation-triangle-fill',
+            info: 'bi-info-circle-fill'
+        };
+
+        const titles = {
+            success: 'SIGNAL LOCKED',
+            error: 'FREQUENCY ERROR',
+            warning: 'INTERFERENCE',
+            info: 'SYSTEM MESSAGE'
+        };
+
+        const notif = document.createElement('div');
+        notif.className = `notification ${type}`;
+        notif.innerHTML = `
+            <button class="notif-close" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
+            <div class="notif-title">
+                <i class="bi ${icons[type]}"></i>
+                ${titles[type] || title}
             </div>
-            <p class="notification-message" style="margin:0; font-size:0.75rem; color:#ccc;">${msg}</p>
+            <div class="notif-message">${message}</div>
         `;
-        
-        notifContainer.appendChild(n);
-        
-        var closeBtn = n.querySelector('.notification-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function(e) { 
-                e.stopPropagation(); 
-                if (n.parentNode) n.parentNode.removeChild(n);
-            });
-        }
-        
-        setTimeout(function() { 
-            if (n.parentNode) n.parentNode.removeChild(n);
+
+        notifContainer.appendChild(notif);
+
+        setTimeout(() => {
+            if (notif.parentNode) notif.remove();
         }, 5000);
     }
 
-    // ===== LOAD DJANGO ERRORS =====
+    // ===== LOAD DJANGO MESSAGES =====
     function loadMessages() {
-        var djangoMsgs = document.getElementById('djangoMessages');
+        const djangoMsgs = document.getElementById('djangoMessages');
         if (djangoMsgs) {
-            var messages = djangoMsgs.querySelectorAll('.message');
-            for (var i = 0; i < messages.length; i++) {
-                var m = messages[i];
-                var tag = m.getAttribute('data-tag') || 'info';
-                showNotification(tag, '', m.textContent.trim());
-            }
+            djangoMsgs.querySelectorAll('.message').forEach(msg => {
+                const tag = msg.getAttribute('data-tag') || 'info';
+                showNotification(tag, '', msg.textContent.trim());
+            });
         }
-        
-        var fErrors = document.getElementById('formErrors');
-        if (fErrors) {
-            var errors = fErrors.querySelectorAll('.error');
-            for (var i = 0; i < errors.length; i++) {
-                showNotification('error', 'AUTH FAILED', errors[i].textContent.trim());
-            }
+
+        const formErrors = document.getElementById('formErrors');
+        if (formErrors) {
+            formErrors.querySelectorAll('.error').forEach(err => {
+                showNotification('error', 'AUTH FAILED', err.textContent.trim());
+            });
         }
-        
-        var uErrors = document.getElementById('usernameErrors');
-        if (uErrors) {
-            var uerrs = uErrors.querySelectorAll('.error');
-            for (var i = 0; i < uerrs.length; i++) {
-                showNotification('error', 'CALLSIGN ERROR', uerrs[i].textContent.trim());
-            }
+
+        const usernameErrors = document.getElementById('usernameErrors');
+        if (usernameErrors) {
+            usernameErrors.querySelectorAll('.error').forEach(err => {
+                showNotification('error', 'CALLSIGN ERROR', err.textContent.trim());
+            });
         }
-        
-        var pErrors = document.getElementById('passwordErrors');
-        if (pErrors) {
-            var perrs = pErrors.querySelectorAll('.error');
-            for (var i = 0; i < perrs.length; i++) {
-                showNotification('error', 'BANDWIDTH ERROR', perrs[i].textContent.trim());
-            }
+
+        const passwordErrors = document.getElementById('passwordErrors');
+        if (passwordErrors) {
+            passwordErrors.querySelectorAll('.error').forEach(err => {
+                showNotification('error', 'ACCESS CODE ERROR', err.textContent.trim());
+            });
         }
     }
-    
-    setTimeout(loadMessages, 150);
 
-    // ===== ELEGANT TRANSITION =====
+    setTimeout(loadMessages, 200);
+
+    // ===== FORM SUBMIT =====
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            var uname = usernameField;
-            var pword = passwordField;
-            var err = false;
-            
+
+            // Validation
+            if (!username.value || !username.value.trim()) {
+                showNotification('error', 'VALIDATION', 'Callsign is required');
+                username.focus();
+                return;
+            }
+
+            if (!password.value || !password.value.trim()) {
+                showNotification('error', 'VALIDATION', 'Access code is required');
+                password.focus();
+                return;
+            }
+
+            // Clear notifications
             if (notifContainer) notifContainer.innerHTML = '';
 
-            if (!uname || !uname.value || !uname.value.trim()) {
-                showNotification('error', 'VALIDATION', 'CALLSIGN REQUIRED');
-                if (uname) {
-                    uname.focus();
-                    uname.style.borderColor = 'rgba(255,255,255,0.5)';
-                }
-                err = true;
-            } else if (!pword || !pword.value || !pword.value.trim()) {
-                showNotification('error', 'VALIDATION', 'ACCESS CODE REQUIRED');
-                if (!err && pword) {
-                    pword.focus();
-                    pword.style.borderColor = 'rgba(255,255,255,0.5)';
-                }
-                err = true;
-            }
-            
-            if (err) {
-                return false;
-            }
-
-            // Button animation
+            // Button loading state
             if (btn) {
-                btn.classList.add('transitioning');
                 btn.innerHTML = '<i class="bi bi-soundwave"></i> LOCKING <span class="spinner"></span>';
                 btn.disabled = true;
             }
-            
-            // Show transition overlay
-            transitionOverlay.classList.add('active');
-            
-            // Animate frequency
-            const frequencies = ['104.7 MHz', '98.3 MHz', '101.5 MHz', '106.9 MHz', '104.7 MHz'];
-            let freqIndex = 0;
-            const freqInterval = setInterval(() => {
-                if (freqIndex < frequencies.length) {
-                    if (transitionFreq) {
-                        transitionFreq.textContent = frequencies[freqIndex];
-                    }
-                    freqIndex++;
-                } else {
-                    clearInterval(freqInterval);
-                }
-            }, 300);
-            
-            // Update status messages
-            const statuses = [
-                'TUNING TO SECURE CHANNEL',
-                'ESTABLISHING LINK',
-                'VERIFYING CREDENTIALS',
-                'SIGNAL LOCKED',
-                'CONNECTING TO DASHBOARD'
-            ];
-            
-            let statusIndex = 0;
-            const statusInterval = setInterval(() => {
-                if (statusIndex < statuses.length) {
-                    if (transitionStatus) {
-                        transitionStatus.textContent = statuses[statusIndex];
-                    }
-                    statusIndex++;
-                } else {
-                    clearInterval(statusInterval);
-                }
-            }, 400);
-            
-            // Submit form
-            setTimeout(() => {
-                const formData = new FormData(form);
+
+            // Show transition
+            if (transitionOverlay) {
+                transitionOverlay.classList.add('active');
                 
-                fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                // Animate frequency
+                let freq = 104.7;
+                const freqInterval = setInterval(() => {
+                    freq = 104.7 + (Math.random() * 0.6 - 0.3);
+                    if (transitionFreq) {
+                        transitionFreq.textContent = freq.toFixed(1) + ' MHz';
                     }
-                })
-                .then(response => {
-                    if (response.redirected) {
-                        // Successful login - redirect
-                        window.location.href = response.url;
-                    } else {
-                        // Login failed - reset
-                        transitionOverlay.classList.remove('active');
-                        btn.classList.remove('transitioning');
-                        btn.innerHTML = '<i class="bi bi-soundwave"></i> LOGIN <i class="bi bi-arrow-right-short"></i>';
-                        btn.disabled = false;
-                        
-                        clearInterval(freqInterval);
-                        clearInterval(statusInterval);
-                        
-                        return response.text().then(html => {
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(html, 'text/html');
-                            const errors = doc.getElementById('formErrors') || doc.getElementById('djangoMessages');
-                            
-                            if (errors) {
-                                const errorMsgs = errors.querySelectorAll('.error, .message');
-                                errorMsgs.forEach(msg => {
-                                    showNotification('error', 'AUTH FAILED', msg.textContent.trim());
-                                });
-                            } else {
-                                showNotification('error', 'AUTH FAILED', 'Invalid credentials');
-                            }
-                        });
+                }, 150);
+
+                // Update status messages
+                const statuses = [
+                    'INITIALIZING RADAR',
+                    'SCANNING FREQUENCY',
+                    'DETECTING SIGNAL',
+                    'ACQUIRING LOCK',
+                    'AUTHENTICATING',
+                    'SIGNAL LOCKED'
+                ];
+                
+                let statusIndex = 0;
+                const statusInterval = setInterval(() => {
+                    if (transitionStatus && statusIndex < statuses.length) {
+                        transitionStatus.textContent = statuses[statusIndex];
+                        statusIndex++;
                     }
-                })
-                .catch(error => {
-                    console.error('Login error:', error);
-                    transitionOverlay.classList.remove('active');
-                    btn.classList.remove('transitioning');
-                    btn.innerHTML = '<i class="bi bi-soundwave"></i> LOGIN <i class="bi bi-arrow-right-short"></i>';
-                    btn.disabled = false;
+                }, 400);
+
+                // Update progress percentages
+                let progress = [30, 45, 15];
+                const progressInterval = setInterval(() => {
+                    progress = progress.map(p => {
+                        const increment = Math.random() * 15;
+                        return Math.min(p + increment, 100);
+                    });
                     
+                    progressFills.forEach((fill, index) => {
+                        fill.style.width = progress[index] + '%';
+                        if (progressPercents[index]) {
+                            progressPercents[index].textContent = Math.round(progress[index]) + '%';
+                        }
+                    });
+                }, 300);
+
+                // Submit after animation
+                setTimeout(() => {
                     clearInterval(freqInterval);
                     clearInterval(statusInterval);
-                    
-                    showNotification('error', 'SYSTEM ERROR', 'Connection failed');
-                });
-            }, 800);
+                    clearInterval(progressInterval);
+                    form.submit();
+                }, 2800);
+            } else {
+                setTimeout(() => form.submit(), 800);
+            }
         });
     }
 
     // ===== FOCUS USERNAME =====
-    if (usernameField) {
-        usernameField.focus();
-    }
-    
-    // ===== PREVENT BODY SCROLL =====
+    if (username) username.focus();
+
+    // ===== PREVENT SCROLL =====
     document.body.style.overflow = 'hidden';
-    
-    // ===== RANDOM BAND PULSE =====
-    function randomBandPulse() {
-        var bands = document.querySelectorAll('.band');
-        for (var i = 0; i < bands.length; i++) {
-            if (Math.random() > 0.7) {
-                bands[i].style.height = Math.floor(Math.random() * 80 + 25) + 'px';
-            }
-        }
+
+    // ===== SIGNAL BAR ANIMATION =====
+    function updateSignalBars() {
+        document.querySelectorAll('.signal-bar').forEach(bar => {
+            bar.style.height = Math.floor(Math.random() * 20 + 8) + 'px';
+        });
     }
-    
-    if (document.querySelectorAll('.band').length > 0) {
-        bandInterval = setInterval(randomBandPulse, 800);
-    }
+    setInterval(updateSignalBars, 1000);
 
     // ===== CLEANUP =====
-    window.addEventListener('beforeunload', function() {
-        if (tuneInterval) clearInterval(tuneInterval);
-        if (bandInterval) clearInterval(bandInterval);
+    window.addEventListener('beforeunload', () => {
+        document.body.style.overflow = '';
     });
-
-    // ===== INPUT FOCUS EFFECTS =====
-    if (usernameField) {
-        usernameField.addEventListener('focus', function() {
-            this.style.borderColor = 'white';
-        });
-        usernameField.addEventListener('blur', function() {
-            this.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
-    }
-    
-    if (passwordField) {
-        passwordField.addEventListener('focus', function() {
-            this.style.borderColor = 'white';
-        });
-        passwordField.addEventListener('blur', function() {
-            this.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
-    }
-
 })();
 </script>
-
-<style>
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-</style>
 {% endblock %}

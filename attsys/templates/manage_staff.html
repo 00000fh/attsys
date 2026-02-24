@@ -4,8 +4,12 @@
 
 {% block extra_css %}
 <style>
-    /* ===== STAFF MANAGEMENT - NEUROMORPHIC DARK ===== */
+    /* ===== STAFF MANAGEMENT - NEUROMORPHIC WITH DARK BLUE ACCENTS ===== */
     :root {
+        --dark-blue: #1a2b4c;
+        --dark-blue-light: #2c3e5e;
+        --dark-blue-bright: #3a5a8c;
+        --dark-blue-glow: #4a6a9c;
         --staff-card-bg: white;
         --staff-card-border: #e9ecef;
         --status-active: #10b981;
@@ -44,13 +48,13 @@
 
     .stat-icon i {
         font-size: 1.5rem;
-        color: var(--black);
+        color: var(--dark-blue);
     }
 
     .stat-value {
         font-size: 2.25rem;
         font-weight: 700;
-        color: var(--black);
+        color: var(--dark-blue);
         line-height: 1;
         margin-bottom: 0.35rem;
         font-feature-settings: "tnum";
@@ -79,7 +83,7 @@
         transition: width 1s ease-in-out;
     }
 
-    .progress-bar.bg-dark { background: var(--black); }
+    .progress-bar.bg-dark { background: var(--dark-blue); }
     .progress-bar.bg-success { background: var(--status-active); }
     .progress-bar.bg-danger { background: var(--status-inactive); }
 
@@ -100,7 +104,7 @@
 
     .staff-table th {
         background: var(--gray-50);
-        color: var(--gray-700);
+        color: var(--dark-blue);
         font-weight: 600;
         font-size: 0.7rem;
         text-transform: uppercase;
@@ -143,7 +147,7 @@
     .user-avatar {
         width: 42px;
         height: 42px;
-        background: var(--black);
+        background: var(--dark-blue);
         border-radius: 16px;
         display: flex;
         align-items: center;
@@ -156,7 +160,7 @@
 
     .staff-name {
         font-weight: 600;
-        color: var(--black);
+        color: var(--dark-blue);
         margin-bottom: 0.125rem;
         font-size: 0.9rem;
     }
@@ -208,18 +212,18 @@
         font-family: 'Courier New', monospace;
         font-size: 0.8rem;
         font-weight: 600;
-        color: var(--black);
+        color: var(--dark-blue);
         letter-spacing: 0.5px;
     }
 
     .password-toggle {
         cursor: pointer;
-        color: var(--gray-500);
+        color: var(--dark-blue);
         transition: color 0.2s ease;
     }
 
     .password-toggle:hover {
-        color: var(--black);
+        color: var(--dark-blue-bright);
     }
 
     .password-hidden {
@@ -249,11 +253,13 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
+        color: var(--dark-blue);
     }
 
     .btn-action:hover {
         background: var(--gray-100);
-        border-color: var(--gray-400);
+        border-color: var(--dark-blue);
+        color: var(--dark-blue);
         transform: translateY(-1px);
     }
 
@@ -297,9 +303,9 @@
     }
 
     .btn-add-staff {
-        background: var(--black) !important;
+        background: var(--dark-blue) !important;
         color: white !important;
-        border: 1px solid var(--gray-700) !important;
+        border: 1px solid var(--dark-blue-light) !important;
         padding: 0.7rem 1.8rem !important;
         border-radius: 40px !important;
         font-weight: 600 !important;
@@ -308,13 +314,17 @@
         align-items: center;
         gap: 0.75rem;
         transition: all 0.25s ease !important;
-        box-shadow: 0 8px 20px -6px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 8px 20px -6px rgba(26,43,76,0.3) !important;
     }
 
     .btn-add-staff:hover {
-        background: var(--gray-800) !important;
+        background: var(--dark-blue-light) !important;
         transform: translateY(-3px) !important;
-        box-shadow: 0 14px 28px -8px rgba(0,0,0,0.4) !important;
+        box-shadow: 0 14px 28px -8px rgba(26,43,76,0.4) !important;
+    }
+
+    .btn-add-staff i {
+        color: white;
     }
 
     /* ===== SEARCH ===== */
@@ -335,8 +345,8 @@
 
     .search-input:focus {
         outline: none;
-        border-color: var(--black);
-        box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+        border-color: var(--dark-blue);
+        box-shadow: 0 0 0 3px rgba(26,43,76,0.1);
     }
 
     .search-icon {
@@ -344,7 +354,7 @@
         left: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: var(--gray-500);
+        color: var(--dark-blue);
         font-size: 0.9rem;
     }
 
@@ -363,7 +373,7 @@
 
     .modal-title {
         font-weight: 700;
-        color: var(--black);
+        color: var(--dark-blue);
         font-size: 1.25rem;
         letter-spacing: -0.01em;
     }
@@ -384,9 +394,13 @@
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: var(--gray-600);
+        color: var(--dark-blue);
         font-weight: 600;
         margin-bottom: 0.5rem;
+    }
+
+    .form-label i {
+        color: var(--dark-blue);
     }
 
     .form-control {
@@ -401,8 +415,8 @@
 
     .form-control:focus {
         outline: none;
-        border-color: var(--black);
-        box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+        border-color: var(--dark-blue);
+        box-shadow: 0 0 0 3px rgba(26,43,76,0.1);
     }
 
     .input-group {
@@ -425,14 +439,14 @@
     .btn-password-toggle {
         background: transparent;
         border: none;
-        color: var(--gray-500);
+        color: var(--dark-blue);
         padding: 0.25rem;
         cursor: pointer;
         transition: color 0.2s ease;
     }
 
     .btn-password-toggle:hover {
-        color: var(--black);
+        color: var(--dark-blue-bright);
     }
 
     /* ===== EMPTY STATE ===== */
@@ -444,8 +458,13 @@
 
     .empty-state i {
         font-size: 3rem;
-        color: var(--gray-300);
+        color: var(--dark-blue);
         margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+
+    .empty-state h6 {
+        color: var(--dark-blue);
     }
 
     /* ===== SIGNAL BARS ===== */
@@ -458,7 +477,7 @@
 
     .signal-bar {
         width: 4px;
-        background: var(--black);
+        background: var(--dark-blue);
         height: 12px;
         animation: signalPulse 1.2s infinite alternate;
         opacity: 0.7;
@@ -486,6 +505,39 @@
     .reveal.visible {
         opacity: 1;
         transform: translateY(0);
+    }
+
+    /* ===== FREQUENCY DISPLAY ===== */
+    .frequency-display {
+        background: var(--dark-blue);
+        color: white;
+        padding: 0.35rem 1rem;
+        border-radius: 40px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .frequency-display i {
+        color: rgba(255,255,255,0.8);
+    }
+
+    /* ===== STAFF ID BADGE ===== */
+    .staff-id-badge {
+        background: rgba(26,43,76,0.1);
+        color: var(--dark-blue);
+        padding: 0.25rem 0.75rem;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid rgba(26,43,76,0.2);
     }
 
     /* ===== RESPONSIVE ===== */
@@ -526,23 +578,23 @@
                     <div class="signal-bar"></div>
                     <div class="signal-bar"></div>
                 </div>
-                <span class="text-xs font-mono text-gray-600 tracking-wider">STAFF CONTROL · ADMIN ONLY</span>
-                <span class="text-xs font-mono bg-black text-white px-2 py-0.5 rounded-full">SECURE</span>
+                <span class="text-xs font-mono text-[#1a2b4c] tracking-wider">STAFF CONTROL · ADMIN ONLY</span>
+                <span class="text-xs font-mono bg-[#1a2b4c] text-white px-2 py-0.5 rounded-full">SECURE</span>
             </div>
             
-            <h1 class="text-3xl md:text-4xl font-bold text-black tracking-tight glitch-text">
+            <h1 class="text-3xl md:text-4xl font-bold text-[#1a2b4c] tracking-tight glitch-text">
                 STAFF MANAGEMENT
             </h1>
             <p class="text-gray-500 text-base max-w-2xl mt-2">
-                <span class="font-mono">›</span> Manage staff accounts · toggle access · view credentials
+                <span class="font-mono text-[#1a2b4c]">›</span> Manage staff accounts · toggle access · view credentials
             </p>
         </div>
         
         <div class="flex items-center gap-4 mt-4 md:mt-0">
             <div class="neu-raised-sm px-5 py-3 rounded-xl flex items-center gap-3 transmission-ripple">
-                <i class="bi bi-shield-lock text-gray-500"></i>
+                <i class="bi bi-shield-lock text-[#1a2b4c]"></i>
                 <div>
-                    <div id="secureFreq" class="text-sm font-mono text-black font-bold">104.7 MHz</div>
+                    <div id="secureFreq" class="text-sm font-mono text-[#1a2b4c] font-bold">104.7 MHz</div>
                     <div class="text-xs text-gray-400">ENCRYPTED</div>
                 </div>
             </div>
@@ -562,7 +614,7 @@
                 <div class="stat-icon">
                     <i class="bi bi-person-badge"></i>
                 </div>
-                <span class="text-xs bg-gray-100 px-3 py-1.5 rounded-full font-mono">
+                <span class="text-xs bg-[#1a2b4c]/10 text-[#1a2b4c] px-3 py-1.5 rounded-full font-mono">
                     TOTAL
                 </span>
             </div>
@@ -613,7 +665,7 @@
                 <div class="stat-icon">
                     <i class="bi bi-calendar-event"></i>
                 </div>
-                <span class="text-xs bg-gray-100 px-3 py-1.5 rounded-full font-mono">
+                <span class="text-xs bg-[#1a2b4c]/10 text-[#1a2b4c] px-3 py-1.5 rounded-full font-mono">
                     SYSTEM
                 </span>
             </div>
@@ -633,7 +685,7 @@
                    placeholder="Search staff by name or ID...">
         </div>
         <div class="text-xs text-gray-400 font-mono">
-            <span id="visibleCount">{{ staff_users|length }}</span> / {{ staff_users|length }} STAFF VISIBLE
+            <span id="visibleCount" class="text-[#1a2b4c] font-bold">{{ staff_users|length }}</span> / {{ staff_users|length }} STAFF VISIBLE
         </div>
     </div>
 
@@ -663,29 +715,33 @@
                                 <div>
                                     <div class="staff-name">{{ staff.username }}</div>
                                     <div class="staff-role">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#1a2b4c]"></span>
                                         STAFF
                                     </div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="font-mono text-sm font-semibold text-black">
+                            <span class="staff-id-badge">
+                                <i class="bi bi-person-vcard"></i>
                                 STAFF-{{ staff.id|stringformat:"06d" }}
                             </span>
                         </td>
                         <td>
                             <div class="password-container" id="password-container-{{ staff.id }}">
                                 <span class="password-hidden" id="password-hidden-{{ staff.id }}">••••••••</span>
+                                <span class="password-text" id="password-text-{{ staff.id }}" style="display: none;">
+                                    {{ staff.default_password }}
+                                </span>
                                 <i class="bi bi-eye password-toggle" id="toggle-icon-{{ staff.id }}" 
-                                   onclick="togglePasswordVisibility({{ staff.id }})"
-                                   title="Show/Hide Password"></i>
+                                onclick="togglePasswordVisibility({{ staff.id }})"
+                                title="Show/Hide Password"></i>
                             </div>
                             <div class="text-[0.6rem] text-gray-400 mt-1 font-mono">
                                 {% if staff.last_password_update %}
                                 UPDATED: {{ staff.last_password_update|date:"d/m/y" }}
                                 {% else %}
-                                DEFAULT
+                                DEFAULT PASSWORD
                                 {% endif %}
                             </div>
                         </td>
@@ -704,7 +760,7 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-baseline gap-2">
-                                <span class="font-bold text-black text-lg font-mono">{{ staff.events.count|default:0 }}</span>
+                                <span class="font-bold text-[#1a2b4c] text-lg font-mono">{{ staff.events.count|default:0 }}</span>
                                 <span class="text-xs text-gray-400">EVENTS</span>
                             </div>
                         </td>
@@ -735,7 +791,7 @@
                                         </button>
                                     {% endif %}
                                 </form>
-                                <button class="btn-action" onclick="copyCredentials('{{ staff.username }}', '{{ staff.default_password|default:"xxxxx" }}')">
+                                <button class="btn-action" onclick="copyCredentials('{{ staff.username }}', '{{ staff.default_password|default:"canon990" }}')">
                                     <i class="bi bi-files"></i>
                                     COPY
                                 </button>
@@ -747,7 +803,7 @@
                         <td colspan="7" class="text-center py-5">
                             <div class="empty-state">
                                 <i class="bi bi-people"></i>
-                                <h6 class="mt-3 mb-2 text-sm font-medium text-gray-700">NO STAFF MEMBERS</h6>
+                                <h6 class="mt-3 mb-2 text-sm font-medium text-[#1a2b4c]">NO STAFF MEMBERS</h6>
                                 <p class="text-xs text-gray-400 mb-4">Initialize the system by adding your first staff member</p>
                                 <button class="btn-add-staff" onclick="openAddStaffModal()">
                                     <i class="bi bi-person-plus"></i> ADD FIRST STAFF
@@ -764,7 +820,7 @@
     <!-- ===== SYSTEM FOOTER ===== -->
     <div class="mt-8 text-center text-xs text-gray-400 font-mono reveal">
         <div class="inline-flex items-center gap-2 px-4 py-2 neu-inset rounded-full">
-            <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+            <span class="w-2 h-2 bg-[#1a2b4c] rounded-full animate-pulse"></span>
             STAFF CONTROL PANEL · ENCRYPTED TRANSMISSION
             <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
             LAST SYNC: {{ now|date:"d/m/Y H:i" }}
@@ -774,11 +830,11 @@
 
 <!-- ===== ADD STAFF MODAL - SIMPLIFIED (ID + PASSWORD ONLY) ===== -->
 <div id="addStaffModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
-    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddStaffModal()"></div>
+    <div class="fixed inset-0 bg-[#1a2b4c]/50 backdrop-blur-sm" onclick="closeAddStaffModal()"></div>
     <div class="modal-neu relative w-full max-w-md mx-auto z-10">
         <div class="modal-header">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-black flex items-center justify-center">
+                <div class="w-10 h-10 rounded-xl bg-[#1a2b4c] flex items-center justify-center">
                     <i class="bi bi-person-plus text-white text-xl"></i>
                 </div>
                 <div>
@@ -802,7 +858,7 @@
                            autocomplete="off" pattern="[a-zA-Z0-9_]+" 
                            title="Letters, numbers, and underscores only">
                     <div class="text-xs text-gray-400 mt-2 flex items-center gap-2">
-                        <i class="bi bi-info-circle"></i>
+                        <i class="bi bi-info-circle text-[#1a2b4c]"></i>
                         Unique identifier · 3-30 characters
                     </div>
                 </div>
@@ -815,7 +871,7 @@
                     <div class="input-group">
                         <input type="password" class="form-control" id="password" 
                                placeholder="Enter password" required 
-                               autocomplete="new-password" value="xxxxx">
+                               autocomplete="new-password" value="canon990">
                         <div class="input-group-append">
                             <button type="button" class="btn-password-toggle" onclick="toggleModalPassword()">
                                 <i class="bi bi-eye" id="modalPasswordIcon"></i>
@@ -824,9 +880,9 @@
                     </div>
                     <div class="flex justify-between items-center mt-2">
                         <span class="text-xs text-gray-400">
-                            <i class="bi bi-shield-check"></i> Min. 8 characters
+                            <i class="bi bi-shield-check text-[#1a2b4c]"></i> Min. 8 characters
                         </span>
-                        <button type="button" class="text-xs text-black font-medium hover:underline"
+                        <button type="button" class="text-xs text-[#1a2b4c] font-medium hover:underline"
                                 onclick="generateSecurePassword()">
                             <i class="bi bi-arrow-repeat"></i> GENERATE
                         </button>
@@ -836,9 +892,9 @@
                 <!-- AUTO-GENERATED PASSWORD INFO -->
                 <div class="neu-inset-flat p-3 rounded-xl bg-gray-50 mt-4">
                     <div class="flex items-start gap-2">
-                        <i class="bi bi-info-circle text-gray-500 mt-0.5"></i>
+                        <i class="bi bi-info-circle text-[#1a2b4c] mt-0.5"></i>
                         <div class="text-xs text-gray-600">
-                            <span class="font-semibold">Default password:</span> canon990<br>
+                            <span class="font-semibold text-[#1a2b4c]">Default password:</span> canon990<br>
                             Staff can change password after first login.
                         </div>
                     </div>
@@ -883,7 +939,7 @@
             // Initialize all password fields to hidden state
             initializePasswordFields();
             
-            console.log('✅ Staff Management initialized');
+            console.log('✅ Staff Management initialized with dark blue accents');
         });
 
         // ===== STAT CARDS ANIMATION =====
@@ -970,11 +1026,21 @@
         // ===== INITIALIZE PASSWORD FIELDS (ALL HIDDEN) =====
         function initializePasswordFields() {
             {% for staff in staff_users %}
+            // Create text span for password if it doesn't exist
+            const container{{ staff.id }} = document.getElementById(`password-container-${ {{ staff.id }} }`);
             const hiddenSpan{{ staff.id }} = document.getElementById(`password-hidden-${ {{ staff.id }} }`);
-            const textSpan{{ staff.id }} = document.getElementById(`password-text-${ {{ staff.id }} }`);
-            if (hiddenSpan{{ staff.id }} && textSpan{{ staff.id }}) {
+            
+            if (container{{ staff.id }} && !document.getElementById(`password-text-${ {{ staff.id }} }`)) {
+                const textSpan = document.createElement('span');
+                textSpan.id = `password-text-${ {{ staff.id }} }`;
+                textSpan.className = 'password-text';
+                textSpan.textContent = '{{ staff.default_password|default:"canon990" }}';
+                textSpan.style.display = 'none';
+                container{{ staff.id }}.insertBefore(textSpan, hiddenSpan{{ staff.id }}.nextSibling);
+            }
+            
+            if (hiddenSpan{{ staff.id }}) {
                 hiddenSpan{{ staff.id }}.style.display = 'inline';
-                textSpan{{ staff.id }}.style.display = 'none';
             }
             {% endfor %}
         }
@@ -1085,7 +1151,7 @@
             }
             
             // Make API call to create staff
-            fetch('/api/staff/create/', {
+            fetch('/attsys/api/staff/create/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1158,7 +1224,7 @@
             let bgColor, icon;
             switch(type) {
                 case 'success':
-                    bgColor = 'from-green-600 to-green-700';
+                    bgColor = 'from-[#1a2b4c] to-[#2c3e5e]';
                     icon = 'bi-check-circle-fill';
                     break;
                 case 'error':
@@ -1166,7 +1232,7 @@
                     icon = 'bi-x-circle-fill';
                     break;
                 default:
-                    bgColor = 'from-blue-600 to-blue-700';
+                    bgColor = 'from-[#1a2b4c] to-[#2c3e5e]';
                     icon = 'bi-info-circle-fill';
             }
             

@@ -5,7 +5,7 @@
 {% block extra_css %}
 <style>
     /* ---------------------------------------------------------------
-       DASHBOARD — WHITE MAIN, BLACK SUB — WOW EFFECTS
+       DASHBOARD — WHITE MAIN, DARK BLUE ACCENTS — WOW EFFECTS
        Radio frequency, oscilloscope, transmission ripples
        FIXED: Create Event button visible · NO FEEDBACK/RATING ELEMENTS
     --------------------------------------------------------------- */
@@ -20,7 +20,7 @@
     }
     .signal-strength .bar {
         width: 6px;
-        background: var(--black);
+        background: var(--dark-blue, #1a2b4c);
         height: 10px;
         animation: signalPulse 1.2s infinite alternate;
         opacity: 0.7;
@@ -44,11 +44,11 @@
         stroke-dasharray: 251.2;
         stroke-dashoffset: 251.2;
         transition: stroke-dashoffset 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        stroke: var(--black);
+        stroke: var(--dark-blue, #1a2b4c);
     }
     .stat-ring-bg {
         fill: none;
-        stroke: rgba(0,0,0,0.08);
+        stroke: rgba(26,43,76,0.08);
         stroke-width: 3;
     }
 
@@ -56,14 +56,14 @@
     .progress-container {
         width: 100%;
         height: 6px;
-        background: rgba(0,0,0,0.08);
+        background: rgba(26,43,76,0.08);
         border-radius: 999px;
         overflow: hidden;
         position: relative;
     }
     .progress-fill {
         height: 100%;
-        background: var(--black);
+        background: var(--dark-blue, #1a2b4c);
         border-radius: 999px;
         transition: width 1s ease;
         max-width: 100%;
@@ -74,7 +74,7 @@
     .scan-progress {
         position: relative;
         overflow: hidden;
-        background: rgba(0,0,0,0.08);
+        background: rgba(26,43,76,0.08);
         border-radius: 999px;
         height: 6px;
     }
@@ -108,7 +108,7 @@
         left: 50%;
         width: 100%;
         height: 100%;
-        border: 1px solid var(--black);
+        border: 1px solid var(--dark-blue, #1a2b4c);
         border-radius: 50%;
         transform: translate(-50%, -50%) scale(0.8);
         opacity: 0;
@@ -133,19 +133,19 @@
         animation: glitch 3s infinite;
     }
     @keyframes glitch {
-        0%, 100% { text-shadow: 0 0 0 rgba(0,0,0,0.3); }
-        25% { text-shadow: -1px 0 0 rgba(0,0,0,0.3), 1px 0 0 rgba(0,0,0,0.2); }
-        75% { text-shadow: 1px 0 0 rgba(0,0,0,0.3), -1px 0 0 rgba(0,0,0,0.2); }
+        0%, 100% { text-shadow: 0 0 0 rgba(26,43,76,0.3); }
+        25% { text-shadow: -1px 0 0 rgba(26,43,76,0.3), 1px 0 0 rgba(26,43,76,0.2); }
+        75% { text-shadow: 1px 0 0 rgba(26,43,76,0.3), -1px 0 0 rgba(26,43,76,0.2); }
     }
 
     /* ===== DATA ROW HOVER ===== */
     .data-row {
-        border-bottom: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid rgba(26,43,76,0.05);
         transition: all 0.2s ease;
         cursor: pointer;
     }
     .data-row:hover {
-        background: rgba(0,0,0,0.02);
+        background: rgba(26,43,76,0.02);
         transform: translateX(4px);
     }
 
@@ -166,12 +166,12 @@
     }
     .card-lift:hover {
         transform: translateY(-4px);
-        box-shadow: 0 16px 32px -8px rgba(0,0,0,0.15);
+        box-shadow: 0 16px 32px -8px rgba(26,43,76,0.15);
     }
 
-    /* ===== BUTTON BLACK — PROMINENT, HIGH CONTRAST ===== */
-    .btn-black {
-        background: var(--black);
+    /* ===== BUTTON DARK BLUE — PROMINENT, HIGH CONTRAST ===== */
+    .btn-dark-blue {
+        background: var(--dark-blue, #1a2b4c);
         color: white;
         border: 1px solid var(--gray-700);
         box-shadow: var(--neu-raised-sm);
@@ -179,23 +179,23 @@
         font-weight: 600;
         letter-spacing: 0.3px;
     }
-    .btn-black:hover {
-        background: var(--gray-800);
+    .btn-dark-blue:hover {
+        background: var(--dark-blue-light, #2c3e5e);
         transform: translateY(-3px);
-        box-shadow: 0 16px 24px -8px rgba(0,0,0,0.25);
+        box-shadow: 0 16px 24px -8px rgba(26,43,76,0.25);
         color: white;
     }
-    .btn-black:active {
+    .btn-dark-blue:active {
         transform: translateY(1px);
         box-shadow: var(--neu-inset-flat);
     }
 
-    /* ===== NEW EVENT BUTTON — FORCED VISIBILITY ===== */
+    /* ===== NEW EVENT BUTTON — DARK BLUE ===== */
     .btn-new-event {
-        background: #000000 !important;
+        background: #1a2b4c !important;
         color: white !important;
         border: 1px solid #404040 !important;
-        box-shadow: 0 8px 20px -6px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 8px 20px -6px rgba(26,43,76,0.3) !important;
         padding: 0.75rem 1.8rem !important;
         border-radius: 40px !important;
         font-weight: 700 !important;
@@ -206,9 +206,9 @@
         transition: all 0.25s ease !important;
     }
     .btn-new-event:hover {
-        background: #1a1a1a !important;
+        background: #2c3e5e !important;
         transform: translateY(-4px) !important;
-        box-shadow: 0 18px 28px -8px rgba(0,0,0,0.4) !important;
+        box-shadow: 0 18px 28px -8px rgba(26,43,76,0.4) !important;
     }
     .btn-new-event i {
         font-size: 1.1rem;
@@ -216,7 +216,7 @@
 
     /* ===== EMPTY STATE ACTION BUTTON ===== */
     .btn-create-first {
-        background: var(--black) !important;
+        background: #1a2b4c !important;
         color: white !important;
         padding: 0.7rem 2rem !important;
         border-radius: 40px !important;
@@ -227,7 +227,7 @@
         box-shadow: var(--neu-raised-sm);
     }
     .btn-create-first:hover {
-        background: var(--gray-800);
+        background: #2c3e5e;
         transform: translateY(-2px);
     }
 
@@ -264,12 +264,12 @@
         top: 0;
         background: #f5f5f5;
         z-index: 10;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        box-shadow: 0 2px 4px rgba(26,43,76,0.02);
     }
     
     /* ===== TOTAL SIGNALS BADGE ===== */
     .signals-badge {
-        background: var(--black);
+        background: #1a2b4c;
         color: white;
         font-size: 0.7rem;
         font-weight: 600;
@@ -293,9 +293,9 @@
                 <div class="bar !w-1.5"></div>
             </div>
             <span class="text-xs font-mono text-gray-600 tracking-wider">LIVE · DASHBOARD</span>
-            <span class="text-xs font-mono bg-black text-white px-2 py-0.5 rounded-full">RX</span>
+            <span class="text-xs font-mono bg-[#1a2b4c] text-white px-2 py-0.5 rounded-full">RX</span>
         </div>
-        <h1 class="text-3xl md:text-4xl font-bold text-black tracking-tight glitch-text">
+        <h1 class="text-3xl md:text-4xl font-bold text-[#1a2b4c] tracking-tight glitch-text">
             Welcome back,
             <span class="text-gray-600">{{ user.username }}</span>
         </h1>
@@ -321,7 +321,7 @@
     </div>
 </div>
 
-<!-- ===== STATS GRID — WHITE CARDS, BLACK RINGS ===== -->
+<!-- ===== STATS GRID — WHITE CARDS, DARK BLUE RINGS ===== -->
 <!-- FEEDBACK/RATING CARD COMPLETELY REMOVED - NOW ONLY 3 CARDS FOR NON-ADMIN -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Total Events -->
@@ -329,12 +329,12 @@
         <div class="flex items-start justify-between">
             <div>
                 <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">EVENTS</span>
-                <div class="text-3xl font-bold text-black mt-1 flex items-baseline">
+                <div class="text-3xl font-bold text-[#1a2b4c] mt-1 flex items-baseline">
                     <span id="eventCounter">0</span>
                     <span class="text-sm text-gray-400 ml-2 font-mono">TOTAL</span>
                 </div>
                 <div class="flex items-center gap-2 mt-3">
-                    <span class="inline-flex items-center gap-1 text-xs bg-black/5 text-gray-700 px-2 py-1 rounded-full border border-black/10">
+                    <span class="inline-flex items-center gap-1 text-xs bg-[#1a2b4c]/5 text-gray-700 px-2 py-1 rounded-full border border-[#1a2b4c]/10">
                         <span class="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span>
                         {{ active_events }} active
                     </span>
@@ -346,12 +346,12 @@
                     <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
                             id="eventRing" stroke-dashoffset="251.2"></circle>
                 </svg>
-                <i class="bi bi-calendar-week absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+                <i class="bi bi-calendar-week absolute inset-0 flex items-center justify-center text-[#1a2b4c] text-xl"></i>
             </div>
         </div>
-        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+        <div class="mt-4 pt-3 border-t border-[#1a2b4c]/5 text-xs text-gray-400 flex justify-between">
             <span>ACTIVE RATE</span>
-            <span class="text-black font-mono" id="activeRate">
+            <span class="text-[#1a2b4c] font-mono" id="activeRate">
                 {% if total_events > 0 %}{% widthratio active_events total_events 100 %}{% else %}0{% endif %}%
             </span>
         </div>
@@ -362,11 +362,11 @@
         <div class="flex items-start justify-between">
             <div>
                 <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">ATTENDEES</span>
-                <div class="text-3xl font-bold text-black mt-1">
+                <div class="text-3xl font-bold text-[#1a2b4c] mt-1">
                     <span id="attendeeCounter">0</span>
                 </div>
                 <div class="flex items-center gap-2 mt-3">
-                    <span class="inline-flex items-center gap-1 text-xs bg-black/5 text-gray-700 px-2 py-1 rounded-full border border-black/10">
+                    <span class="inline-flex items-center gap-1 text-xs bg-[#1a2b4c]/5 text-gray-700 px-2 py-1 rounded-full border border-[#1a2b4c]/10">
                         <i class="bi bi-arrow-up-short"></i> +{{ today_checkins|default:0 }} today
                     </span>
                 </div>
@@ -377,12 +377,12 @@
                     <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
                             id="attendeeRing" stroke-dashoffset="251.2"></circle>
                 </svg>
-                <i class="bi bi-people absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+                <i class="bi bi-people absolute inset-0 flex items-center justify-center text-[#1a2b4c] text-xl"></i>
             </div>
         </div>
-        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+        <div class="mt-4 pt-3 border-t border-[#1a2b4c]/5 text-xs text-gray-400 flex justify-between">
             <span>DAILY GROWTH</span>
-            <span class="text-black font-mono">
+            <span class="text-[#1a2b4c] font-mono">
                 {% with growth=today_checkins|default:0 %}
                 {% if total_attendees > 0 %}{% widthratio growth total_attendees 100 %}{% else %}0{% endif %}%
                 {% endwith %}
@@ -396,10 +396,10 @@
         <div class="flex items-start justify-between">
             <div>
                 <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">STAFF</span>
-                <div class="text-3xl font-bold text-black mt-1">
+                <div class="text-3xl font-bold text-[#1a2b4c] mt-1">
                     <span id="staffCounter">0</span>
                 </div>
-                <a href="{% url 'manage_staff' %}" class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-black mt-3 group">
+                <a href="{% url 'manage_staff' %}" class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-[#1a2b4c] mt-3 group">
                     Manage <i class="bi bi-arrow-right group-hover:translate-x-1 transition"></i>
                 </a>
             </div>
@@ -409,12 +409,12 @@
                     <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
                             id="staffRing" stroke-dashoffset="75.36"></circle>
                 </svg>
-                <i class="bi bi-person-badge absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+                <i class="bi bi-person-badge absolute inset-0 flex items-center justify-center text-[#1a2b4c] text-xl"></i>
             </div>
         </div>
-        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+        <div class="mt-4 pt-3 border-t border-[#1a2b4c]/5 text-xs text-gray-400 flex justify-between">
             <span>CAPACITY</span>
-            <span class="text-black font-mono">70%</span>
+            <span class="text-[#1a2b4c] font-mono">70%</span>
         </div>
     </div>
     {% else %}
@@ -422,11 +422,11 @@
         <div class="flex items-start justify-between">
             <div>
                 <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">APPLICATIONS</span>
-                <div class="text-3xl font-bold text-black mt-1">
+                <div class="text-3xl font-bold text-[#1a2b4c] mt-1">
                     <span id="applicationCounter">0</span>
                 </div>
                 <div class="flex items-center gap-2 mt-3">
-                    <span class="inline-flex items-center gap-1 text-xs bg-black/5 text-gray-700 px-2 py-1 rounded-full border border-black/10">
+                    <span class="inline-flex items-center gap-1 text-xs bg-[#1a2b4c]/5 text-gray-700 px-2 py-1 rounded-full border border-[#1a2b4c]/10">
                         <i class="bi bi-file-text"></i> {{ total_applications|default:0 }} submitted
                     </span>
                 </div>
@@ -437,26 +437,26 @@
                     <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
                             id="appRing" stroke-dashoffset="251.2"></circle>
                 </svg>
-                <i class="bi bi-file-text absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+                <i class="bi bi-file-text absolute inset-0 flex items-center justify-center text-[#1a2b4c] text-xl"></i>
             </div>
         </div>
-        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+        <div class="mt-4 pt-3 border-t border-[#1a2b4c]/5 text-xs text-gray-400 flex justify-between">
             <span>COMPLETION</span>
-            <span class="text-black font-mono">
+            <span class="text-[#1a2b4c] font-mono">
                 {% if total_attendees > 0 %}{% widthratio total_applications|default:0 total_attendees 100 %}{% else %}0{% endif %}%
             </span>
         </div>
     </div>
     {% endif %}
 
-    <!-- Fourth Card - System Health for Admin, Events Today for Others -->
+    <!-- Fourth Card - System Health for Admin, Total Registrations for Others -->
     {% if user.role == 'ADMIN' %}
     <!-- Admin sees fourth card as System Health (replaces rating) -->
     <div class="neu-raised rounded-2xl p-5 card-lift reveal">
         <div class="flex items-start justify-between">
             <div>
                 <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">SYSTEM</span>
-                <div class="text-3xl font-bold text-black mt-1">
+                <div class="text-3xl font-bold text-[#1a2b4c] mt-1">
                     <span id="systemHealth">98%</span>
                 </div>
                 <div class="flex items-center gap-1 mt-3">
@@ -470,43 +470,38 @@
                     <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
                             id="systemRing" stroke-dashoffset="25.12"></circle>
                 </svg>
-                <i class="bi bi-broadcast absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+                <i class="bi bi-broadcast absolute inset-0 flex items-center justify-center text-[#1a2b4c] text-xl"></i>
             </div>
         </div>
-        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
+        <div class="mt-4 pt-3 border-t border-[#1a2b4c]/5 text-xs text-gray-400 flex justify-between">
             <span>UPTIME</span>
-            <span class="text-black font-mono">99.9%</span>
+            <span class="text-[#1a2b4c] font-mono">99.9%</span>
         </div>
     </div>
     {% else %}
-    <!-- Non-admin sees Events Created (or placeholder) as fourth card -->
+    <!-- Non-admin sees Total Registrations (DONE + PARTIAL) as fourth card -->
     <div class="neu-raised rounded-2xl p-5 card-lift reveal">
         <div class="flex items-start justify-between">
             <div>
-                <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">EVENTS TODAY</span>
-                <div class="text-3xl font-bold text-black mt-1">
-                    <span id="eventsToday">{{ events_today|default:0 }}</span>
-                </div>
-                <div class="flex items-center gap-1 mt-3">
-                    <span class="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
-                    <span class="text-xs text-gray-600">upcoming</span>
+                <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">TOTAL REGISTRATIONS</span>
+                <div class="text-3xl font-bold text-[#1a2b4c] mt-1">
+                    <span id="totalRegistrations">{{ total_registrations|default:0 }}</span>
                 </div>
             </div>
             <div class="w-16 h-16 relative transmission-ripple">
                 <svg viewBox="0 0 100 100" class="transform -rotate-90 w-16 h-16">
                     <circle cx="50" cy="50" r="40" class="stat-ring-bg"></circle>
                     <circle cx="50" cy="50" r="40" class="stat-ring-progress" 
-                            id="eventsTodayRing" stroke-dashoffset="188.4"></circle>
+                            id="registrationsRing" stroke-dashoffset="188.4"></circle>
                 </svg>
-                <i class="bi bi-calendar-day absolute inset-0 flex items-center justify-center text-black text-xl"></i>
+                <i class="bi bi-journal-check absolute inset-0 flex items-center justify-center text-[#1a2b4c] text-xl"></i>
             </div>
         </div>
-        <div class="mt-4 pt-3 border-t border-black/5 text-xs text-gray-400 flex justify-between">
-            <span>THIS WEEK</span>
-            <span class="text-black font-mono">{{ weekly_events|default:events|length }}</span>
-        </div>
-        <div class="scan-progress mt-2">
-            <div class="progress-fill" style="width: {% if weekly_events > 0 %}{% widthratio events_today|default:0 weekly_events 100 %}{% else %}0{% endif %}%; max-width: 100%;"></div>
+        <div class="mt-4 pt-3 border-t border-[#1a2b4c]/5 text-xs text-gray-400 flex justify-between">
+            <span>REGISTRATION RATE</span>
+            <span class="text-[#1a2b4c] font-mono" id="registrationRate">
+                {% if total_attendees > 0 %}{% widthratio total_registrations|default:0 total_attendees 100 %}{% else %}0{% endif %}%
+            </span>
         </div>
     </div>
     {% endif %}
@@ -517,7 +512,7 @@
     <!-- RECENT EVENTS TABLE - NOW SHOWS ALL EVENTS WITH SCROLL -->
     <div class="lg:col-span-2">
         <div class="neu-raised rounded-2xl overflow-hidden reveal">
-            <div class="p-5 border-b border-black/10 flex justify-between items-center">
+            <div class="p-5 border-b border-[#1a2b4c]/10 flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div class="signal-strength !h-6">
                         <div class="bar !w-1 !h-4"></div>
@@ -526,7 +521,7 @@
                         <div class="bar !w-1 !h-6"></div>
                         <div class="bar !w-1 !h-4"></div>
                     </div>
-                    <h3 class="font-semibold text-black">ALL TRANSMISSIONS · EVENTS</h3>
+                    <h3 class="font-semibold text-[#1a2b4c]">ALL TRANSMISSIONS · EVENTS</h3>
                 </div>
                 <span class="signals-badge">{{ events|length }} signals</span>
             </div>
@@ -549,22 +544,22 @@
                             <td class="px-5 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="neu-flat w-9 h-9 rounded-lg flex items-center justify-center">
-                                        <i class="bi bi-calendar-event text-black"></i>
+                                        <i class="bi bi-calendar-event text-[#1a2b4c]"></i>
                                     </div>
                                     <div>
-                                        <div class="font-medium text-black">{{ event.title|truncatechars:25 }}</div>
+                                        <div class="font-medium text-[#1a2b4c]">{{ event.title|truncatechars:25 }}</div>
                                         <div class="text-xs text-gray-400">{{ event.venue|truncatechars:18 }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-5 py-4">
-                                <div class="text-black">{{ event.date|date:"M d, Y" }}</div>
+                                <div class="text-[#1a2b4c]">{{ event.date|date:"M d, Y" }}</div>
                                 {% if event.start_time %}
                                 <div class="text-xs text-gray-400">{{ event.start_time|time:"g:i A" }}</div>
                                 {% endif %}
                             </td>
                             <td class="px-5 py-4">
-                                <span class="text-black font-mono">{{ event.attendees.count }}</span>
+                                <span class="text-[#1a2b4c] font-mono">{{ event.attendees.count }}</span>
                                 <span class="text-xs text-gray-400"> checked</span>
                             </td>
                             <td class="px-5 py-4">
@@ -573,13 +568,13 @@
                                     <span class="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span> ACTIVE
                                 </span>
                                 {% else %}
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-black/5 text-gray-500 border border-black/10">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-[#1a2b4c]/5 text-gray-500 border border-[#1a2b4c]/10">
                                     <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span> INACTIVE
                                 </span>
                                 {% endif %}
                             </td>
                             <td class="px-5 py-4">
-                                <i class="bi bi-arrow-up-right-circle text-gray-300 hover:text-black transition"></i>
+                                <i class="bi bi-arrow-up-right-circle text-gray-300 hover:text-[#1a2b4c] transition"></i>
                             </td>
                         </tr>
                         {% empty %}
@@ -603,7 +598,7 @@
             
             <!-- Event count footer -->
             {% if events|length > 0 %}
-            <div class="p-3 border-t border-black/10 text-center text-xs text-gray-400">
+            <div class="p-3 border-t border-[#1a2b4c]/10 text-center text-xs text-gray-400">
                 Showing all {{ events|length }} event{{ events|length|pluralize }} · Last updated {{ now|date:"g:i A" }}
             </div>
             {% endif %}
@@ -616,7 +611,7 @@
         <div class="neu-raised rounded-2xl p-5 reveal">
             <div class="flex items-center gap-2 mb-5">
                 <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
-                <h4 class="font-medium text-black">TODAY'S FREQUENCY</h4>
+                <h4 class="font-medium text-[#1a2b4c]">TODAY'S FREQUENCY</h4>
                 <span class="text-xs font-mono text-gray-400 ml-auto">{{ now|date:"M d, Y" }}</span>
             </div>
             <div class="space-y-3">
@@ -625,14 +620,14 @@
                         <i class="bi bi-clock-history text-gray-500"></i>
                         <span class="text-sm text-gray-600">Check-ins</span>
                     </div>
-                    <span class="text-black font-bold text-lg font-mono" id="todayCheckins">{{ today_checkins|default:0 }}</span>
+                    <span class="text-[#1a2b4c] font-bold text-lg font-mono" id="todayCheckins">{{ today_checkins|default:0 }}</span>
                 </div>
                 <div class="flex items-center justify-between p-3 neu-inset rounded-xl">
                     <div class="flex items-center gap-3">
                         <i class="bi bi-file-text text-gray-500"></i>
                         <span class="text-sm text-gray-600">Applications</span>
                     </div>
-                    <span class="text-black font-bold text-lg font-mono">{{ total_applications|default:0 }}</span>
+                    <span class="text-[#1a2b4c] font-bold text-lg font-mono">{{ total_applications|default:0 }}</span>
                 </div>
                 <!-- FEEDBACK ROW REMOVED -->
             </div>
@@ -641,19 +636,19 @@
         <!-- Active Events Card -->
         <div class="neu-raised rounded-2xl p-5 reveal">
             <div class="flex items-center justify-between mb-4">
-                <h4 class="font-medium text-black flex items-center gap-2">
+                <h4 class="font-medium text-[#1a2b4c] flex items-center gap-2">
                     <i class="bi bi-broadcast"></i> ACTIVE EVENTS
                 </h4>
-                <span class="bg-black text-white px-2 py-1 rounded-full text-xs font-mono">{{ active_events }}</span>
+                <span class="bg-[#1a2b4c] text-white px-2 py-1 rounded-full text-xs font-mono">{{ active_events }}</span>
             </div>
             {% if active_events > 0 %}
             <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
                 {% for event in events %}
                     {% if event.is_active %}
                     <div onclick="window.location='{% url 'event_detail' event.id %}'" 
-                         class="neu-flat p-3 rounded-xl cursor-pointer hover:border-black/20 transition-all border border-transparent">
+                         class="neu-flat p-3 rounded-xl cursor-pointer hover:border-[#1a2b4c]/20 transition-all border border-transparent">
                         <div class="flex justify-between items-center">
-                            <span class="text-sm font-medium text-black">{{ event.title|truncatechars:18 }}</span>
+                            <span class="text-sm font-medium text-[#1a2b4c]">{{ event.title|truncatechars:18 }}</span>
                             <span class="text-xs text-gray-500">{{ event.attendees.count }} checked</span>
                         </div>
                         <div class="flex items-center gap-2 mt-1">
@@ -674,7 +669,7 @@
                 <p class="text-xs mt-1 font-mono">NO ACTIVE TRANSMISSIONS</p>
                 {% if user.role == 'STAFF' %}
                 <div class="mt-4">
-                    <a href="{% url 'create_event' %}" class="text-xs text-black underline underline-offset-4 hover:text-gray-700">
+                    <a href="{% url 'create_event' %}" class="text-xs text-[#1a2b4c] underline underline-offset-4 hover:text-[#2c3e5e]">
                         Create one now
                     </a>
                 </div>
@@ -687,12 +682,12 @@
         {% if user.role == 'STAFF' %}
         <div class="neu-inset rounded-2xl p-5 reveal">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center">
+                <div class="w-10 h-10 rounded-full bg-[#1a2b4c] flex items-center justify-center">
                     <i class="bi bi-plus-circle text-white"></i>
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-black">Need to broadcast?</p>
-                    <a href="{% url 'create_event' %}" class="text-xs text-gray-600 hover:text-black flex items-center gap-1">
+                    <p class="text-sm font-medium text-[#1a2b4c]">Need to broadcast?</p>
+                    <a href="{% url 'create_event' %}" class="text-xs text-gray-600 hover:text-[#1a2b4c] flex items-center gap-1">
                         Create new event <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
@@ -708,42 +703,42 @@
     <div class="neu-raised rounded-2xl p-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
-                <h3 class="text-lg font-bold text-black flex items-center gap-2">
+                <h3 class="text-lg font-bold text-[#1a2b4c] flex items-center gap-2">
                     <i class="bi bi-graph-up"></i> SYSTEM PERFORMANCE
                 </h3>
                 <p class="text-xs text-gray-400 font-mono">CARRIER LOCK · 104.7 MHz</p>
             </div>
-            <div class="flex items-center gap-2 bg-black/5 p-1 rounded-xl mt-3 md:mt-0">
-                <button class="px-4 py-2 rounded-lg text-xs font-medium text-white bg-black">7D</button>
-                <button class="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 hover:text-black">30D</button>
+            <div class="flex items-center gap-2 bg-[#1a2b4c]/5 p-1 rounded-xl mt-3 md:mt-0">
+                <button class="px-4 py-2 rounded-lg text-xs font-medium text-white bg-[#1a2b4c]">7D</button>
+                <button class="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 hover:text-[#1a2b4c]">30D</button>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="neu-inset rounded-xl p-4">
                 <div class="text-sm text-gray-500 mb-2">EVENT GROWTH</div>
-                <div class="text-2xl font-bold text-black">+{{ active_events|default:0 }}</div>
+                <div class="text-2xl font-bold text-[#1a2b4c]">+{{ active_events|default:0 }}</div>
                 <div class="mt-3 h-12 flex items-end gap-1">
-                    <div class="w-1/6 bg-black/80 rounded-t-lg h-6"></div>
-                    <div class="w-1/6 bg-black/80 rounded-t-lg h-8"></div>
-                    <div class="w-1/6 bg-black/80 rounded-t-lg h-10"></div>
-                    <div class="w-1/6 bg-black/80 rounded-t-lg h-7"></div>
-                    <div class="w-1/6 bg-black/80 rounded-t-lg h-9"></div>
-                    <div class="w-1/6 bg-black/80 rounded-t-lg h-5"></div>
+                    <div class="w-1/6 bg-[#1a2b4c]/80 rounded-t-lg h-6"></div>
+                    <div class="w-1/6 bg-[#1a2b4c]/80 rounded-t-lg h-8"></div>
+                    <div class="w-1/6 bg-[#1a2b4c]/80 rounded-t-lg h-10"></div>
+                    <div class="w-1/6 bg-[#1a2b4c]/80 rounded-t-lg h-7"></div>
+                    <div class="w-1/6 bg-[#1a2b4c]/80 rounded-t-lg h-9"></div>
+                    <div class="w-1/6 bg-[#1a2b4c]/80 rounded-t-lg h-5"></div>
                 </div>
             </div>
             <div class="neu-inset rounded-xl p-4">
                 <div class="text-sm text-gray-500 mb-2">ATTENDANCE TREND</div>
-                <div class="text-2xl font-bold text-black">↑ {{ today_checkins|default:0 }}</div>
+                <div class="text-2xl font-bold text-[#1a2b4c]">↑ {{ today_checkins|default:0 }}</div>
                 <div class="mt-3 w-full h-12 relative">
                     <svg class="w-full h-full" viewBox="0 0 100 30">
                         <polyline points="0,25 15,18 30,22 45,12 60,15 75,8 90,12 100,5" 
-                                  stroke="black" stroke-width="1.2" fill="none"/>
+                                  stroke="#1a2b4c" stroke-width="1.2" fill="none"/>
                     </svg>
                 </div>
             </div>
             <div class="neu-inset rounded-xl p-4">
                 <div class="text-sm text-gray-500 mb-2">SYSTEM UPTIME</div>
-                <div class="text-2xl font-bold text-black">99.9%</div>
+                <div class="text-2xl font-bold text-[#1a2b4c]">99.9%</div>
                 <p class="text-xs text-gray-400 mt-2 font-mono">carrier stable</p>
             </div>
         </div>
@@ -761,11 +756,11 @@
             </div>
             <div>
                 <span class="text-xs font-mono text-green-600 uppercase">ATTENDANCE MILESTONE</span>
-                <h4 class="text-black font-bold">50+ check‑ins today</h4>
+                <h4 class="text-[#1a2b4c] font-bold">50+ check‑ins today</h4>
                 <p class="text-sm text-gray-500">Signal strength critical · transmission locked</p>
             </div>
         </div>
-        <button class="px-4 py-2 rounded-lg text-sm border border-black text-black hover:bg-black hover:text-white transition flex items-center gap-2">
+        <button class="px-4 py-2 rounded-lg text-sm border border-[#1a2b4c] text-[#1a2b4c] hover:bg-[#1a2b4c] hover:text-white transition flex items-center gap-2">
             <i class="bi bi-share"></i> SHARE
         </button>
     </div>
@@ -803,6 +798,8 @@
             animateCounter(document.getElementById('staffCounter'), {{ total_staff|default:0 }});
             {% else %}
             animateCounter(document.getElementById('applicationCounter'), {{ total_applications|default:0 }});
+            // ===== NEW: Animate registration counter =====
+            animateCounter(document.getElementById('totalRegistrations'), {{ total_registrations|default:0 }});
             {% endif %}
             
             // Set system health or events today counters
@@ -810,6 +807,7 @@
             let systemEl = document.getElementById('systemHealth');
             if (systemEl) systemEl.textContent = '98%';
             {% else %}
+            // Keep events today element for backward compatibility if needed
             let eventsTodayEl = document.getElementById('eventsToday');
             if (eventsTodayEl) eventsTodayEl.textContent = '{{ events_today|default:0 }}';
             {% endif %}
@@ -848,10 +846,11 @@
             setRing('appRing', 0);
             {% endif %}
             
-            {% if weekly_events > 0 %}
-            setRing('eventsTodayRing', {% widthratio events_today|default:0 weekly_events 100 %});
+            // ===== NEW: Registration ring progress =====
+            {% if total_attendees > 0 %}
+            setRing('registrationsRing', {% widthratio total_registrations|default:0 total_attendees 100 %});
             {% else %}
-            setRing('eventsTodayRing', 0);
+            setRing('registrationsRing', 0);
             {% endif %}
             {% endif %}
         }, 300);

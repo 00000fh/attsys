@@ -8,7 +8,7 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Event, Attendee, Feedback, Application, Registration
+from .models import Event, Attendee, Application, Registration
 from django.http import HttpResponseForbidden, JsonResponse
 from django.db import IntegrityError
 from django.contrib import messages
@@ -324,7 +324,6 @@ def dashboard(request):
         total_events = Event.objects.count()
         total_attendees = Attendee.objects.count()
         total_staff = User.objects.filter(role='STAFF', is_active=True).count()
-        total_feedback = Feedback.objects.count()
         total_applications = Application.objects.count()
         
         # Today's check-ins (Malaysia time)
@@ -334,9 +333,6 @@ def dashboard(request):
         
         # Active events
         active_events = Event.objects.filter(is_active=True).count()
-        
-        # Average rating across all events
-        avg_rating = Feedback.objects.aggregate(Avg('rating'))['rating__avg']
         
         # Get ALL events (no slicing)
         events = Event.objects.order_by('-created_at')
@@ -356,11 +352,9 @@ def dashboard(request):
             'total_events': total_events,
             'total_attendees': total_attendees_count,
             'total_staff': total_staff,
-            'total_feedback': total_feedback,
             'total_applications': total_applications,
             'today_checkins': today_checkins,
             'active_events': active_events,
-            'avg_rating': avg_rating,
             'events': events,
             'events_today': events_today,
             'weekly_events': weekly_events,
@@ -376,7 +370,6 @@ def dashboard(request):
         # Count stats for this staff's events only
         total_events = user_events.count()
         total_attendees = Attendee.objects.filter(event__in=user_events).count()
-        total_feedback = Feedback.objects.filter(event__in=user_events).count()
         total_applications = Application.objects.filter(event__in=user_events).count()
         
         # Today's check-ins for staff's events
@@ -388,15 +381,21 @@ def dashboard(request):
         # Active events for this staff
         active_events = user_events.filter(is_active=True).count()
         
-        # Average rating for staff's events
-        avg_rating = Feedback.objects.filter(
-            event__in=user_events
-        ).aggregate(Avg('rating'))['rating__avg']
-        
         # Get ALL events for this staff (no slicing)
         events = user_events.order_by('-created_at')
         
-        # Calculate events today for staff
+        # ===== NEW: Calculate registration statistics =====
+        # Get all registrations for staff's events
+        registrations = Registration.objects.filter(attendee__event__in=user_events)
+        
+        # Total registrations (sum of all registrations)
+        total_registrations = registrations.count()
+        
+        # Count completed (DONE) and partial (PARTIAL) registrations
+        total_completed = registrations.filter(payment_status='DONE').count()
+        total_partial = registrations.filter(payment_status='PARTIAL').count()
+        
+        # Calculate events today for staff (keep for backward compatibility if needed)
         events_today = user_events.filter(date=today).count()
         
         # Calculate weekly events (last 7 days)
@@ -410,16 +409,18 @@ def dashboard(request):
             'user': request.user,
             'total_events': total_events,
             'total_attendees': total_attendees_count,
-            'total_feedback': total_feedback,
             'total_applications': total_applications,
             'today_checkins': today_checkins,
             'active_events': active_events,
-            'avg_rating': avg_rating,
             'events': events,
             'events_today': events_today,
             'weekly_events': weekly_events,
             'now': now,
-            'is_admin': False
+            'is_admin': False,
+            # ===== NEW REGISTRATION STATS =====
+            'total_registrations': total_registrations,
+            'total_completed': total_completed,
+            'total_partial': total_partial,
         })
 
 
@@ -437,7 +438,6 @@ def get_dashboard_stats(request):
         total_events = Event.objects.count()
         total_attendees = Attendee.objects.count()
         total_staff = User.objects.filter(role='STAFF', is_active=True).count()
-        total_feedback = Feedback.objects.count()
         total_applications = Application.objects.count()
         
         # Today's stats
@@ -454,9 +454,6 @@ def get_dashboard_stats(request):
         # Active events
         active_events = Event.objects.filter(is_active=True).count()
         
-        # Average rating
-        avg_rating = Feedback.objects.aggregate(Avg('rating'))['rating__avg'] or 0
-        
         # Recent events for admin (all events)
         recent_events = Event.objects.order_by('-created_at')[:10].values(
             'id', 'title', 'is_active', 'created_at'
@@ -468,7 +465,6 @@ def get_dashboard_stats(request):
         
         total_events = user_events.count()
         total_attendees = Attendee.objects.filter(event__in=user_events).count()
-        total_feedback = Feedback.objects.filter(event__in=user_events).count()
         total_applications = Application.objects.filter(event__in=user_events).count()
         
         # Today's stats
@@ -487,11 +483,6 @@ def get_dashboard_stats(request):
         # Active events
         active_events = user_events.filter(is_active=True).count()
         
-        # Average rating for user's events
-        avg_rating = Feedback.objects.filter(
-            event__in=user_events
-        ).aggregate(Avg('rating'))['rating__avg'] or 0
-        
         # Recent events for staff
         recent_events = user_events.order_by('-created_at')[:10].values(
             'id', 'title', 'is_active', 'created_at'
@@ -506,14 +497,12 @@ def get_dashboard_stats(request):
         'total_events': total_events,
         'total_attendees': total_attendees,
         'total_staff': total_staff if request.user.role == 'ADMIN' else 0,
-        'total_feedback': total_feedback,
         'total_applications': total_applications,
         'today_checkins': today_checkins,
         'yesterday_checkins': yesterday_checkins,
         'checkins_change': checkins_change,
         'checkins_change_percent': round(checkins_change_percent, 1),
         'active_events': active_events,
-        'avg_rating': round(float(avg_rating), 1),
         'recent_events': list(recent_events),
         'timestamp': malaysia_now().strftime('%Y-%m-%d %H:%M:%S')
     }
@@ -740,10 +729,6 @@ def event_detail(request, event_id):
     except Exception as e:
         formatted_attendance = []
 
-    # 🔹 Feedback analytics
-    feedbacks = event.feedbacks.all().order_by('-submitted_at')
-    avg_rating = feedbacks.aggregate(Avg('rating'))['rating__avg'] or 0
-
     # 🔹 Calculate registration statistics for the summary cards - UPDATED
     try:
         registrations = Registration.objects.filter(attendee__event=event)
@@ -832,8 +817,6 @@ def event_detail(request, event_id):
         'qr_image': qr_image,
         'qr_url': qr_url,
         'attendance_by_hour': formatted_attendance,
-        'feedbacks': feedbacks,
-        'avg_rating': round(avg_rating, 1),
         # === UPDATED: Registration stats ===
         'total_registered': total_registered,
         'total_paid': total_paid,
@@ -1401,6 +1384,19 @@ def manage_staff(request):
     inactive_staff_count = staff_users.filter(is_active=False).count()
     total_events = Event.objects.count()
 
+    # For each staff member, ensure we have a password to display
+    # NOTE: In production, you should NOT store plain text passwords!
+    # This is just for demo purposes. Consider using a temporary password system.
+    for staff in staff_users:
+        if not hasattr(staff, 'default_password') or not staff.default_password:
+            # Generate a random password if none exists
+            import random
+            import string
+            # Generate a random 8-character password
+            chars = string.ascii_letters + string.digits
+            staff.default_password = ''.join(random.choice(chars) for _ in range(8))
+            staff.save()
+
     return render(request, 'manage_staff.html', {
         'staff_users': staff_users,
         'active_staff_count': active_staff_count,
@@ -1489,8 +1485,9 @@ def create_staff(request):
             is_active=True
         )
         
-        # Store default password for display (in real system, you'd encrypt this)
-        # For demo purposes, we're storing it - in production, you'd never store plain passwords
+        # Store the actual password as default_password
+        # NOTE: This stores plain text password - only for demo!
+        # In production, use a temporary password system or password reset flow
         user.default_password = password
         user.last_password_update = timezone.now()
         user.save()
@@ -1500,7 +1497,8 @@ def create_staff(request):
             'user': {
                 'id': user.id,
                 'username': user.username,
-                'role': user.role
+                'role': user.role,
+                'password': password  # Return the password for confirmation
             }
         })
         
@@ -1509,29 +1507,6 @@ def create_staff(request):
     except Exception as e:
         print(f"Error creating staff: {e}")
         return JsonResponse({'error': str(e)}, status=500)
-
-
-def submit_feedback(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
-
-    if request.method == 'POST':
-        try:
-            Feedback.objects.create(
-                event=event,
-                name=request.POST['name'],
-                email=request.POST['email'],
-                rating=request.POST['rating'],
-                comment=request.POST.get('comment', '')
-            )
-            return render(request, 'feedback_success.html')
-
-        except IntegrityError:
-            return render(request, 'feedback.html', {
-                'event': event,
-                'error': 'You already submitted feedback.'
-            })
-
-    return render(request, 'feedback.html', {'event': event})
 
 
 # ============================
@@ -1645,19 +1620,12 @@ def get_realtime_stats(request, event_id):
             'time': malaysia_time.strftime('%I:%M %p')
         }
     
-    # Feedback stats
-    feedbacks = event.feedbacks.all()
-    avg_rating = feedbacks.aggregate(Avg('rating'))['rating__avg'] or 0
-    feedback_count = feedbacks.count()
-    
     response_data = {
         'success': True,
         'event_id': event_id,
         'total_attendees': total_attendees,
         'hourly_attendance': hourly_data,
         'latest_attendee': latest_attendee,
-        'average_rating': round(float(avg_rating), 1),
-        'feedback_count': feedback_count,
         'malaysia_time': malaysia_now().strftime('%I:%M %p')
     }
     
@@ -4350,11 +4318,6 @@ def get_live_stats(request, event_id):
         if last_checkin:
             last_checkin_time = timezone.localtime(last_checkin.attended_at).strftime('%I:%M %p')
         
-        # Get feedback statistics
-        feedbacks = event.feedbacks.all()
-        feedback_count = feedbacks.count()
-        avg_rating = feedbacks.aggregate(Avg('rating'))['rating__avg'] or 0
-        
         response_data = {
             'success': True,
             'statistics': {
@@ -4377,10 +4340,6 @@ def get_live_stats(request, event_id):
                     'revenue': float(total_revenue),
                     'partial_revenue': float(partial_revenue),  # ADDED
                     'avg_revenue': float(total_revenue / total_registered) if total_registered > 0 else 0
-                },
-                'feedback': {
-                    'count': feedback_count,
-                    'avg_rating': round(float(avg_rating), 1)
                 }
             },
             'summary': {
@@ -4552,11 +4511,6 @@ def get_realtime_updates(request, event_id):
     if last_update:
         new_registrations = new_registrations.filter(created_at__gt=last_update)
     
-    # Check for new feedback
-    new_feedback = event.feedbacks.all()
-    if last_update:
-        new_feedback = new_feedback.filter(submitted_at__gt=last_update)
-    
     # Get latest timestamp
     latest_timestamp = None
     timestamps = []
@@ -4565,8 +4519,6 @@ def get_realtime_updates(request, event_id):
         timestamps.append(new_attendees.latest('attended_at').attended_at)
     if new_registrations.exists():
         timestamps.append(new_registrations.latest('created_at').created_at)
-    if new_feedback.exists():
-        timestamps.append(new_feedback.latest('submitted_at').submitted_at)
     
     if timestamps:
         latest_timestamp = max(timestamps)
@@ -4576,12 +4528,10 @@ def get_realtime_updates(request, event_id):
         'has_updates': any([
             new_attendees.exists(),
             new_registrations.exists(),
-            new_feedback.exists()
         ]),
         'counts': {
             'new_attendees': new_attendees.count(),
             'new_registrations': new_registrations.count(),
-            'new_feedback': new_feedback.count()
         },
         'latest_timestamp': latest_timestamp.isoformat() if latest_timestamp else None,
         'current_time': timezone.now().isoformat()
